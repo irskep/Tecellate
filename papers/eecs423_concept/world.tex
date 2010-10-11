@@ -1,0 +1,11 @@
+\section{Simulation Rules}
+
+The simulation will be turn-based. Each turn, an agent can either attempt to move or remain still. It can simultaneously broadcast a message. After choosing an action, it receives new messages and new data about its surroundings.
+
+\section{World and Movement}
+
+The simulation world will consist of a $w$x$h$ grid of signed integers. If the number is positive it is the terrain height, otherwise the cell is impassable. An agent can move at most one cell up, down, left, or right per turn. The move action will take one extra turn for every absolute height unit difference above 1.
+
+\section{Messages}
+
+An agent may broadcast a message every turn regardless of any other action it takes. The broadcast system is a simplification of radio communication: nearby agents within a maximum radius will receive the message overwritten with noise proportional to the square of the distance. Nearby agents will receive the message clearly, farther away agents will get noisy versions, and farawy agents will not receive the message at all.

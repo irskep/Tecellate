@@ -1,0 +1,7 @@
+*.backup
+*.swp
+*.aux
+*.bbl
+*.blg
+*.log
+paper.pdf

@@ -1,0 +1,32 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{url}
+
+\title{Tecellate: A Distributed Environment for AI Simulations}
+\author{
+        Steve Johnson (srj15@case.edu)\\
+        Case Western Reserve University\\
+}
+\date{\today}
+
+\begin{document}
+\doublespacing
+\maketitle
+
+% \begin{multicols}{2}
+
+\section{Introduction}
+
+In recent years, the fields of artificial intelligence and robotics have produced independent robots capable of cooperative behavior, for example the CoDA project\cite{CoDA}. However, there is no general and accessible platform upon which to test the AI required for cooperative behavior. The Tecellate project will help solve this problem in a small way by providing a distributed grid-based world inhabited by agents with simple communication abilities. The system should be able to handle thousands of agents and scale with the addition of new machines.
+
+\input{world}
+
+\input{distribute}
+
+\input{conclusion}
+
+\bibliographystyle{acm}
+\bibliography{bibliography}
+
+\end{document}
