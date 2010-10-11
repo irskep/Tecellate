@@ -1,5 +1,23 @@
 \section{Distributing Work}
 
-Simulating thousands of agents and millions of grid cells simultaneously at a reasonable speed will require multiple machines. One server, the \emph{game coordinator}, will be responsible for starting the game and reporting the rules. The rest will be \emph{agent coordinators}, responsible for delivering messages, taking and executing agent orders, and reporting success or failure.
+Simulating thousands of agents and millions of grid cells simultaneously at a reasonable speed will require multiple machines. One server, the \emph{game coordinator}, will be responsible for starting the game and reporting the rules. The other $n_ac$ servers will be \emph{agent coordinators}, responsible for delivering messages, taking and executing agent orders, and reporting success or failure.
 
-Agents interact in two primary ways: messages and movement conflict/support. Both are only effective within a certain proximity. These properties suggest that agents should be assigned to servers based on proximity.
+Agents interact in two primary ways: messages and movement conflict/support. Both are only effective within a certain proximity. These properties suggest that agents should be assigned to coordinators based on proximity. There are multiple ways to perform this assignment. This paper will consider three strategies: static assignment, fixed region distribution, and dynamic grid distribution.
+
+\subsection{Static Assignment}
+
+The simplest way to assign agents to coordinators is to assign $\frac{n_agents}{n_ac}$ agents to each agent coordinator at random or based on some positioning heuristic. No agents will ever change their coordinator, but there may be significant overhead from close agents on different coordinators attempting to move and communicate. Also, each agent coordinator will have to be in constant communication with all other coordinators because it cannot know which other coordinators contain agents close to its own.
+
+\subsection{Fixed Region Distribution}
+
+One way to alleviate the communication problem is to assign each agent coordinator a fixed portion of the grid to be responsible for. There will never be a recalculation of bounds and each coordinator has a constant set of neighbor coordinators to communicate with. Each turn, adjacent coordinators will exchange messages, and order confirmations for agents near their shared border, and full agent information transfers for agents moving from one coordinator's region to a neighbor's region.
+
+This strategy requires the least communication between agent coordinators when agents move relatively little, but requires much communication when many agents are near region borders or move between borders often. It also introduces inefficiency in work distribution when disproportionate numbers of agents are gathered in small regions.
+
+\subsection{Dynamic Grid Distribution}
+
+Like fixed region distribution, dynamic grid distribution assigns each agent coordinator a region of the grid to be responsible for. However, the regions themselves are arranged in a meta-grid. This grid arragenement allows rows and columns to be resized while the simulation is running, partially alleviating the work distribution problem.
+
+\subsection{Strategy for First Version}
+
+The initial implementation of Tecellate will use static assignment to test communication protocols and basic mechanics. Then a fixed region distribution over a meta-grid will be introduced. If there is time, dynamic grid distribution will be implemented.
