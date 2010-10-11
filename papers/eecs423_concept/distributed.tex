@@ -1,0 +1,5 @@
+\section{Distributing Work}
+
+Simulating thousands of agents and millions of grid cells simultaneously at a reasonable speed will require multiple machines. One server, the \emph{game coordinator}, will be responsible for starting the game and reporting the rules. The rest will be \emph{agent coordinators}, responsible for delivering messages, taking and executing agent orders, and reporting success or failure.
+
+Agents interact in two primary ways: messages and movement conflict/support. Both are only effective within a certain proximity. These properties suggest that agents should be assigned to servers based on proximity.
