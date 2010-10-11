@@ -4,6 +4,16 @@ The rules outlined in Section \ref{rules} describe a minimal environment to test
 
 \subsection{Food}
 
-Under the \emph{food} rule, agents must search the grid to find food. If their coordinator calculates that their food counter is below zero, they disappear from the grid. This rule would give agent programmers incentives to introduce distributed communication networks to inform faraway agents of abundant new food sources.
+Agents must search the grid to find food. If their coordinator calculates that their food counter is below zero, they disappear from the grid. This rule would give agent programmers incentives to introduce distributed communication networks to inform faraway agents of abundant new food sources.
 
-\subsection{}
+\subsection{Reproduction}
+
+Two adjacent agents are able to produce a new agent if another adjacent cell is open and both agents have enough food to supply the new agent. The parent agents will lose that food.
+
+\subsection{Cable Communication}
+
+Each agent can lay $x$ feet of cable. If an agent is over a cell with cable in it laid by its team, it can communicate instantly and without noise to other agents on the same cable.
+
+\subsection{Cable Warfare}
+
+If an agent is over a cell with cable in it laid by its enemy, it can destroy the cable.
