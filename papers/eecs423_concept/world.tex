@@ -1,4 +1,5 @@
 \section{Simulation Rules}
+\label{rules}
 
 The simulation will be turn-based. Each turn, an agent can either attempt to move or remain still. It can simultaneously broadcast a message. After choosing an action, it receives new messages and new data about its surroundings.
 
@@ -10,7 +11,7 @@ If more than one agent on the same team attempt to move into the same cell, none
 
 \subsection{Perception}
 
-Agents will be informed of the positions and affiliations of other agents within 2 cells.
+Agents will be informed of the positions and affiliations of other agents within 2 cells. They may or may not know their absolute position depending on the global simulation configuration.
 
 \subsection{Messages}
 
