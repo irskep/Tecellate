@@ -1,5 +1,5 @@
 {
     "CoordPath": "../coord/coord",
     "NumCoords": 10,
-    "ListenPort": 4009
+    "ListenAddr": "127.0.0.1:4009"
 }
