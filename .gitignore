@@ -5,3 +5,9 @@
 *.blg
 *.log
 paper.pdf
+*.6
+*.8
+*.a
+server/tecellate
+coord/coord
+bot/bot
