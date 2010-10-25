@@ -17,10 +17,10 @@ var config = Config{""}
 
 func main() {
 	loadConfig()
-	ch := make(chan int)
-	go getCoordinators(ch)
+	listenerReady := make(chan int)
+	go listenForCoordinators(listenerReady)
 	fmt.Println("Launched getCoordinators, waiting for ok...")
-	_ = <-ch
+	_ = <- listenerReady
 	fmt.Println("Sweet, let's go")
 	launchCoordinators()
 }
@@ -52,7 +52,7 @@ func launchCoordinators() {
 	}
 }
 
-func getCoordinators(ok chan int) {
+func listenForCoordinators(ready chan int) {
 	fmt.Println("OK TO ISSUE")
-	ok <- 1
+	ready <- 1
 }
