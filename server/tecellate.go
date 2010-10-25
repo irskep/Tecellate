@@ -6,6 +6,7 @@ import (
 	"json"
 	"io/ioutil"
 	"log"
+	"strconv"
 )
 
 type Config struct {
@@ -17,8 +18,10 @@ var config = Config{""}
 func main() {
 	loadConfig()
 	wd, err := os.Getwd()
-	_, err = os.ForkExec(config.CoordPath, nil, nil, 
-						 wd, []*os.File{nil, os.Stdout, os.Stderr})
+	for i := 0; i < 10; i++ {
+		_, err = os.ForkExec(config.CoordPath, []string{strconv.Itoa(i)}, nil, 
+							 wd, []*os.File{nil, os.Stdout, os.Stderr})
+	}
 	if err != nil {
 		log.Exit(err)
 	}
