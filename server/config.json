@@ -1,3 +1,5 @@
 {
-    "CoordPath": "../coord/coord"
+    "CoordPath": "../coord/coord",
+    "NumCoords": 10,
+    "ListenPort": 4009
 }
