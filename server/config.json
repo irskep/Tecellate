@@ -1,5 +1,18 @@
 {
-    "CoordPath": "../coord/coord",
+    "Coords": [
+        "127.0.0.1:8000",
+        "127.0.0.1:8001"
+    ],
     "NumCoords": 10,
-    "ListenAddr": "127.0.0.1:4009"
+    "ListenAddr": "127.0.0.1:4009",
+    "BotDefs": [
+        {
+            "Path": "../bots/test/test",
+            "Count": 5
+        }, 
+        {
+            "Path": "../bots/test/test",
+            "Count": 10
+        }
+    ]
 }
