@@ -10,4 +10,4 @@ paper.pdf
 *.a
 server/tecellate
 coord/coord
-bot/bot
+bots/test/test
