@@ -30,5 +30,3 @@ kill:
 .PHONY : clean
 clean :
 	-find . -name "*.6" | xargs -I"%s" rm %s
-	# -rm -f time _testmain 2> /dev/null
-	ls
