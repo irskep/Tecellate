@@ -15,7 +15,7 @@ func main() {
 	defer conn.Close()
 	
 	config := new(ttypes.CoordConfig)
-	err := json.Unmarshal(receive_from(conn), config)
+	err := json.Unmarshal(easynet.ReceiveFrom(conn), config)
 	easynet.DieIfError(err, "JSON error")
 	
 	connections := setupBots(config)
