@@ -22,7 +22,7 @@ build: clean
 run:
 	./build/coord 127.0.0.1:8002 &
 	./build/coord 127.0.0.1:8102 &
-	(sleep 1; ./build/tecellate)
+	(sleep 0.5; ./build/tecellate)
 
 kill:
 	killall coord
