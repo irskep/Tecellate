@@ -10,32 +10,42 @@ import (
 	"ttypes"
 )
 
-type coordMap map[int]*net.TCPConn
-var adjsServe coordMap
-var adjsRequest coordMap
+type CoordMap map[int]*net.TCPConn
+var adjsServe CoordMap
+var adjsRequest CoordMap
 var botConns []*net.TCPConn
 var config *ttypes.CoordConfig
 
 var turnsRemaining int
 
+var primary bool
+
 func main() {
+	primary = false
+	
 	listener := easynet.HostWithAddress(os.Args[1])
 	defer listener.Close()
-	conn := easynet.Accept(listener)
-	defer conn.Close()
+	connectionToMaster := easynet.Accept(listener)
+	defer connectionToMaster.Close()
 	
 	config = new(ttypes.CoordConfig)
-	err := json.Unmarshal(easynet.ReceiveFrom(conn), config)
+	err := json.Unmarshal(easynet.ReceiveFrom(connectionToMaster), config)
 	easynet.DieIfError(err, "JSON error")
 	turnsRemaining = config.NumTurns
 	
-	conn.Write([]uint8("connected"))
+	connectionToMaster.Write([]uint8("connected"))
 	
 	setupAll(listener)
 	
-	conn.Write([]uint8("setup complete"))
+	connectionToMaster.Write([]uint8("setup complete"))
 	
-	conn.Write([]uint8("exited"))
+	complete := make(chan bool)
+	
+	go listenForStart(connectionToMaster)
+	go listenForTurnFlips(complete)
+	go listenForInfoRequests()
+	
+	<-complete
 }
 
 func setupBot(conf ttypes.BotConf, portNumber int) *net.TCPConn {
@@ -63,8 +73,8 @@ func setupBots() (chan bool) {
 }
 
 func connectToAdjacents(listener *net.TCPListener) chan bool {
-	adjsServe = make(coordMap, len(config.AdjacentCoords))
-	adjsRequest = make(coordMap, len(config.AdjacentCoords))
+	adjsServe = make(CoordMap, len(config.AdjacentCoords))
+	adjsRequest = make(CoordMap, len(config.AdjacentCoords))
 	serveFound := make(chan int)
 	requestFound := make(chan int)
 	allDone := make(chan bool)

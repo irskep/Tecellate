@@ -11,7 +11,7 @@ libs : lib/easynet.a lib/ttypes.a
 	mv ttypes.a lib
 
 coord : build/coord
-	6g -I "lib/" src/coord/coord.go
+	6g -I "lib/" src/coord/coord.go src/coord/protocol.go
 	6l -L "lib/" -o build/coord coord.6
 
 testbot : build/test
@@ -28,7 +28,7 @@ run:
 	(sleep 0.5; ./build/tecellate)
 
 kill:
-	killall coord
+	killall coord & killall tecellate
 
 .PHONY : clean
 clean :
