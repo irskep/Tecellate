@@ -1,7 +1,7 @@
 package easynet
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 	"net"
 	"log"
@@ -10,11 +10,11 @@ import (
 )
 
 func DieIfError(err os.Error, msg string) {
-	if err != nil { log.Exit("", msg, " in coordinator: ", err) }
+	if err != nil { log.Exit(msg, ": ", err) }
 }
 
 func HostWithAddress(addrString string) *net.TCPListener {
-	fmt.Printf("Listening with address %s\n", addrString)
+	// fmt.Printf("Listening with address %s\n", addrString)
 	addr, err := net.ResolveTCPAddr(addrString);
 	DieIfError(err, "TCP address resolution error")
 	listener, err := net.ListenTCP("tcp", addr);

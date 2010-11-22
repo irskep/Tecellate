@@ -19,6 +19,7 @@ type Grid struct {
 }
 
 type AdjacentCoord struct {
+	Identifier int
 	Address string
 }
 

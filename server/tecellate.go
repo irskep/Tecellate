@@ -25,6 +25,14 @@ func main() {
 		if (err != nil) { log.Exit(err) }
 		conn.Write(data)
 	}
+	
+	for i, conn := range(connections) {
+		fmt.Printf("%d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
+	}
+	
+	for i, conn := range(connections) {
+		fmt.Printf("%d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
+	}
 }
 
 func loadConfig() *ttypes.Config {
@@ -46,7 +54,6 @@ func loadConfig() *ttypes.Config {
 func connectToCoordinators(config *ttypes.Config) ([]*net.TCPConn) {
 	connections := make([]*net.TCPConn, len(config.Coords))
 	for i, _ := range(connections) {
-		fmt.Printf("%d", i)
 		connections[i] = easynet.Dial(config.Coords[i])
 	}
 	return connections
@@ -61,11 +68,14 @@ func configureCoordinators(config *ttypes.Config) ([]ttypes.CoordConfig) {
 			coordConfigs[ix].BotConfs = append(coordConfigs[ix].BotConfs, newConf)
 		}
 	}
-	for i, cfg := range(coordConfigs) {
+	for i, _ := range(coordConfigs) {
+		coordConfigs[i].Identifier = i+1
+	}
+	for i, _ := range(coordConfigs) {
 		for j, _ := range(coordConfigs) {
 			if i != j {
-				newAdj := ttypes.AdjacentCoord{config.Coords[j]};
-				cfg.AdjacentCoords = []ttypes.AdjacentCoord{newAdj}
+				newAdj := ttypes.AdjacentCoord{coordConfigs[j].Identifier, config.Coords[j]};
+				coordConfigs[i].AdjacentCoords = []ttypes.AdjacentCoord{newAdj}
 			}
 		}
 	}
