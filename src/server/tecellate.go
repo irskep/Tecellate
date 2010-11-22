@@ -33,6 +33,9 @@ func main() {
 	for i, conn := range(connections) {
 		fmt.Printf("%d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
 	}
+	
+	fmt.Printf("Starting first turn\n")
+	connections[0].Write([]uint8("begin"))
 }
 
 func loadConfig() *ttypes.Config {

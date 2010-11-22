@@ -13,7 +13,10 @@ import (
 type coordMap map[int]*net.TCPConn
 var adjsServe coordMap
 var adjsRequest coordMap
+var botConns []*net.TCPConn
 var config *ttypes.CoordConfig
+
+var turnsRemaining int
 
 func main() {
 	listener := easynet.HostWithAddress(os.Args[1])
@@ -24,23 +27,15 @@ func main() {
 	config = new(ttypes.CoordConfig)
 	err := json.Unmarshal(easynet.ReceiveFrom(conn), config)
 	easynet.DieIfError(err, "JSON error")
+	turnsRemaining = config.NumTurns
 	
 	conn.Write([]uint8("connected"))
 	
-	connections, botsComplete := setupBots(config)
+	setupAll(listener)
 	
-	adjsServe = make(coordMap, len(config.AdjacentCoords))
-	adjsRequest = make(coordMap, len(config.AdjacentCoords))
-	adjsComplete := connectToAdjacents(listener)
+	conn.Write([]uint8("setup complete"))
 	
-	<- adjsComplete
-	<- botsComplete
-	
-	for _, c := range(connections) {
-		fmt.Printf("%s\n", easynet.ReceiveFrom(c))
-	}
-	
-	conn.Write([]uint8("finished"))
+	conn.Write([]uint8("exited"))
 }
 
 func setupBot(conf ttypes.BotConf, portNumber int) *net.TCPConn {
@@ -52,22 +47,24 @@ func setupBot(conf ttypes.BotConf, portNumber int) *net.TCPConn {
 	return easynet.Dial(addrString)
 }
 
-func setupBots(config *ttypes.CoordConfig) ([]*net.TCPConn, chan bool) {
-	connections := make([]*net.TCPConn, len(config.BotConfs))
+func setupBots() (chan bool) {
+	botConns := make([]*net.TCPConn, len(config.BotConfs))
 	basePort := new(int)
 	botComplete := make(chan bool)
 	fmt.Sscanf(os.Args[1], "127.0.0.1:%d", basePort)
 	go func() {
 		for ix, b := range(config.BotConfs) {
-			connections[ix] = setupBot(b, *basePort + ix + 1)
+			botConns[ix] = setupBot(b, *basePort + ix + 1)
 		}
 		botComplete <- true
 	}()
 	
-	return connections, botComplete
+	return botComplete
 }
 
 func connectToAdjacents(listener *net.TCPListener) chan bool {
+	adjsServe = make(coordMap, len(config.AdjacentCoords))
+	adjsRequest = make(coordMap, len(config.AdjacentCoords))
 	serveFound := make(chan int)
 	requestFound := make(chan int)
 	allDone := make(chan bool)
@@ -99,4 +96,20 @@ func connectToAdjacents(listener *net.TCPListener) chan bool {
 	}()
 	
 	return allDone
+}
+
+func setupAll(listener *net.TCPListener) {
+	botsComplete := setupBots()
+	adjsComplete := connectToAdjacents(listener)
+	
+	for _, conn := range(adjsServe) {
+		defer conn.Close()
+	}
+	
+	<- adjsComplete
+	<- botsComplete
+	
+	for _, c := range(botConns) {
+		fmt.Printf("%s\n", easynet.ReceiveFrom(c))
+	}
 }

@@ -1,6 +1,6 @@
 build: clean libs coord testbot master
 
-libs:
+libs : lib/easynet.a lib/ttypes.a
 	6g lib/easynet.go
 	6g lib/ttypes.go
 
@@ -10,22 +10,17 @@ libs:
 	mv easynet.a lib
 	mv ttypes.a lib
 
-	rm *.6
-
-coord:
+coord : build/coord
 	6g -I "lib/" src/coord/coord.go
 	6l -L "lib/" -o build/coord coord.6
-	rm *.6
 
-testbot:
+testbot : build/test
 	6g -I "lib/" src/bots/test/test.go
 	6l -L "lib/" -o build/test test.6
-	rm *.6
 
-master:
+master : build/tecellate
 	6g -I "lib/" src/server/tecellate.go src/server/grid.go
 	6l -L "lib/" -o build/tecellate tecellate.6
-	rm *.6
 
 run:
 	./build/coord 127.0.0.1:8002 &
