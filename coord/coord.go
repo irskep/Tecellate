@@ -5,7 +5,6 @@ import (
 	"json"
 	"os"
 	"net"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -20,36 +19,21 @@ type BotConf struct {
 	Path string
 }
 
-func dieIfError(err os.Error, msg string) {
-	if err != nil { log.Exit("", msg, " in coordinator: ", err) }
-}
-
-func setupConnection() *net.TCPConn {
-	fmt.Printf("Launching with address: %s\n", os.Args[1])
-	addr, err := net.ResolveTCPAddr(os.Args[1]);
-	dieIfError(err, "TCP address resolution error")
-	listener, err := net.ListenTCP("tcp", addr);
-	dieIfError(err, "Listening error")
+func main() {
+	conn := setupConnection(os.Args[1])
+	defer conn.Close()
 	
-	conn, err := listener.AcceptTCP();
-	dieIfError(err, "TCP accept error")
-	conn.SetKeepAlive(true)
-	conn.SetReadTimeout(30000)
+	config := new(CoordConfig)
+	err := json.Unmarshal(receive_from(conn), config)
+	dieIfError(err, "JSON error")
 	
-	fmt.Printf("Waiting for connections on %s...\n", addr)
+	connections := setupBots(config)
 	
-	return conn
-}
-
-func receive_from(conn *net.TCPConn) []byte {
-	rcvd := make([]byte, 4096)
-	size, err := conn.Read(rcvd)
-	for err != nil && strings.HasSuffix(err.String(), "temporarily unavailable") {
-		time.Sleep(10000)
-		size, err = conn.Read(rcvd)
+	for _, c := range(connections) {
+		fmt.Printf("%s\n", receive_from(c))
 	}
-	dieIfError(err, "Receive error")
-	return rcvd[0:size]
+	
+	conn.Write([]uint8("ok"))
 }
 
 func setupBot(conf BotConf, portNumber int) *net.TCPConn {
@@ -80,21 +64,4 @@ func setupBots(config *CoordConfig) []*net.TCPConn {
 		connections[ix] = setupBot(b, *basePort + ix + 1)
 	}
 	return connections
-}
-
-func main() {
-	conn := setupConnection()
-	defer conn.Close()
-	
-	config := new(CoordConfig)
-	err := json.Unmarshal(receive_from(conn), config)
-	dieIfError(err, "JSON error")
-	
-	connections := setupBots(config)
-	
-	for _, c := range(connections) {
-		fmt.Printf("%s\n", receive_from(c))
-	}
-	
-	conn.Write([]uint8("ok"))
 }
