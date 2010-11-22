@@ -1,4 +1,6 @@
-build: clean
+build: clean libs coord testbot master
+
+libs:
 	6g lib/easynet.go
 	6g lib/ttypes.go
 
@@ -8,15 +10,21 @@ build: clean
 	mv easynet.a lib
 	mv ttypes.a lib
 
-	6g -I "lib/" src/bots/test/test.go
-	6l -L "lib/" -o build/test test.6
+	rm *.6
 
+coord:
 	6g -I "lib/" src/coord/coord.go
 	6l -L "lib/" -o build/coord coord.6
+	rm *.6
 
+testbot:
+	6g -I "lib/" src/bots/test/test.go
+	6l -L "lib/" -o build/test test.6
+	rm *.6
+
+master:
 	6g -I "lib/" src/server/tecellate.go src/server/grid.go
 	6l -L "lib/" -o build/tecellate tecellate.6
-
 	rm *.6
 
 run:
