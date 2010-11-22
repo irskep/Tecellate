@@ -7,6 +7,7 @@ import (
 	"net"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -37,14 +38,16 @@ func setupConnection() *net.TCPConn {
 	
 	fmt.Printf("Waiting for connections on %s...\n", addr)
 	
-	time.Sleep(1000000)
-	
 	return conn
 }
 
 func receive_from(conn *net.TCPConn) []byte {
 	rcvd := make([]byte, 4096)
 	size, err := conn.Read(rcvd)
+	for err != nil && strings.HasSuffix(err.String(), "temporarily unavailable") {
+		time.Sleep(10000)
+		size, err = conn.Read(rcvd)
+	}
 	dieIfError(err, "Receive error")
 	return rcvd[0:size]
 }
@@ -55,11 +58,13 @@ func setupBot(conf BotConf, portNumber int) *net.TCPConn {
     _, err := os.ForkExec(conf.Path, []string{addrString}, nil, "",fd);
 	dieIfError(err, "Error launching bot")
 	
-	time.Sleep(100000000)
-	
 	addr, err := net.ResolveTCPAddr(addrString);
 	dieIfError(err, "TCP address resolution error")
 	conn, err := net.DialTCP("tcp", nil, addr)
+	for err != nil && strings.HasSuffix(err.String(), "connection refused") {
+		time.Sleep(10000)
+		conn, err = net.DialTCP("tcp", nil, addr)
+	}
 	dieIfError(err, "Dial error")
 	return conn
 }
