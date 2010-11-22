@@ -7,11 +7,11 @@
     "ListenAddr": "127.0.0.1:4009",
     "BotDefs": [
         {
-            "Path": "../bots/test/test",
+            "Path": "build/test",
             "Count": 5
         }, 
         {
-            "Path": "../bots/test/test",
+            "Path": "build/test",
             "Count": 10
         }
     ]

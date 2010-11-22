@@ -8,6 +8,4 @@ paper.pdf
 *.6
 *.8
 *.a
-server/tecellate
-coord/coord
-bots/test/test
+build/

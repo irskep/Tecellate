@@ -8,8 +8,8 @@ import (
 	"log"
 	"net"
 	"rand"
-	"../easynet"
-	"../ttypes"
+	"easynet"
+	"ttypes"
 )
 
 func main() {

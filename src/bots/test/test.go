@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"../../easynet"
+	"easynet"
 )
 
 func main() {

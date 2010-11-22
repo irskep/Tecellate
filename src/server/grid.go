@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
-	"../ttypes"
+	"ttypes"
 )
 
 func serializeGrid(grid [][]int) []byte {

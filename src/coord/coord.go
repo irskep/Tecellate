@@ -6,8 +6,8 @@ import (
 	"os"
 	"net"
 	"strconv"
-	"../easynet"
-	"../ttypes"
+	"easynet"
+	"ttypes"
 )
 
 type coordMap map[int]*net.TCPConn
