@@ -61,15 +61,16 @@ func connectToCoordinators(config *ttypes.Config) ([]*net.TCPConn) {
 
 func configureCoordinators(config *ttypes.Config) ([]ttypes.CoordConfig) {
 	coordConfigs := make([]ttypes.CoordConfig, len(config.Coords))
+	for i, _ := range(coordConfigs) {
+		coordConfigs[i].Identifier = i+1
+		coordConfigs[i].NumTurns = config.NumTurns
+	}
 	for _, bot := range(config.BotDefs) {
 		for i := 0; i < bot.Count; i++ {
 			ix := rand.Int() % len(coordConfigs)
 			newConf := ttypes.BotConf{bot.Path}
 			coordConfigs[ix].BotConfs = append(coordConfigs[ix].BotConfs, newConf)
 		}
-	}
-	for i, _ := range(coordConfigs) {
-		coordConfigs[i].Identifier = i+1
 	}
 	for i, _ := range(coordConfigs) {
 		for j, _ := range(coordConfigs) {

@@ -3,7 +3,7 @@ package ttypes
 type Config struct {
 	Coords []string
 	NumCoords int
-	ListenAddr string
+	NumTurns int
 	BotDefs []BotDef
 }
 
@@ -25,6 +25,7 @@ type AdjacentCoord struct {
 
 type CoordConfig struct {
 	Identifier int
+	NumTurns int
 	BotConfs []BotConf
 	Terrain Grid
 	AdjacentCoords []AdjacentCoord

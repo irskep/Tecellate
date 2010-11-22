@@ -4,7 +4,7 @@
         "127.0.0.1:8102"
     ],
     "NumCoords": 10,
-    "ListenAddr": "127.0.0.1:4009",
+    "NumTurns": 10,
     "BotDefs": [
         {
             "Path": "build/test",
