@@ -12,10 +12,16 @@ type BotDef struct {
 	Count int
 }
 
+type Grid struct {
+	Items []byte
+	Width uint
+	Height uint
+}
+
 type CoordConfig struct {
 	Identifier int
 	BotConfs []BotConf
-	Grid []byte
+	Terrain Grid
 }
 
 type BotConf struct {

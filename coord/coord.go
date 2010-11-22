@@ -17,6 +17,7 @@ func main() {
 	config := new(ttypes.CoordConfig)
 	err := json.Unmarshal(easynet.ReceiveFrom(conn), config)
 	easynet.DieIfError(err, "JSON error")
+	fmt.Println(config.Terrain)
 	
 	connections := setupBots(config)
 	

@@ -17,10 +17,10 @@ func main() {
 	connections := connectToCoordinators(config)
 	coordConfigs := configureCoordinators(config)
 	
-	grid := simpleGrid()
+	grid := simpleGrid(10, 10)
 	
 	for i, conn := range(connections) {
-		coordConfigs[i].Grid = serializeGrid(grid)
+		coordConfigs[i].Terrain = *grid
 		data, err := json.Marshal(coordConfigs[i])
 		if (err != nil) { log.Exit(err) }
 		conn.Write(data)
