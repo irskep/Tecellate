@@ -13,18 +13,20 @@ func DieIfError(err os.Error, msg string) {
 	if err != nil { log.Exit("", msg, " in coordinator: ", err) }
 }
 
-func HostWithAddress(addrString string) *net.TCPConn {
+func HostWithAddress(addrString string) *net.TCPListener {
 	fmt.Printf("Listening with address %s\n", addrString)
 	addr, err := net.ResolveTCPAddr(addrString);
 	DieIfError(err, "TCP address resolution error")
 	listener, err := net.ListenTCP("tcp", addr);
 	DieIfError(err, "Listening error")
-	
+	return listener
+}
+
+func Accept(listener *net.TCPListener) *net.TCPConn {
 	conn, err := listener.AcceptTCP();
 	DieIfError(err, "TCP accept error")
 	conn.SetKeepAlive(true)
 	conn.SetReadTimeout(30000)
-	
 	return conn
 }
 

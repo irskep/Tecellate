@@ -18,10 +18,15 @@ type Grid struct {
 	Height uint
 }
 
+type AdjacentCoord struct {
+	Address string
+}
+
 type CoordConfig struct {
 	Identifier int
 	BotConfs []BotConf
 	Terrain Grid
+	AdjacentCoords []AdjacentCoord
 }
 
 type BotConf struct {

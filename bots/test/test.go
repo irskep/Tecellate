@@ -6,7 +6,9 @@ import (
 )
 
 func main() {
-	conn := easynet.HostWithAddress(os.Args[0])
+	listener := easynet.HostWithAddress(os.Args[0])
+	defer listener.Close()
+	conn := easynet.Accept(listener)
 	defer conn.Close()
 	
 	conn.Write([]uint8("ok"))

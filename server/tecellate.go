@@ -61,5 +61,13 @@ func configureCoordinators(config *ttypes.Config) ([]ttypes.CoordConfig) {
 			coordConfigs[ix].BotConfs = append(coordConfigs[ix].BotConfs, newConf)
 		}
 	}
+	for i, cfg := range(coordConfigs) {
+		for j, _ := range(coordConfigs) {
+			if i != j {
+				newAdj := ttypes.AdjacentCoord{config.Coords[j]};
+				cfg.AdjacentCoords = []ttypes.AdjacentCoord{newAdj}
+			}
+		}
+	}
 	return coordConfigs
 }

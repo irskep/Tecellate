@@ -11,7 +11,9 @@ import (
 )
 
 func main() {
-	conn := easynet.HostWithAddress(os.Args[1])
+	listener := easynet.HostWithAddress(os.Args[1])
+	defer listener.Close()
+	conn := easynet.Accept(listener)
 	defer conn.Close()
 	
 	config := new(ttypes.CoordConfig)
