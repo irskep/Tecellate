@@ -8,42 +8,27 @@ import (
 	"log"
 	"net"
 	"rand"
+	"../easynet"
+	"../ttypes"
 )
-
-type Config struct {
-	Coords []string
-	NumCoords int
-	ListenAddr string
-	BotDefs []BotDef
-}
-
-type BotDef struct {
-	Path string
-	Count int
-}
-
-type CoordConfig struct {
-	identifier int
-	BotConfs []BotConf
-}
-
-type BotConf struct {
-	Path string
-}
 
 func main() {
 	config := loadConfig()
 	connections := connectToCoordinators(config)
 	coordConfigs := configureCoordinators(config)
+	
+	grid := simpleGrid()
+	
 	for i, conn := range(connections) {
+		coordConfigs[i].Grid = serializeGrid(grid)
 		data, err := json.Marshal(coordConfigs[i])
 		if (err != nil) { log.Exit(err) }
 		conn.Write(data)
 	}
 }
 
-func loadConfig() *Config {
-	config := new(Config)
+func loadConfig() *ttypes.Config {
+	config := new(ttypes.Config)
 	
 	configFile, err := os.Open("config.json", os.O_RDONLY, 0)
 	if err != nil { log.Exit(err) }
@@ -58,25 +43,21 @@ func loadConfig() *Config {
 	return config
 }
 
-func connectToCoordinators(config *Config) ([]*net.TCPConn) {
+func connectToCoordinators(config *ttypes.Config) ([]*net.TCPConn) {
 	connections := make([]*net.TCPConn, len(config.Coords))
 	for i, _ := range(connections) {
 		fmt.Printf("%d", i)
-		addr, err := net.ResolveTCPAddr(config.Coords[i]);
-		if err != nil { log.Exit(err) }
-		conn, err := net.DialTCP("tcp", nil, addr)
-		if err != nil { log.Exit(err) }
-		connections[i] = conn
+		connections[i] = easynet.Dial(config.Coords[i])
 	}
 	return connections
 }
 
-func configureCoordinators(config *Config) ([]CoordConfig) {
-	coordConfigs := make([]CoordConfig, len(config.Coords))
+func configureCoordinators(config *ttypes.Config) ([]ttypes.CoordConfig) {
+	coordConfigs := make([]ttypes.CoordConfig, len(config.Coords))
 	for _, bot := range(config.BotDefs) {
 		for i := 0; i < bot.Count; i++ {
 			ix := rand.Int() % len(coordConfigs)
-			newConf := BotConf{bot.Path}
+			newConf := ttypes.BotConf{bot.Path}
 			coordConfigs[ix].BotConfs = append(coordConfigs[ix].BotConfs, newConf)
 		}
 	}
