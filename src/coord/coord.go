@@ -40,6 +40,7 @@ func main() {
 	connectionToMaster.Write([]uint8("connected"))
 	
 	setupAll(listener)
+	
 	for _, conn := range(adjsServe) {
 		defer conn.Close()
 	}
@@ -50,6 +51,8 @@ func main() {
 	go listenForPeer()
 	
 	<-complete
+	
+	connectionToMaster.Write([]byte("Wasn't that fun?"))
 }
 
 func setupBot(conf ttypes.BotConf, portNumber int) *net.TCPConn {

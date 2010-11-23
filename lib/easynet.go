@@ -27,6 +27,7 @@ func Accept(listener *net.TCPListener) *net.TCPConn {
 	DieIfError(err, "TCP accept error")
 	conn.SetKeepAlive(true)
 	conn.SetReadTimeout(30000)
+	conn.SetNoDelay(true)
 	return conn
 }
 
@@ -39,18 +40,27 @@ func Dial(addrString string) *net.TCPConn {
 		conn, err = net.DialTCP("tcp", nil, addr)
 	}
 	DieIfError(err, "Dial error")
+	conn.SetNoDelay(true)
 	return conn
 }
 
-func ReceiveFrom(conn *net.TCPConn) []byte {
+func ReceiveFromWithError(conn *net.TCPConn) ([]byte, os.Error) {
 	rcvd := make([]byte, 4096)
 	size, err := conn.Read(rcvd)
 	for err != nil && strings.HasSuffix(err.String(), "temporarily unavailable") {
 		time.Sleep(10000)
 		size, err = conn.Read(rcvd)
 	}
+	return rcvd[0:size], err
+}
+
+func ReceiveFrom(conn *net.TCPConn) []byte {
+	msg, err := ReceiveFromWithError(conn)
+	// if err != nil {
+	// 	panic("receive error!")
+	// }
 	DieIfError(err, "Receive error")
-	return rcvd[0:size]
+	return msg
 }
 
 func TieConnToChannel(conn *net.TCPConn, c chan []uint8) {

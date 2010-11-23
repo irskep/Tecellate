@@ -31,41 +31,60 @@ type RespondNodeInfo struct {
 }
 
 func listenForMaster(connectionToMaster *net.TCPConn) {
-	msg := string(easynet.ReceiveFrom(connectionToMaster))
-	if msg == "begin" {
-		fmt.Printf("%d is primary\n", config.Identifier)
-		primary = true
-		broadcastValid()
+	msg, err := easynet.ReceiveFromWithError(connectionToMaster)
+	if err != nil {
+		fmt.Printf("%d apparently was not the primary\n", config.Identifier)
+		fmt.Printf("Error was: %v\n", err)
+	} else {
+		if string(msg) == "begin" {
+			fmt.Printf("%d is primary\n", config.Identifier)
+			primary = true
+			broadcastValid()
+		}
 	}
 }
 
 func listenForPeer() {
 	fmt.Printf("%d serving requests\n", config.Identifier)
 	for data := range(listenServe) {
-		r := new(Request)
-		err := json.Unmarshal(data, r)
-		easynet.DieIfError(err, "JSON error")
-		switch {
-		case r.Command == "Begin" && primary == false && waitingForStart == true:
-			fmt.Printf("%d handle Begin from %d\n", config.Identifier, r.Identifier)
-			waitingForStart = false
-			go processNodes()
-		case r.Command == "GetNodes":
-			fmt.Printf("%d handle GetNodes from %d\n", config.Identifier, r.Identifier)
-			for respondingToRequestsFor < r.Turn {
-				fmt.Printf("%d not ready for GetNodes\n", config.Identifier)
-				time.Sleep(100000)
+		splitPoint := 0
+		for i := 1; i < len(data); i++ {
+			if data[i-1] == "}"[0] && data[i] == "{"[0] {
+				handleRequest(data[0:splitPoint])
+				handleRequest(data[splitPoint:len(data)])
+				break
 			}
-			fmt.Printf("%d ready for GetNodes\n", config.Identifier)
-			info := new(RespondNodeInfo)
-			info.Identifier = config.Identifier
-			info.Turn = respondingToRequestsFor
-			info.BotData = nil
-			infoString, err := json.Marshal(info)
-			easynet.DieIfError(err, "JSON marshal error")
-			adjsServe[r.Identifier].Write(infoString)
-			fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
 		}
+		if splitPoint == 0 {
+			handleRequest(data)
+		}
+	}
+}
+
+func handleRequest(data []uint8) {
+	r := new(Request)
+	err := json.Unmarshal(data, r)
+	easynet.DieIfError(err, "JSON error")
+	switch {
+	case r.Command == "Begin" && primary == false && waitingForStart == true:
+		fmt.Printf("%d handle Begin from %d\n", config.Identifier, r.Identifier)
+		waitingForStart = false
+		go processNodes()
+	case r.Command == "GetNodes":
+		fmt.Printf("%d handle GetNodes from %d\n", config.Identifier, r.Identifier)
+		for respondingToRequestsFor < r.Turn {
+			fmt.Printf("%d not ready for GetNodes\n", config.Identifier)
+			time.Sleep(100000)
+		}
+		fmt.Printf("%d ready for GetNodes\n", config.Identifier)
+		info := new(RespondNodeInfo)
+		info.Identifier = config.Identifier
+		info.Turn = respondingToRequestsFor
+		info.BotData = nil
+		infoString, err := json.Marshal(info)
+		easynet.DieIfError(err, "JSON marshal error")
+		adjsServe[r.Identifier].Write(infoString)
+		fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
 	}
 }
 
@@ -108,6 +127,6 @@ func broadcastValid() {
 	waitingForStart = false
 	go processNodes()
 	
-	time.Sleep(10000)
+	time.Sleep(10000000)
 	go listenForPeer()
 }

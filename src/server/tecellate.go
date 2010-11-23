@@ -27,16 +27,19 @@ func main() {
 	}
 	
 	for i, conn := range(connections) {
+		fmt.Printf("Tecellate receive from (a) %d\n", i)
 		fmt.Printf("%d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
 	}
 	
 	for i, conn := range(connections) {
+		fmt.Printf("Tecellate receive from (b) %d\n", i)
 		fmt.Printf("%d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
 	}
 	
 	fmt.Printf("Starting first turn\n")
 	connections[0].Write([]uint8("begin"))
 	
+	fmt.Println("Final")
 	fmt.Printf(string(easynet.ReceiveFrom(connections[0])))
 }
 
