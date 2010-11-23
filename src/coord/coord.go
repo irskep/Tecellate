@@ -13,15 +13,19 @@ import (
 type CoordMap map[int]*net.TCPConn
 var adjsServe CoordMap
 var adjsRequest CoordMap
+var listenServe chan []uint8
 var botConns []*net.TCPConn
 var config *ttypes.CoordConfig
 
-var turnsRemaining int
-
+var respondingToRequestsFor int
 var primary bool
+var waitingForStart bool
+var complete chan bool
 
 func main() {
 	primary = false
+	waitingForStart = true
+	complete = make(chan bool)
 	
 	listener := easynet.HostWithAddress(os.Args[1])
 	defer listener.Close()
@@ -31,19 +35,19 @@ func main() {
 	config = new(ttypes.CoordConfig)
 	err := json.Unmarshal(easynet.ReceiveFrom(connectionToMaster), config)
 	easynet.DieIfError(err, "JSON error")
-	turnsRemaining = config.NumTurns
+	respondingToRequestsFor = 0
 	
 	connectionToMaster.Write([]uint8("connected"))
 	
 	setupAll(listener)
+	for _, conn := range(adjsServe) {
+		defer conn.Close()
+	}
 	
 	connectionToMaster.Write([]uint8("setup complete"))
 	
-	complete := make(chan bool)
-	
-	go listenForStart(connectionToMaster)
-	go listenForTurnFlips(complete)
-	go listenForInfoRequests()
+	go listenForMaster(connectionToMaster)
+	go listenForPeer()
 	
 	<-complete
 }
@@ -75,6 +79,8 @@ func setupBots() (chan bool) {
 func connectToAdjacents(listener *net.TCPListener) chan bool {
 	adjsServe = make(CoordMap, len(config.AdjacentCoords))
 	adjsRequest = make(CoordMap, len(config.AdjacentCoords))
+	listenServe = make(chan []uint8)
+	
 	serveFound := make(chan int)
 	requestFound := make(chan int)
 	allDone := make(chan bool)
@@ -91,6 +97,7 @@ func connectToAdjacents(listener *net.TCPListener) chan bool {
 				identifier, err := strconv.Atoi(string(easynet.ReceiveFrom(newConn)))
 				easynet.DieIfError(err, "String conversion error")
 				adjsServe[identifier] = newConn
+				easynet.TieConnToChannel(newConn, listenServe)
 				serveFound <- identifier
 			}()
 		}
@@ -111,10 +118,6 @@ func connectToAdjacents(listener *net.TCPListener) chan bool {
 func setupAll(listener *net.TCPListener) {
 	botsComplete := setupBots()
 	adjsComplete := connectToAdjacents(listener)
-	
-	for _, conn := range(adjsServe) {
-		defer conn.Close()
-	}
 	
 	<- adjsComplete
 	<- botsComplete

@@ -2,7 +2,6 @@ package ttypes
 
 type Config struct {
 	Coords []string
-	NumCoords int
 	NumTurns int
 	BotDefs []BotDef
 }

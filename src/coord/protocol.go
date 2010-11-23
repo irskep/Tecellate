@@ -5,61 +5,109 @@ import (
 	"easynet"
 	"json"
 	"net"
+	"time"
 )
 
-type TurnFlip struct {
-	TurnsRemaining int
+type CompletionNotification struct {
+	Identifier int
+	LastProcessedTurn int
 }
 
-func listenForStart(connectionToMaster *net.TCPConn) {
-	easynet.ReceiveFrom(connectionToMaster)
-	//Check message == "begin"
-	primary = true
-	flipTurns()
+type Request struct {
+	Identifier int
+	Turn int
+	Command string
 }
 
-func listenForTurnFlips(complete chan bool) {
-	flip := new(TurnFlip)
-	fmt.Printf("%d listening for flips\n", config.Identifier)
-	for turnsRemaining > 0 {
-		for _, flipTurnConfirmationConn := range(adjsRequest) {
-			fmt.Printf(" %d subflip\n", config.Identifier)
-			flip.TurnsRemaining = turnsRemaining+1
-			for flip.TurnsRemaining >= turnsRemaining {
-				flipJson := easynet.ReceiveFrom(flipTurnConfirmationConn)
-				err := json.Unmarshal(flipJson, flip)
-				easynet.DieIfError(err, "JSON Unmarshal error")
-				fmt.Printf("%d received flip notification for turn %d\n", 
-						   config.Identifier, flip.TurnsRemaining)
+type BotInfo struct {
+	x int
+	y int
+}
+
+type RespondNodeInfo struct {
+	Identifier int
+	Turn int
+	BotData []BotInfo
+}
+
+func listenForMaster(connectionToMaster *net.TCPConn) {
+	msg := string(easynet.ReceiveFrom(connectionToMaster))
+	if msg == "begin" {
+		fmt.Printf("%d is primary\n", config.Identifier)
+		primary = true
+		broadcastValid()
+	}
+}
+
+func listenForPeer() {
+	fmt.Printf("%d serving requests\n", config.Identifier)
+	for data := range(listenServe) {
+		r := new(Request)
+		err := json.Unmarshal(data, r)
+		easynet.DieIfError(err, "JSON error")
+		switch {
+		case r.Command == "Begin" && primary == false && waitingForStart == true:
+			fmt.Printf("%d handle Begin from %d\n", config.Identifier, r.Identifier)
+			waitingForStart = false
+			go processNodes()
+		case r.Command == "GetNodes":
+			fmt.Printf("%d handle GetNodes from %d\n", config.Identifier, r.Identifier)
+			for respondingToRequestsFor < r.Turn {
+				fmt.Printf("%d not ready for GetNodes\n", config.Identifier)
+				time.Sleep(100000)
 			}
-			fmt.Printf(" %d confirm subflip\n", config.Identifier)
+			fmt.Printf("%d ready for GetNodes\n", config.Identifier)
+			info := new(RespondNodeInfo)
+			info.Identifier = config.Identifier
+			info.Turn = respondingToRequestsFor
+			info.BotData = nil
+			infoString, err := json.Marshal(info)
+			easynet.DieIfError(err, "JSON marshal error")
+			adjsServe[r.Identifier].Write(infoString)
+			fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
 		}
-		fmt.Printf("%d flipping!\n", config.Identifier)
-		processBots()
-		flipTurns()
+	}
+}
+
+func processNodes() {
+	fmt.Printf("%d processing nodes\n", config.Identifier)
+	for i := 0; i < config.NumTurns; i++ {
+		respondingToRequestsFor = i
+		fmt.Printf("%d turn %d\n", config.Identifier, i)
+		for j, conn := range(adjsRequest) {
+			fmt.Printf("%d turn %d, request neighbor %d\n", config.Identifier, i, j)
+			r := new(Request)
+			r.Identifier = config.Identifier
+			r.Turn = respondingToRequestsFor
+			r.Command = "GetNodes"
+			
+			rData, err := json.Marshal(r)
+			easynet.DieIfError(err, "JSON marshal error")
+			conn.Write(rData)
+			
+			info := new(RespondNodeInfo)
+			err = json.Unmarshal(easynet.ReceiveFrom(conn), info)
+			easynet.DieIfError(err, "JSON unmarshal error")
+		}
 	}
 	complete <- true
 }
 
-func listenForInfoRequests() {
+func broadcastValid() {
+	note := new(Request)
+	note.Identifier = config.Identifier
+	note.Turn = respondingToRequestsFor
+	note.Command = "Begin"
+	data, err := json.Marshal(note)
+	easynet.DieIfError(err, "JSON marshal error")
 	
-}
-
-func processBots() {
-	//Request data from adjsRequest
-	//Calculate bot stuff
-}
-
-func flipTurns() {
-	turnsRemaining -= 1
-	flip := new(TurnFlip)
-	flip.TurnsRemaining = turnsRemaining
-	
-	data, err := json.Marshal(flip)
-	easynet.DieIfError(err, "JSON Marshal error")
-	
-	fmt.Printf("%d flipping to turn %d\n", config.Identifier, turnsRemaining)
-	for _, flipTurnConfirmationConn := range(adjsServe) {
-		flipTurnConfirmationConn.Write(data)
+	for i, conn := range(adjsRequest) {
+		fmt.Printf("%d broadcasting to %d\n", config.Identifier, i)
+		conn.Write(data)
 	}
+	waitingForStart = false
+	go processNodes()
+	
+	time.Sleep(10000)
+	go listenForPeer()
 }

@@ -1,7 +1,7 @@
 package easynet
 
 import (
-	// "fmt"
+	"fmt"
 	"os"
 	"net"
 	"log"
@@ -51,4 +51,23 @@ func ReceiveFrom(conn *net.TCPConn) []byte {
 	}
 	DieIfError(err, "Receive error")
 	return rcvd[0:size]
+}
+
+func TieConnToChannel(conn *net.TCPConn, c chan []uint8) {
+	go func() {
+		for {
+			rcvd := make([]byte, 4096)
+			size, err := conn.Read(rcvd)
+			for err != nil && strings.HasSuffix(err.String(), "temporarily unavailable") {
+				time.Sleep(10000)
+				size, err = conn.Read(rcvd)
+			}
+			if err != nil {
+				return
+			} else {
+				fmt.Println(string(rcvd[0:size]))
+				c <- rcvd[0:size]
+			}
+		}
+	}()
 }
