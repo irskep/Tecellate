@@ -28,7 +28,7 @@ run:
 	(sleep 0.5; ./build/tecellate testgrid.txt)
 
 kill:
-	killall coord & killall tecellate
+	killall coord & killall tecellate & killall test
 
 .PHONY : clean
 clean :
