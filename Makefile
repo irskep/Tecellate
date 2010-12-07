@@ -28,9 +28,9 @@ run:
 	(sleep 0.5; ./build/tecellate testgrid.txt)
 
 fancyrun:
-	./build/coord 127.0.0.1:8002 | aless&
-	./build/coord 127.0.0.1:8102 | aless &
-	(sleep 0.5; ./build/tecellate testgrid.txt | aless)
+	./build/coord 127.0.0.1:8002 >> out/coord1.txt &
+	./build/coord 127.0.0.1:8102 >> out/coord2.txt &
+	(sleep 0.5; ./build/tecellate testgrid.txt)
 
 kill:
 	killall coord & killall tecellate & killall test
