@@ -26,8 +26,16 @@ func listenForMoveRequests(conn *net.TCPConn) {
 	easynet.TieConnToChannel(conn, listenServe)
 	for data := range(listenServe) {
 		r := new(ttypes.BotMoveRequest)
-		err := json.Unmarshal(data, r)
+		err := json.Unmarshal(data, r)		
 		easynet.DieIfError(err, "JSON error")
+		
+		if r.Kill {
+			fmt.Printf("Bot on %s received kill signal\n", os.Args[0])
+			os.Exit(0)
+		}
+		
+		//Do something
+		
 		response := new(ttypes.BotMoveResponse)
 		response.MoveDirection = "left"
 		responseString, err := json.Marshal(response)

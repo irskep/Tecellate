@@ -41,6 +41,7 @@ type BotMoveRequest struct {
 	Messages []Message
 	YourX uint
 	YourY uint
+	Kill bool
 }
 
 type BotMoveResponse struct {

@@ -53,6 +53,8 @@ func main() {
 	
 	<-complete
 	
+	killChildren()
+	
 	connectionToMaster.Write([]byte("Wasn't that fun?"))
 }
 
@@ -130,5 +132,13 @@ func setupAll(listener *net.TCPListener) {
 	
 	for _, c := range(botConns) {
 		fmt.Printf("%s\n", easynet.ReceiveFrom(c))
+	}
+}
+
+func killChildren() {
+	for _, botConn := range(botConns) {
+		req := new(ttypes.BotMoveRequest)
+		req.Kill = true
+		easynet.SendJson(botConn, req)
 	}
 }

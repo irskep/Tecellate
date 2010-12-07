@@ -29,6 +29,7 @@ type RespondNodeInfo struct {
 func listenForMaster(connectionToMaster *net.TCPConn) {
 	msg, err := easynet.ReceiveFromWithError(connectionToMaster)
 	if err != nil {
+		killChildren()
 		fmt.Printf("%d apparently was not the primary\n", config.Identifier)
 		fmt.Printf("%d error seen was: %v\n", config.Identifier, err)
 	} else {
@@ -122,6 +123,7 @@ func processNodes() {
 			req.Messages = nil
 			req.YourX = botInfos[botNum].X
 			req.YourY = botInfos[botNum].Y
+			req.Kill = false
 			easynet.SendJson(botConn, req)
 			
 			rsp := new(ttypes.BotMoveResponse)
