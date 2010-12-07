@@ -6,6 +6,7 @@ import (
 	"json"
 	"net"
 	"time"
+	"ttypes"
 )
 
 type CompletionNotification struct {
@@ -19,22 +20,17 @@ type Request struct {
 	Command string
 }
 
-type BotInfo struct {
-	x uint
-	y uint
-}
-
 type RespondNodeInfo struct {
 	Identifier int
 	Turn int
-	BotData []BotInfo
+	BotData []ttypes.BotInfo
 }
 
 func listenForMaster(connectionToMaster *net.TCPConn) {
 	msg, err := easynet.ReceiveFromWithError(connectionToMaster)
 	if err != nil {
 		fmt.Printf("%d apparently was not the primary\n", config.Identifier)
-		fmt.Printf("Error was: %v\n", err)
+		fmt.Printf("%d error seen was: %v\n", config.Identifier, err)
 	} else {
 		if string(msg) == "begin" {
 			fmt.Printf("%d is primary\n", config.Identifier)
@@ -83,11 +79,12 @@ func handleRequest(data []uint8) {
 		info := new(RespondNodeInfo)
 		info.Identifier = config.Identifier
 		info.Turn = respondingToRequestsFor
-		info.BotData = nil
+		info.BotData = botInfos
 		infoString, err := json.Marshal(info)
 		easynet.DieIfError(err, "JSON marshal error")
 		adjsServe[r.Identifier].Write(infoString)
 		fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
+		fmt.Println(info)
 	}
 }
 
@@ -95,7 +92,12 @@ func processNodes() {
 	fmt.Printf("%d processing nodes\n", config.Identifier)
 	for i := 0; i < config.NumTurns; i++ {
 		respondingToRequestsFor = i
-		fmt.Printf("%d turn %d\n", config.Identifier, i)
+		fmt.Printf("%d starting turn %d\n", config.Identifier, i)
+		
+		otherInfos := make([]ttypes.BotInfo, len(botInfos), len(botInfos)*len(adjsServe))
+		copy(otherInfos, botInfos)
+		
+		//Get updates from neighbors
 		for j, conn := range(adjsRequest) {
 			fmt.Printf("%d turn %d, request neighbor %d\n", config.Identifier, i, j)
 			r := new(Request)
@@ -110,7 +112,32 @@ func processNodes() {
 			info := new(RespondNodeInfo)
 			err = json.Unmarshal(easynet.ReceiveFrom(conn), info)
 			easynet.DieIfError(err, "JSON unmarshal error")
+			
+			otherInfos = append(otherInfos, info.BotData...)
 		}
+		for botNum, botConn := range(botConns) {
+			req := new(ttypes.BotMoveRequest)
+			req.Terrain = config.Terrain
+			req.OtherBots = otherInfos
+			req.Messages = nil
+			req.YourX = botInfos[botNum].X
+			req.YourY = botInfos[botNum].Y
+			easynet.SendJson(botConn, req)
+			
+			rsp := new(ttypes.BotMoveResponse)
+			easynet.ReceiveJson(botConn, rsp)
+			switch {
+			case rsp.MoveDirection == "left":
+				if botInfos[botNum].X > 0 {
+					fmt.Printf("%d moving bot %d left\n", config.Identifier, botNum)
+					botInfos[botNum].X -= 1
+				}
+			}
+		}
+		//RACE CONDITION: respondingToRequestsFor may be behind this
+		//by one turn, so some coords may get the wrong botInfos.
+		//Fix: make botInfos a map [turn]list
+		botInfos = otherInfos
 	}
 	complete <- true
 }

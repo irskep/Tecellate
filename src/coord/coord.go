@@ -15,7 +15,7 @@ var adjsServe CoordMap
 var adjsRequest CoordMap
 var listenServe chan []uint8
 var botConns []*net.TCPConn
-var botInfos []BotInfo
+var botInfos []ttypes.BotInfo
 var config *ttypes.CoordConfig
 
 var respondingToRequestsFor int
@@ -66,15 +66,15 @@ func setupBot(conf ttypes.BotConf, portNumber int) *net.TCPConn {
 }
 
 func setupBots() (chan bool) {
-	botConns := make([]*net.TCPConn, len(config.BotConfs))
-	botInfos := make([]BotInfo, len(config.BotConfs))
+	botConns = make([]*net.TCPConn, len(config.BotConfs))
+	botInfos = make([]ttypes.BotInfo, len(config.BotConfs))
 	basePort := new(int)
 	botComplete := make(chan bool)
 	fmt.Sscanf(os.Args[1], "127.0.0.1:%d", basePort)
 	go func() {
 		for ix, b := range(config.BotConfs) {
 			botConns[ix] = setupBot(b, *basePort + ix + 1)
-			botInfos[ix] = BotInfo{b.X, b.Y}
+			botInfos[ix] = ttypes.BotInfo{b.X, b.Y}
 		}
 		botComplete <- true
 	}()
