@@ -3,18 +3,6 @@ package ttypes
 type Config struct {
 	Coords []string
 	NumTurns int
-	BotDefs []BotDef
-}
-
-type BotDef struct {
-	Path string
-	Count int
-}
-
-type Grid struct {
-	Items []byte
-	Width uint
-	Height uint
 }
 
 type AdjacentCoord struct {
@@ -32,4 +20,20 @@ type CoordConfig struct {
 
 type BotConf struct {
 	Path string
+	X uint
+	Y uint
+}
+
+type Grid struct {
+	Items []byte
+	Width uint
+	Height uint
+}
+
+func (g Grid) Get(x uint, y uint) byte {
+	return g.Items[x*g.Width+y]
+}
+
+func (g Grid) Set(x uint, y uint, val byte) {
+	g.Items[x*g.Width+y] = val
 }

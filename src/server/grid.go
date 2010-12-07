@@ -1,32 +1,48 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"os"
+	"scanner"
 	"strconv"
 	"ttypes"
 )
-
-func serializeGrid(grid [][]int) []byte {
-	gridString := make([]byte, len(grid)*len(grid[0]))
-	fmt.Printf("%d\n", len(grid)*len(grid[0]))
-	for i, row := range(grid) {
-		for j, _ := range(row) {
-			fmt.Printf("%s", strconv.Itoa(row[j]))
-			gridString[i*len(row)+j] = strconv.Itoa(row[j])[0]
-		}
-	}
-	return gridString
-}
 
 func simpleGrid(w uint, h uint) *ttypes.Grid {
 	grid := new(ttypes.Grid)
 	grid.Width = w
 	grid.Height = h
 	grid.Items = make([]byte, w*h)
+	return grid
+}
+
+func scanAndReadUint(s *scanner.Scanner) uint {
+	s.Scan()
+	tok, err := strconv.Atoui(s.TokenText())
+	if err != nil { log.Exit(err) }
+	return tok
+}
+
+func readGridFromFile(path string) (*ttypes.Grid, []ttypes.BotConf) {
+	gridFile, err := os.Open(path, os.O_RDONLY, 0)
+	if err != nil { log.Exit(err) }
+	defer gridFile.Close()
+	
+	var s scanner.Scanner
+	s.Init(gridFile)
+	w := scanAndReadUint(&s)
+	h := scanAndReadUint(&s)
+	grid := simpleGrid(w, h)
+	
+	botConfs := make([]ttypes.BotConf, 0)
 	for i := uint(0); i < w; i++ {
 		for j := uint(0); j < h; j++ {
-			grid.Items[i*w+j] = byte(i*w+j) % 3
+			tok := uint8(scanAndReadUint(&s))
+			if tok > 0 {
+				botConfs = append(botConfs, ttypes.BotConf{"build/test", i, j})
+			}
 		}
 	}
-	return grid
+	
+	return grid, botConfs
 }

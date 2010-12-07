@@ -14,10 +14,9 @@ import (
 
 func main() {
 	config := loadConfig()
+	grid, botConfs := readGridFromFile(os.Args[1])
 	connections := connectToCoordinators(config)
-	coordConfigs := configureCoordinators(config)
-	
-	grid := simpleGrid(10, 10)
+	coordConfigs := configureCoordinators(config, botConfs)
 	
 	for i, conn := range(connections) {
 		coordConfigs[i].Terrain = *grid
@@ -27,20 +26,21 @@ func main() {
 	}
 	
 	for i, conn := range(connections) {
-		fmt.Printf("Tecellate receive from (a) %d\n", i)
+		fmt.Printf("Master waiting for first confirmation from %d\n", i)
 		fmt.Printf("%d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
 	}
 	
 	for i, conn := range(connections) {
-		fmt.Printf("Tecellate receive from (b) %d\n", i)
+		fmt.Printf("Master waiting for second confirmation from %d\n", i)
 		fmt.Printf("%d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
 	}
 	
 	fmt.Printf("Starting first turn\n")
 	connections[0].Write([]uint8("begin"))
 	
-	fmt.Println("Final")
-	fmt.Printf(string(easynet.ReceiveFrom(connections[0])))
+	fmt.Println("Master now waiting for results")
+	fmt.Printf("Final response from first coordinator: %s\n", 
+						 string(easynet.ReceiveFrom(connections[0])))
 }
 
 func loadConfig() *ttypes.Config {
@@ -67,18 +67,15 @@ func connectToCoordinators(config *ttypes.Config) ([]*net.TCPConn) {
 	return connections
 }
 
-func configureCoordinators(config *ttypes.Config) ([]ttypes.CoordConfig) {
+func configureCoordinators(config *ttypes.Config, botConfs []ttypes.BotConf) ([]ttypes.CoordConfig) {
 	coordConfigs := make([]ttypes.CoordConfig, len(config.Coords))
 	for i, _ := range(coordConfigs) {
 		coordConfigs[i].Identifier = i+1
 		coordConfigs[i].NumTurns = config.NumTurns
 	}
-	for _, bot := range(config.BotDefs) {
-		for i := 0; i < bot.Count; i++ {
-			ix := rand.Int() % len(coordConfigs)
-			newConf := ttypes.BotConf{bot.Path}
-			coordConfigs[ix].BotConfs = append(coordConfigs[ix].BotConfs, newConf)
-		}
+	for _, conf := range(botConfs) {
+		ix := rand.Int() % len(coordConfigs)
+		coordConfigs[ix].BotConfs = append(coordConfigs[ix].BotConfs, conf)
 	}
 	for i, _ := range(coordConfigs) {
 		for j, _ := range(coordConfigs) {

@@ -25,7 +25,7 @@ master : build/tecellate
 run:
 	./build/coord 127.0.0.1:8002 &
 	./build/coord 127.0.0.1:8102 &
-	(sleep 0.5; ./build/tecellate)
+	(sleep 0.5; ./build/tecellate testgrid.txt)
 
 kill:
 	killall coord & killall tecellate

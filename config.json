@@ -3,15 +3,5 @@
         "127.0.0.1:8002",
         "127.0.0.1:8102"
     ],
-    "NumTurns": 10,
-    "BotDefs": [
-        {
-            "Path": "build/test",
-            "Count": 1
-        }, 
-        {
-            "Path": "build/test",
-            "Count": 1
-        }
-    ]
+    "NumTurns": 10
 }

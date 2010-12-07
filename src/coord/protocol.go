@@ -20,8 +20,8 @@ type Request struct {
 }
 
 type BotInfo struct {
-	x int
-	y int
+	x uint
+	y uint
 }
 
 type RespondNodeInfo struct {
@@ -50,6 +50,7 @@ func listenForPeer() {
 		splitPoint := 0
 		for i := 1; i < len(data); i++ {
 			if data[i-1] == "}"[0] && data[i] == "{"[0] {
+				splitPoint = i
 				handleRequest(data[0:splitPoint])
 				handleRequest(data[splitPoint:len(data)])
 				break
