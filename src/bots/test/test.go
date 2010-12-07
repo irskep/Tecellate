@@ -18,7 +18,7 @@ func main() {
 	
 	conn.Write([]uint8("bot setup complete " + os.Args[0]))
 	
-	go listenForMoveRequests(conn)
+	listenForMoveRequests(conn)
 }
 
 func listenForMoveRequests(conn *net.TCPConn) {
