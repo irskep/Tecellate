@@ -24,6 +24,25 @@ type BotConf struct {
 	Y uint
 }
 
+type Message struct {
+	Body string
+	SourceX uint
+	SourceY uint
+}
+
+type BotMoveRequest struct {
+	Terrain Grid
+	OtherBots []BotConf
+	Messages []Message
+	YourX uint
+	YourY uint
+}
+
+type BotMoveResponse struct {
+	MoveDirection string
+	BroadcastMessage string
+}
+
 type Grid struct {
 	Items []byte
 	Width uint
