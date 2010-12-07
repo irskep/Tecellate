@@ -24,6 +24,11 @@ type BotConf struct {
 	Y uint
 }
 
+type BotInfo struct {
+	X uint
+	Y uint
+}
+
 type Message struct {
 	Body string
 	SourceX uint
@@ -32,7 +37,7 @@ type Message struct {
 
 type BotMoveRequest struct {
 	Terrain Grid
-	OtherBots []BotConf
+	OtherBots []BotInfo
 	Messages []Message
 	YourX uint
 	YourY uint
