@@ -1,7 +1,8 @@
 package easynet
 
 import (
-	"fmt"
+	// "fmt"
+	"json"
 	"os"
 	"net"
 	"log"
@@ -75,9 +76,20 @@ func TieConnToChannel(conn *net.TCPConn, c chan []uint8) {
 			if err != nil {
 				return
 			} else {
-				fmt.Println(string(rcvd[0:size]))
+				// fmt.Println(string(rcvd[0:size]))
 				c <- rcvd[0:size]
 			}
 		}
 	}()
+}
+
+func SendJson(conn *net.TCPConn, obj interface{}) {
+	data, err := json.Marshal(obj)
+	DieIfError(err, "JSON marshal error")
+	conn.Write(data)
+}
+
+func ReceiveJson(conn *net.TCPConn, obj interface{}) {
+	err := json.Unmarshal(ReceiveFrom(conn), obj)
+	DieIfError(err, "JSON unmarshal error")
 }
