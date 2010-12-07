@@ -47,6 +47,8 @@ func listenForMaster(connectionToMaster *net.TCPConn) {
 func listenForPeer() {
 	fmt.Printf("%d serving requests\n", config.Identifier)
 	for data := range(listenServe) {
+		//Sometimes requests will be stuck together. Here I am separating them.
+		//A crappy and hopefully temporary fix.
 		splitPoint := 0
 		for i := 1; i < len(data); i++ {
 			if data[i-1] == "}"[0] && data[i] == "{"[0] {
