@@ -27,12 +27,12 @@ func main() {
 	
 	for i, conn := range(connections) {
 		fmt.Printf("Master waiting for first confirmation from %d\n", i)
-		fmt.Printf("%d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
+		fmt.Printf("Master received first confirmation from %d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
 	}
 	
 	for i, conn := range(connections) {
 		fmt.Printf("Master waiting for second confirmation from %d\n", i)
-		fmt.Printf("%d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
+		fmt.Printf("Master received second confirmation from %d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
 	}
 	
 	fmt.Printf("Starting first turn\n")
