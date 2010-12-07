@@ -1,5 +1,10 @@
 package ttypes
 
+import (
+	"strconv"
+	"strings"
+)
+
 type Config struct {
 	Coords []string
 	NumTurns int
@@ -61,4 +66,17 @@ func (g Grid) Get(x uint, y uint) byte {
 
 func (g Grid) Set(x uint, y uint, val byte) {
 	g.Items[x*g.Width+y] = val
+}
+
+func (g Grid) String() string {
+	rowStrings := make([]string, g.Height+1)
+	rowStrings[0] = strings.Join([]string{strconv.Uitoa(g.Width), strconv.Uitoa(g.Height)}, " ")
+	for y := uint(0); y < g.Height; y++ {
+		row := make([]string, g.Width)
+		for x := uint(0); x < g.Width; x++ {
+			row[x] = strconv.Uitoa(uint(g.Get(x, y)))
+		}
+		rowStrings[y+1] = strings.Join(row, " ")
+	}
+	return strings.Join(rowStrings, "\n")
 }

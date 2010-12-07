@@ -85,7 +85,6 @@ func handleRequest(data []uint8) {
 		easynet.DieIfError(err, "JSON marshal error")
 		adjsServe[r.Identifier].Write(infoString)
 		fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
-		fmt.Println(info)
 	}
 }
 

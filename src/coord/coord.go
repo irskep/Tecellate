@@ -53,6 +53,8 @@ func main() {
 	
 	<-complete
 	
+	fmt.Printf("%d sees bots as: \n%v\n    grid: %v\n", config.Identifier, botInfos, config.Terrain)
+	
 	killChildren()
 	
 	connectionToMaster.Write([]byte("Wasn't that fun?"))
