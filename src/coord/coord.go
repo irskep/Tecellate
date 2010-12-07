@@ -48,12 +48,14 @@ func main() {
 	
 	connectionToMaster.Write([]uint8("setup complete"))
 	
+	fmt.Printf("%d sees data at start as: \n%v\n    grid: %v\n", config.Identifier, botInfos, config.Terrain)
+	
 	go listenForMaster(connectionToMaster)
 	go listenForPeer()
 	
 	<-complete
 	
-	fmt.Printf("%d sees bots as: \n%v\n    grid: %v\n", config.Identifier, botInfos, config.Terrain)
+	fmt.Printf("%d sees data at end as: \n%v\n    grid: %v\n", config.Identifier, botInfos, config.Terrain)
 	
 	killChildren()
 	

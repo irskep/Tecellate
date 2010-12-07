@@ -129,16 +129,16 @@ func processNodes() {
 			easynet.ReceiveJson(botConn, rsp)
 			switch {
 			case rsp.MoveDirection == "left":
-				if botInfos[botNum].X > 0 {
+				if otherInfos[botNum].X > 0 {
 					fmt.Printf("%d moving bot %d left\n", config.Identifier, botNum)
-					botInfos[botNum].X -= 1
+					otherInfos[botNum].X -= 1
 				}
 			}
 		}
 		//RACE CONDITION: respondingToRequestsFor may be behind this
 		//by one turn, so some coords may get the wrong botInfos.
 		//Fix: make botInfos a map [turn]list
-		botInfos = otherInfos
+		copy(botInfos, otherInfos)
 	}
 	complete <- true
 }
