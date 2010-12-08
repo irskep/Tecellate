@@ -119,26 +119,9 @@ func processNodes() {
 			
 			otherInfos = append(otherInfos, info.BotData...)
 		}
-		for botNum, s := range(botStates) {
-			req := new(ttypes.BotMoveRequest)
-			req.Terrain = config.Terrain
-			req.OtherBots = otherInfos
-			req.Messages = nil
-			req.YourX = s.Info.X
-			req.YourY = s.Info.Y
-			req.Kill = false
-			easynet.SendJson(s.Conn, req)
-			
-			rsp := new(ttypes.BotMoveResponse)
-			easynet.ReceiveJson(s.Conn, rsp)
-			switch {
-			case rsp.MoveDirection == "left":
-				if otherInfos[botNum].X > 0 {
-					fmt.Printf("%d moving bot %d left\n", config.Identifier, botNum)
-					otherInfos[botNum].X -= 1
-				}
-			}
-		}
+		
+		moveBots(otherInfos)
+		
 		//Copy new data back into botStates.
 		//RACE CONDITION: respondingToRequestsFor may be behind this
 		//by one turn, so some coords may get the wrong botInfos.
