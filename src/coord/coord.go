@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"json"
 	"os"
 	"net"
 	"strconv"
@@ -29,7 +28,7 @@ var primary bool
 var waitingForStart bool
 var complete chan bool
 
-// Avoid a race condition
+// Avoid race conditions
 var dataLock sync.RWMutex
 
 func main() {
@@ -51,8 +50,7 @@ func main() {
 	
 	// Read configuration from the connection to master
 	config = new(ttypes.CoordConfig)
-	err := json.Unmarshal(easynet.ReceiveFrom(connectionToMaster), config)
-	easynet.DieIfError(err, "JSON error")
+	easynet.ReceiveJson(connectionToMaster, config)
 	respondingToRequestsFor = 0
 	
 	// Confirm configuration
@@ -79,11 +77,16 @@ func main() {
 	
 	// Wait for those loops to exit
 	<-complete
+	<-complete
 	
 	fmt.Printf("%d sees data at end as: \n%v\n    grid: %v\n", config.Identifier, botInfosForNeighbor(0), config.Terrain)
 	
 	// Confirm termination
-	connectionToMaster.Write([]byte("Wasn't that fun?"))
+	finalTally := new(ttypes.Finish)
+	for _, s := range(botStates) {
+		if s.Killed == false { finalTally.NumBots += 1 }
+	}
+	easynet.SendJson(connectionToMaster, finalTally)
 }
 
 // Fork a bot and open a TCP connection to it

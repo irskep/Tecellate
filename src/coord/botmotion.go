@@ -56,7 +56,6 @@ func declareDeaths(otherInfos []ttypes.BotInfo) {
 			}
 		}
 	}
-	fmt.Println(botStates[0].Killed)
 }
 
 func moveBots(otherInfos []ttypes.BotInfo) {

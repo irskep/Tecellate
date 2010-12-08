@@ -19,16 +19,15 @@ func listenForMaster(connectionToMaster *net.TCPConn) {
 			fmt.Printf("%d is primary\n", config.Identifier)
 			primary = true
 			broadcastValid()
-		} else if string(msg) == "not_primary" {
-			fmt.Printf("%d is not primary\n", config.Identifier)
-			primary = false
-			return
 		}
 	}
 }
 
+var completionsRemaining int
+
 func listenForPeer() {
 	fmt.Printf("%d serving requests\n", config.Identifier)
+	completionsRemaining = len(adjsServe)
 	for data := range(listenServe) {
 		//Sometimes requests will be stuck together. Here I am separating them.
 		//A crappy and hopefully temporary fix.
@@ -73,6 +72,12 @@ func handleRequest(data []uint8) {
 		adjsServe[r.Identifier].Write(infoString)
 		fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
 		dataLock.RUnlock()
+	case r.Command == "Complete":
+		completionsRemaining -= 1
+		if completionsRemaining == 0 {
+			fmt.Println("Right ho, we're finished here chaps")
+			complete<-true
+		}
 	}
 }
 
@@ -123,7 +128,8 @@ func processNodes() {
 			botStates[i].Info = otherInfos[i]
 		}
 	}
-	complete <- true
+	broadcastComplete()
+	complete<-true
 }
 
 func broadcastValid() {
@@ -131,16 +137,26 @@ func broadcastValid() {
 	note.Identifier = config.Identifier
 	note.Turn = respondingToRequestsFor
 	note.Command = "Begin"
-	data, err := json.Marshal(note)
-	easynet.DieIfError(err, "JSON marshal error")
 	
 	for i, conn := range(adjsRequest) {
-		fmt.Printf("%d broadcasting to %d\n", config.Identifier, i)
-		conn.Write(data)
+		fmt.Printf("%d broadcasting valid to %d\n", config.Identifier, i)
+		easynet.SendJson(conn, note)
 	}
 	waitingForStart = false
 	go processNodes()
 	
 	time.Sleep(10000000)
 	go listenForPeer()
+}
+
+func broadcastComplete() {
+	note := new(Request)
+	note.Identifier = config.Identifier
+	note.Turn = respondingToRequestsFor
+	note.Command = "Complete"
+	
+	for i, conn := range(adjsRequest) {
+		fmt.Printf("%d broadcasting complete to %d\n", config.Identifier, i)
+		easynet.SendJson(conn, note)
+	}
 }

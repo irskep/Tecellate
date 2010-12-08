@@ -11,6 +11,10 @@ type Config struct {
 	SplitStrategy string
 }
 
+type Finish struct {
+	NumBots int
+}
+
 type AdjacentCoord struct {
 	Identifier int
 	Address string

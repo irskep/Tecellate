@@ -38,8 +38,9 @@ func main() {
 	connections[0].Write([]uint8("begin"))
 	
 	fmt.Println("Master now waiting for results")
-	fmt.Printf("Final response from first coordinator: %s\n", 
-						 string(easynet.ReceiveFrom(connections[0])))
+	for i, conn := range(connections) {
+		fmt.Printf("Final response from %d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
+	}
 }
 
 func loadConfig() *ttypes.Config {
