@@ -11,7 +11,7 @@ libs : lib/easynet.a lib/ttypes.a
 	mv ttypes.a lib
 
 coord : build/coord
-	6g -I "lib/" src/coord/coord.go src/coord/protocol.go
+	6g -I "lib/" src/coord/coord.go src/coord/protocol.go src/coord/botmotion.go
 	6l -L "lib/" -o build/coord coord.6
 
 testbot : build/test
@@ -34,6 +34,12 @@ fancyrun:
 
 kill:
 	killall coord & killall tecellate & killall test
+
+paper_concept:
+	cd papers/eecs423_concept; $(MAKE) build
+
+paper_final:
+	cd papers/eecs423_final; $(MAKE) build
 
 .PHONY : clean
 clean :
