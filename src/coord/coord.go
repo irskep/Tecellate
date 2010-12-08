@@ -10,19 +10,20 @@ import (
 	"ttypes"
 )
 
-type BotState struct {
-	Conn *net.TCPConn
-	Info ttypes.BotInfo
-	TurnsToNextMove int
-}
+// Configuration
+var config *ttypes.CoordConfig
 
+// Connections to neighbors
 type CoordMap map[int]*net.TCPConn
 var adjsServe CoordMap
 var adjsRequest CoordMap
 var listenServe chan []uint8
-var config *ttypes.CoordConfig
-var botStates []*BotState
+
+// Which turn we just completed and what the state of everything on that turn was
 var respondingToRequestsFor int
+var botStates []*BotState
+
+// Global state
 var primary bool
 var waitingForStart bool
 var complete chan bool

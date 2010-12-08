@@ -9,6 +9,13 @@ import (
 	"ttypes"
 )
 
+type BotState struct {
+	Conn *net.TCPConn
+	Info ttypes.BotInfo
+	TurnsToNextMove int
+	Killed bool
+}
+
 type CompletionNotification struct {
 	Identifier int
 	LastProcessedTurn int
