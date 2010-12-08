@@ -9,3 +9,4 @@ paper.pdf
 *.8
 *.a
 build/
+*.graffle
