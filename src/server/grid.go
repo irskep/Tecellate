@@ -35,8 +35,8 @@ func readGridFromFile(path string) (*ttypes.Grid, []ttypes.BotConf) {
 	grid := simpleGrid(w, h)
 	
 	botConfs := make([]ttypes.BotConf, 0)
-	for i := uint(0); i < w; i++ {
-		for j := uint(0); j < h; j++ {
+	for j := uint(0); j < h; j++ {
+		for i := uint(0); i < w; i++ {
 			tok := uint8(scanAndReadUint(&s))
 			if tok > 0 {
 				botConfs = append(botConfs, ttypes.BotConf{"build/test", i, j})
