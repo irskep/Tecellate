@@ -36,7 +36,6 @@ type RespondNodeInfo struct {
 func listenForMaster(connectionToMaster *net.TCPConn) {
 	msg, err := easynet.ReceiveFromWithError(connectionToMaster)
 	if err != nil {
-		killChildren()
 		fmt.Printf("%d apparently was not the primary\n", config.Identifier)
 		fmt.Printf("%d error seen was: %v\n", config.Identifier, err)
 	} else {

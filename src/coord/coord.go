@@ -29,44 +29,57 @@ var waitingForStart bool
 var complete chan bool
 
 func main() {
+	// Initialize globals
 	primary = false
 	waitingForStart = true
 	complete = make(chan bool)
 	
+	// Begin listening on the port passed on the command line
 	listener := easynet.HostWithAddress(os.Args[1])
 	defer listener.Close()
+	
+	// Set up a TCP connection to the master
 	connectionToMaster := easynet.Accept(listener)
 	defer connectionToMaster.Close()
 	
+	// Read configuration from the connection to master
 	config = new(ttypes.CoordConfig)
 	err := json.Unmarshal(easynet.ReceiveFrom(connectionToMaster), config)
 	easynet.DieIfError(err, "JSON error")
 	respondingToRequestsFor = 0
 	
+	// Confirm configuration
 	connectionToMaster.Write([]uint8("connected"))
 	
+	// Set up bots and connect to adjacent coordinators
 	setupAll(listener)
+	// Remember to terminate all child processes upon termination of this process
+	defer killChildren()
 	
+	// Close all connections when program terminates
 	for _, conn := range(adjsServe) {
 		defer conn.Close()
 	}
 	
+	// Confirm setup
 	connectionToMaster.Write([]uint8("setup complete"))
 	
 	fmt.Printf("%d sees data at start as: \n%v\n    grid: %v\n", config.Identifier, botStates, config.Terrain)
 	
+	// Transition to both listening states
 	go listenForMaster(connectionToMaster)
 	go listenForPeer()
 	
+	// Wait for those loops to exit
 	<-complete
 	
 	fmt.Printf("%d sees data at end as: \n%v\n    grid: %v\n", config.Identifier, botStates, config.Terrain)
 	
-	killChildren()
-	
+	// Confirm termination
 	connectionToMaster.Write([]byte("Wasn't that fun?"))
 }
 
+// Fork a bot and open a TCP connection to it
 func setupBot(conf ttypes.BotConf, portNumber int) *net.TCPConn {
 	addrString := "127.0.0.1:" + strconv.Itoa(portNumber)
 	fd := []*os.File{os.Stdin,os.Stdout,os.Stderr};
@@ -76,6 +89,7 @@ func setupBot(conf ttypes.BotConf, portNumber int) *net.TCPConn {
 	return easynet.Dial(addrString)
 }
 
+// Fork and configure all bots
 func setupBots() (chan bool) {
 	botStates = make([]*BotState, len(config.BotConfs))
 	basePort := new(int)
@@ -94,6 +108,7 @@ func setupBots() (chan bool) {
 	return botComplete
 }
 
+// Set up incoming and outgoing TCP connections to all adjacent coordinators
 func connectToAdjacents(listener *net.TCPListener) chan bool {
 	adjsServe = make(CoordMap, len(config.AdjacentCoords))
 	adjsRequest = make(CoordMap, len(config.AdjacentCoords))
@@ -133,6 +148,7 @@ func connectToAdjacents(listener *net.TCPListener) chan bool {
 	return allDone
 }
 
+// Asynchronously set up neighbors and bots
 func setupAll(listener *net.TCPListener) {
 	botsComplete := setupBots()
 	adjsComplete := connectToAdjacents(listener)
@@ -145,6 +161,7 @@ func setupAll(listener *net.TCPListener) {
 	}
 }
 
+// Kill all child processes by asking nicely
 func killChildren() {
 	for _, s := range(botStates) {
 		req := new(ttypes.BotMoveRequest)
