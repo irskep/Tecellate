@@ -55,16 +55,16 @@ type BotMoveResponse struct {
 }
 
 type Grid struct {
-	Items []byte
+	Items []int
 	Width uint
 	Height uint
 }
 
-func (g Grid) Get(x uint, y uint) byte {
+func (g Grid) Get(x uint, y uint) int {
 	return g.Items[x*g.Width+y]
 }
 
-func (g Grid) Set(x uint, y uint, val byte) {
+func (g Grid) Set(x uint, y uint, val int) {
 	g.Items[x*g.Width+y] = val
 }
 
