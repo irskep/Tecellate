@@ -1,0 +1,24 @@
+\section{Simulation Rules}
+\label{rules}
+
+The simulation is turn-based and runs over a fixed number of turns. At the beginning of each turn, agents receive information about the terrain and other nearby agents. In response, agents can either attempt to move or remain still, as well as simultaneously broadcast a message. When all agents have decided on an action for a turn, the actions are executed and a new turn begins.
+
+\subsection{World and Movement}
+
+The simulation world consists of a $w$x$h$ grid of signed integers. If the number is non-negative, it is the terrain height. Otherwise, the cell is impassable. An agent can move at most one cell up, down, left, or right per turn.
+
+% The move action will take one extra turn for every absolute height unit difference above 1.
+
+If more than one agent on the same team attempt to move into the same cell, none will be able to. If agents from different teams attempt to move into the same cell, then the one with more teammates adjacent to the target cell will succeed and the others will be destroyed. If all competitors have equal support, none will move.
+
+\subsection{Perception}
+
+% Agents are informed of the positions and affiliations of other agents within 2 cells. 
+
+Agents are aware of their global position and the positions of every other agent.
+
+\subsection{Messages}
+
+An agent may broadcast a message every turn regardless of any other action it takes. The broadcast system is a simplification of radio communication: nearby agents within a maximum radius will receive the message. Other agents will not hear it.
+
+ % overwritten with noise proportional to the square of the distance. Nearby agents will receive the message clearly, farther away agents will get noisy versions, and farawy agents will not receive the message at all.
