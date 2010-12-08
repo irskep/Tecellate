@@ -29,6 +29,9 @@ var waitingForStart bool
 var complete chan bool
 
 func main() {
+	// Print a nice separator at the end of execution so that 'make fancyrun' looks good
+	defer fmt.Println("-------------------")
+	
 	// Initialize globals
 	primary = false
 	waitingForStart = true
