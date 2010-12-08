@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"rand"
 	"easynet"
 	"ttypes"
 )
@@ -16,7 +15,7 @@ func main() {
 	config := loadConfig()
 	grid, botConfs := readGridFromFile(os.Args[1])
 	connections := connectToCoordinators(config)
-	coordConfigs := configureCoordinators(config, botConfs)
+	coordConfigs := configureCoordinators(config, botConfs, grid)
 	
 	for i, conn := range(connections) {
 		coordConfigs[i].Terrain = *grid
@@ -67,14 +66,23 @@ func connectToCoordinators(config *ttypes.Config) ([]*net.TCPConn) {
 	return connections
 }
 
-func configureCoordinators(config *ttypes.Config, botConfs []ttypes.BotConf) ([]ttypes.CoordConfig) {
+func configureCoordinators(config *ttypes.Config, botConfs []ttypes.BotConf, grid *ttypes.Grid) ([]ttypes.CoordConfig) {
 	coordConfigs := make([]ttypes.CoordConfig, len(config.Coords))
 	for i, _ := range(coordConfigs) {
 		coordConfigs[i].Identifier = i+1
 		coordConfigs[i].NumTurns = config.NumTurns
 	}
 	for _, conf := range(botConfs) {
-		ix := rand.Int() % len(coordConfigs)
+		fmt.Println(conf)
+		var ix uint
+		if config.SplitStrategy == "vertical" {
+			jmp := grid.Height/uint(len(config.Coords))
+			ix = conf.Y/jmp
+			fmt.Printf("Putting a bot with Y %d in %d\n", conf.Y, ix)
+		} else {
+			fmt.Println("Unknown split strategy")
+			ix = 0
+		}
 		coordConfigs[ix].BotConfs = append(coordConfigs[ix].BotConfs, conf)
 	}
 	for i, _ := range(coordConfigs) {

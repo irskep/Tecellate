@@ -8,6 +8,7 @@ import (
 type Config struct {
 	Coords []string
 	NumTurns int
+	SplitStrategy string
 }
 
 type AdjacentCoord struct {
