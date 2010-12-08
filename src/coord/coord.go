@@ -103,7 +103,7 @@ func setupBots() (chan bool) {
 			s := new(BotState)
 			botStates[ix] = s
 			s.Conn = setupBot(b, *basePort + ix + 1)
-			s.Info = ttypes.BotInfo{b.X, b.Y}
+			s.Info = ttypes.BotInfo{b.X, b.Y, ""}
 		}
 		botComplete <- true
 	}()

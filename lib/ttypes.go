@@ -33,12 +33,12 @@ type BotConf struct {
 type BotInfo struct {
 	X uint
 	Y uint
+	LastMessage string
 }
 
 type Message struct {
 	Body string
-	SourceX uint
-	SourceY uint
+	Distance float64
 }
 
 type BotMoveRequest struct {
