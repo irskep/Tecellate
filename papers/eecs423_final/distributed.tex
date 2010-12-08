@@ -2,7 +2,7 @@
 
 Simulating thousands of agents and millions of grid cells simultaneously at a reasonable speed will require multiple machines. One process, the \emph{game master}, is responsible for starting the game and reporting the rules. $n_ac$ more processes, on the same machine or another, act as \emph{agent coordinators} responsible for launching and communicating with agent processes. They are responsible for delivering messages, taking and executing agent orders, and reporting success or failure. Coordinators communicate between themselves over persistent TCP connections.
 
-Agents interact in two primary ways: messages and movement. Both are only effective within a certain proximity of the agent. These properties suggest that agents should be assigned to coordinators based on proximity, perhaps running as processes on the same server as their agent coordinator. There are multiple ways to perform this assignment. This paper considers three strategies: static assignment, fixed region distribution, and dynamic grid distribution.
+Agents interact in two primary ways: messages and movement. Both are only effective within a certain proximity of the agent. These properties suggest that agents should be assigned to coordinators based on proximity, perhaps running as processes on the same server as their agent coordinator. There are multiple ways to perform this assignment. This paper considers three strategies: static assignment, fixed region distribution, and dynamic grid distribution. (There is a simpler case that will not be considered, i.e. the case in which the game master acts as the only coordinator.)
 
 \subsection{Static Assignment}
 
