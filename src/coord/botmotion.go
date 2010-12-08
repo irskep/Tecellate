@@ -12,7 +12,9 @@ func botInfosForNeighbor(neighbor int) []ttypes.BotInfo {
 	infos := make([]ttypes.BotInfo, 0, len(botStates))
 	
 	for _, s := range(botStates) {
-		infos = append(infos, s.Info)
+		if s.Killed == false {
+			infos = append(infos, s.Info)
+		}
 	}
 	
 	return infos
@@ -27,59 +29,77 @@ func distance(x1 uint, y1 uint, x2 uint, y2 uint) float64 {
 func messagesHeardBy(info ttypes.BotInfo) []ttypes.Message {
 	messages := make([]ttypes.Message, 0, len(botStates))
 	for _, s := range(botStates) {
-		lm := s.Info.LastMessage
-		d := distance(info.X, info.Y, s.Info.X, s.Info.Y)
-		if d <= 2 && len(lm) > 1 {
-			messages = append(messages, ttypes.Message{lm, d})
+		if s.Killed == false {
+			lm := s.Info.LastMessage
+			d := distance(info.X, info.Y, s.Info.X, s.Info.Y)
+			if d <= 2 && len(lm) > 1 {
+				messages = append(messages, ttypes.Message{lm, d})
+			}
 		}
 	}
 	return messages
 }
 
+// Stupid n^2 algorithm to see if any 2 bots overlap and mark them killed if they do
+func declareDeaths(otherInfos []ttypes.BotInfo) {
+	for ix, s := range(botStates) {
+		for jx, oi := range(otherInfos) {
+			if ix != jx && s.Info.X == oi.X && s.Info.Y == oi.Y {
+				fmt.Printf("Killing bot %v\n", s)
+				s.Killed = true
+			}
+		}
+	}
+	fmt.Println(botStates[0].Killed)
+}
+
 func moveBots(otherInfos []ttypes.BotInfo) {
 	// fmt.Printf("All infos: %v\n", otherInfos)
 	for botNum, s := range(botStates) {
-		if s.TurnsToNextMove == 0 {
-			req := new(ttypes.BotMoveRequest)
-			req.Terrain = config.Terrain
-			req.OtherBots = otherInfos
-			req.Messages = messagesHeardBy(s.Info)
-			req.YourX = s.Info.X
-			req.YourY = s.Info.Y
-			req.Kill = false
-			easynet.SendJson(s.Conn, req)
+		if s.Killed == false {
+			if s.TurnsToNextMove == 0 {
+				req := new(ttypes.BotMoveRequest)
+				req.Terrain = config.Terrain
+				req.OtherBots = otherInfos
+				req.Messages = messagesHeardBy(s.Info)
+				req.YourX = s.Info.X
+				req.YourY = s.Info.Y
+				req.Kill = false
+				easynet.SendJson(s.Conn, req)
 
-			rsp := new(ttypes.BotMoveResponse)
-			easynet.ReceiveJson(s.Conn, rsp)
+				rsp := new(ttypes.BotMoveResponse)
+				easynet.ReceiveJson(s.Conn, rsp)
 			
-			oldElevation := config.Terrain.Get(s.Info.X, s.Info.Y)
+				oldElevation := config.Terrain.Get(s.Info.X, s.Info.Y)
 			
-			switch {
-			case rsp.MoveDirection == "left" && otherInfos[botNum].X > 0:
-				otherInfos[botNum].X -= 1
-			case rsp.MoveDirection == "right" && otherInfos[botNum].X < config.Terrain.Width:
-				otherInfos[botNum].X += 1
-			case rsp.MoveDirection == "down" && otherInfos[botNum].Y > 0:
-				otherInfos[botNum].Y -= 1
-			case rsp.MoveDirection == "up" && otherInfos[botNum].Y < config.Terrain.Height:
-				otherInfos[botNum].Y += 1
+				switch {
+				case rsp.MoveDirection == "left" && otherInfos[botNum].X > 0:
+					otherInfos[botNum].X -= 1
+				case rsp.MoveDirection == "right" && otherInfos[botNum].X < config.Terrain.Width:
+					otherInfos[botNum].X += 1
+				case rsp.MoveDirection == "down" && otherInfos[botNum].Y > 0:
+					otherInfos[botNum].Y -= 1
+				case rsp.MoveDirection == "up" && otherInfos[botNum].Y < config.Terrain.Height:
+					otherInfos[botNum].Y += 1
+				}
+				newElevation := config.Terrain.Get(otherInfos[botNum].X, otherInfos[botNum].Y)
+			
+				otherInfos[botNum].LastMessage = rsp.BroadcastMessage
+				if len(otherInfos[botNum].LastMessage) > 1024 {
+					otherInfos[botNum].LastMessage = otherInfos[botNum].LastMessage[0:1024]
+				}
+			
+				// I could not for the life of me find Go's abs() function.
+				s.TurnsToNextMove = oldElevation-newElevation
+				if s.TurnsToNextMove < 0 {
+					s.TurnsToNextMove = -s.TurnsToNextMove
+				}
+			} else {
+				fmt.Printf("Bot %d hit rocky terrain\n", botNum)
+				s.TurnsToNextMove -= 1
+				otherInfos[botNum].LastMessage = ""
 			}
-			newElevation := config.Terrain.Get(otherInfos[botNum].X, otherInfos[botNum].Y)
-			
-			otherInfos[botNum].LastMessage = rsp.BroadcastMessage
-			if len(otherInfos[botNum].LastMessage) > 1024 {
-				otherInfos[botNum].LastMessage = otherInfos[botNum].LastMessage[0:1024]
-			}
-			
-			// I could not for the life of me find Go's abs() function.
-			s.TurnsToNextMove = oldElevation-newElevation
-			if s.TurnsToNextMove < 0 {
-				s.TurnsToNextMove = -s.TurnsToNextMove
-			}
-		} else {
-			fmt.Printf("Bot %d hit rocky terrain\n", botNum)
-			s.TurnsToNextMove -= 1
-			otherInfos[botNum].LastMessage = ""
 		}
 	}
+	declareDeaths(otherInfos)
 }

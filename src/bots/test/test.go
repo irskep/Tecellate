@@ -38,7 +38,7 @@ func listenForMoveRequests(conn *net.TCPConn) {
 		//Do something
 		
 		response := new(ttypes.BotMoveResponse)
-		if r.YourY < 4 {
+		if r.YourY < 5 {
 			response.MoveDirection = "up"
 		} else if r.YourY > 5 {
 			response.MoveDirection = "down"

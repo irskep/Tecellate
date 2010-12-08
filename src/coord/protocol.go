@@ -60,7 +60,7 @@ func handleRequest(data []uint8) {
 		fmt.Printf("%d handle GetNodes from %d\n", config.Identifier, r.Identifier)
 		for respondingToRequestsFor < r.Turn {
 			fmt.Printf("%d not ready for GetNodes\n", config.Identifier)
-			time.Sleep(100000)
+			time.Sleep(10000000)
 		}
 		fmt.Printf("%d ready for GetNodes\n", config.Identifier)
 		info := new(RespondNodeInfo)
