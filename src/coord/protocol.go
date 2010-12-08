@@ -62,6 +62,7 @@ func handleRequest(data []uint8) {
 			fmt.Printf("%d not ready for GetNodes\n", config.Identifier)
 			time.Sleep(10000000)
 		}
+		dataLock.RLock()
 		fmt.Printf("%d ready for GetNodes\n", config.Identifier)
 		info := new(RespondNodeInfo)
 		info.Identifier = config.Identifier
@@ -71,13 +72,18 @@ func handleRequest(data []uint8) {
 		easynet.DieIfError(err, "JSON marshal error")
 		adjsServe[r.Identifier].Write(infoString)
 		fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
+		dataLock.RUnlock()
 	}
 }
 
 func processNodes() {
 	fmt.Printf("%d processing nodes\n", config.Identifier)
+	
+	dataLock.Lock()
 	for i := 0; i < config.NumTurns; i++ {
 		respondingToRequestsFor = i
+		dataLock.Unlock()
+		
 		fmt.Printf("%d starting turn %d\n", config.Identifier, i)
 		
 		otherInfos := make([]ttypes.BotInfo, len(botStates), len(botStates)*len(adjsServe))
@@ -107,17 +113,16 @@ func processNodes() {
 		}
 		
 		declareDeaths(otherInfos)
+		
 		moveBots(otherInfos)
 		
+		dataLock.Lock()
 		//Copy new data back into botStates.
-		//RACE CONDITION: respondingToRequestsFor may be behind this
-		//by one turn, so some coords may get the wrong botInfos.
-		//Fix: keep a dictionary mapping turn -> info set.
-		//Discard past 2 turns.
 		for i, _ := range(botStates) {
 			botStates[i].Info = otherInfos[i]
 		}
 	}
+	dataLock.Unlock()
 	complete <- true
 }
 

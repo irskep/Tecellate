@@ -7,6 +7,7 @@ import (
 	"net"
 	"strconv"
 	"easynet"
+	"sync"
 	"ttypes"
 )
 
@@ -27,6 +28,9 @@ var botStates []*BotState
 var primary bool
 var waitingForStart bool
 var complete chan bool
+
+// Avoid a race condition
+var dataLock sync.RWMutex
 
 func main() {
 	// Print a nice separator at the end of execution so that 'make fancyrun' looks good

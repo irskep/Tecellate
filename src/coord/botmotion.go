@@ -33,7 +33,7 @@ func perceptionOf(info ttypes.BotInfo) ([]ttypes.Message, []ttypes.BotInfo) {
 		if s.Killed == false {
 			lm := s.Info.LastMessage
 			d := distance(info.X, info.Y, s.Info.X, s.Info.Y)
-			if d <= 2 && len(lm) > 1 {
+			if d <= 5 && len(lm) > 1 {
 				messages = append(messages, ttypes.Message{lm, d})
 			}
 			if d <= 3 {
