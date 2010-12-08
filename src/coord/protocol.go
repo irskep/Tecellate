@@ -80,6 +80,7 @@ func processNodes() {
 	fmt.Printf("%d processing nodes\n", config.Identifier)
 	
 	dataLock.Lock()
+	defer dataLock.Unlock()
 	for i := 0; i < config.NumTurns; i++ {
 		respondingToRequestsFor = i
 		dataLock.Unlock()
@@ -122,7 +123,6 @@ func processNodes() {
 			botStates[i].Info = otherInfos[i]
 		}
 	}
-	dataLock.Unlock()
 	complete <- true
 }
 
