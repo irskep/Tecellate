@@ -9,30 +9,6 @@ import (
 	"ttypes"
 )
 
-type BotState struct {
-	Conn *net.TCPConn
-	Info ttypes.BotInfo
-	TurnsToNextMove int
-	Killed bool
-}
-
-type CompletionNotification struct {
-	Identifier int
-	LastProcessedTurn int
-}
-
-type Request struct {
-	Identifier int
-	Turn int
-	Command string
-}
-
-type RespondNodeInfo struct {
-	Identifier int
-	Turn int
-	BotData []ttypes.BotInfo
-}
-
 func listenForMaster(connectionToMaster *net.TCPConn) {
 	msg, err := easynet.ReceiveFromWithError(connectionToMaster)
 	if err != nil {
