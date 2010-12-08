@@ -37,6 +37,7 @@ func messagesHeardBy(info ttypes.BotInfo) []ttypes.Message {
 }
 
 func moveBots(otherInfos []ttypes.BotInfo) {
+	// fmt.Printf("All infos: %v\n", otherInfos)
 	for botNum, s := range(botStates) {
 		if s.TurnsToNextMove == 0 {
 			req := new(ttypes.BotMoveRequest)
@@ -65,9 +66,9 @@ func moveBots(otherInfos []ttypes.BotInfo) {
 			}
 			newElevation := config.Terrain.Get(otherInfos[botNum].X, otherInfos[botNum].Y)
 			
-			s.Info.LastMessage = rsp.BroadcastMessage
-			if len(s.Info.LastMessage) > 1024 {
-				s.Info.LastMessage = s.Info.LastMessage[0:1024]
+			otherInfos[botNum].LastMessage = rsp.BroadcastMessage
+			if len(otherInfos[botNum].LastMessage) > 1024 {
+				otherInfos[botNum].LastMessage = otherInfos[botNum].LastMessage[0:1024]
 			}
 			
 			// I could not for the life of me find Go's abs() function.
@@ -78,7 +79,7 @@ func moveBots(otherInfos []ttypes.BotInfo) {
 		} else {
 			fmt.Printf("Bot %d hit rocky terrain\n", botNum)
 			s.TurnsToNextMove -= 1
-			s.Info.LastMessage = ""
+			otherInfos[botNum].LastMessage = ""
 		}
 	}
 }

@@ -3,6 +3,6 @@
         "127.0.0.1:8002",
         "127.0.0.1:8102"
     ],
-    "NumTurns": 1,
+    "NumTurns": 4,
     "SplitStrategy": "vertical"
 }

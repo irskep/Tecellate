@@ -67,7 +67,7 @@ func main() {
 	// Confirm setup
 	connectionToMaster.Write([]uint8("setup complete"))
 	
-	fmt.Printf("%d sees data at start as: \n%v\n    grid: %v\n", config.Identifier, botStates, config.Terrain)
+	fmt.Printf("%d sees data at start as: \n%v\n    grid: %v\n", config.Identifier, botInfosForNeighbor(0), config.Terrain)
 	
 	// Transition to both listening states
 	go listenForMaster(connectionToMaster)
@@ -76,7 +76,7 @@ func main() {
 	// Wait for those loops to exit
 	<-complete
 	
-	fmt.Printf("%d sees data at end as: \n%v\n    grid: %v\n", config.Identifier, botStates, config.Terrain)
+	fmt.Printf("%d sees data at end as: \n%v\n    grid: %v\n", config.Identifier, botInfosForNeighbor(0), config.Terrain)
 	
 	// Confirm termination
 	connectionToMaster.Write([]byte("Wasn't that fun?"))

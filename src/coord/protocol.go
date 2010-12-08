@@ -19,6 +19,10 @@ func listenForMaster(connectionToMaster *net.TCPConn) {
 			fmt.Printf("%d is primary\n", config.Identifier)
 			primary = true
 			broadcastValid()
+		} else if string(msg) == "not_primary" {
+			fmt.Printf("%d is not primary\n", config.Identifier)
+			primary = false
+			return
 		}
 	}
 }

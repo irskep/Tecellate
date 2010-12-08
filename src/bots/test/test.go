@@ -34,10 +34,16 @@ func listenForMoveRequests(conn *net.TCPConn) {
 			os.Exit(0)
 		}
 		
+		fmt.Printf("Bot at %d, %d received messages: %v\n", r.YourX, r.YourY, r.Messages)
 		//Do something
 		
 		response := new(ttypes.BotMoveResponse)
-		response.MoveDirection = "left"
+		if r.YourY < 4 {
+			response.MoveDirection = "up"
+		} else if r.YourY > 5 {
+			response.MoveDirection = "down"
+		}
+		response.BroadcastMessage = fmt.Sprintf("I am %v at %d, %d", os.Args[0], r.YourX, r.YourY)
 		responseString, err := json.Marshal(response)
 		easynet.DieIfError(err, "JSON marshal error")
 		conn.Write(responseString)
