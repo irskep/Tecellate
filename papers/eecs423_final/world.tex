@@ -5,20 +5,22 @@ The simulation is turn-based and runs over a fixed number of turns. At the begin
 
 \subsection{World and Movement}
 
-The simulation world consists of a $w$x$h$ grid of signed integers. If the number is non-negative, it is the terrain height. Otherwise, the cell is impassable. An agent can move at most one cell up, down, left, or right per turn.
+The simulation world consists of a $w$x$h$ grid of signed integers. If the number is non-negative, it is the terrain height. Otherwise, the cell is impassable. An agent can move at most one cell up, down, left, or right per turn. The move action takes one extra turn for every absolute height unit difference above 1.
 
-% The move action will take one extra turn for every absolute height unit difference above 1.
-
-If more than one agent on the same team attempt to move into the same cell, none will be able to. If agents from different teams attempt to move into the same cell, then the one with more teammates adjacent to the target cell will succeed and the others will be destroyed. If all competitors have equal support, none will move.
-
-\subsection{Perception}
-
-% Agents are informed of the positions and affiliations of other agents within 2 cells. 
-
-Agents are aware of their global position and the positions of every other agent.
+If more than one agent attempt to move into the same cell, they are destroyed.
 
 \subsection{Messages}
 
-An agent may broadcast a message every turn regardless of any other action it takes. The broadcast system is a simplification of radio communication: nearby agents within a maximum radius will receive the message. Other agents will not hear it.
+An agent may broadcast a message of 1024 bytes or less every turn regardless of any other action it takes. The broadcast system is a simplification of radio communication: nearby agents within a maximum radius will receive the message. Other agents will not hear it.
 
- % overwritten with noise proportional to the square of the distance. Nearby agents will receive the message clearly, farther away agents will get noisy versions, and farawy agents will not receive the message at all.
+\subsection{Perception}
+
+Agents are informed of their global position in the world. They are also informed of the position of any agents within a maximum number of cells.
+
+\section{Usefulness of the Simulation}
+
+The simulation provides a close enough approximation of the real world to allow testing of high-level coordination algorithms to be tested using a very simple API.
+
+The rules for movement (1 delayed turn per cell height difference) and perception provide an opportunity to experiment with pathfinding algorithms in an environment where little information outside a limited area is available, similar to the conditions of the DARPA autonomous vehicle events.
+
+The rules for communication force agents to communicate with distant agents by passing messages through nearby agents, creating ad-hoc wireless networks.
