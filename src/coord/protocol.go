@@ -106,6 +106,7 @@ func processNodes() {
 			otherInfos = append(otherInfos, info.BotData...)
 		}
 		
+		declareDeaths(otherInfos)
 		moveBots(otherInfos)
 		
 		//Copy new data back into botStates.

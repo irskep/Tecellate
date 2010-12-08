@@ -164,11 +164,13 @@ func setupAll(listener *net.TCPListener) {
 	}
 }
 
+func killChild(s *BotState) {
+	req := new(ttypes.BotMoveRequest)
+	req.Kill = true
+	easynet.SendJson(s.Conn, req)
+}
+
 // Kill all child processes by asking nicely
 func killChildren() {
-	for _, s := range(botStates) {
-		req := new(ttypes.BotMoveRequest)
-		req.Kill = true
-		easynet.SendJson(s.Conn, req)
-	}
+	for _, s := range(botStates) { killChild(s) }
 }

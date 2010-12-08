@@ -43,10 +43,12 @@ func messagesHeardBy(info ttypes.BotInfo) []ttypes.Message {
 // Stupid n^2 algorithm to see if any 2 bots overlap and mark them killed if they do
 func declareDeaths(otherInfos []ttypes.BotInfo) {
 	for ix, s := range(botStates) {
-		for jx, oi := range(otherInfos) {
-			if ix != jx && s.Info.X == oi.X && s.Info.Y == oi.Y {
-				fmt.Printf("Killing bot %v\n", s)
-				s.Killed = true
+		if s.Killed == false {
+			for jx, oi := range(otherInfos) {
+				if ix != jx && s.Info.X == oi.X && s.Info.Y == oi.Y {
+					fmt.Printf("Killing bot %v\n", s)
+					s.Killed = true
+				}
 			}
 		}
 	}
@@ -101,5 +103,4 @@ func moveBots(otherInfos []ttypes.BotInfo) {
 			}
 		}
 	}
-	declareDeaths(otherInfos)
 }
