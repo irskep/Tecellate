@@ -10,14 +10,18 @@ import (
 	"ttypes"
 )
 
+type BotState struct {
+	Conn *net.TCPConn
+	Info ttypes.BotInfo
+	TurnsToNextMove int
+}
+
 type CoordMap map[int]*net.TCPConn
 var adjsServe CoordMap
 var adjsRequest CoordMap
 var listenServe chan []uint8
-var botConns []*net.TCPConn
-var botInfos []ttypes.BotInfo
 var config *ttypes.CoordConfig
-
+var botStates []*BotState
 var respondingToRequestsFor int
 var primary bool
 var waitingForStart bool
@@ -48,14 +52,14 @@ func main() {
 	
 	connectionToMaster.Write([]uint8("setup complete"))
 	
-	fmt.Printf("%d sees data at start as: \n%v\n    grid: %v\n", config.Identifier, botInfos, config.Terrain)
+	fmt.Printf("%d sees data at start as: \n%v\n    grid: %v\n", config.Identifier, botStates, config.Terrain)
 	
 	go listenForMaster(connectionToMaster)
 	go listenForPeer()
 	
 	<-complete
 	
-	fmt.Printf("%d sees data at end as: \n%v\n    grid: %v\n", config.Identifier, botInfos, config.Terrain)
+	fmt.Printf("%d sees data at end as: \n%v\n    grid: %v\n", config.Identifier, botStates, config.Terrain)
 	
 	killChildren()
 	
@@ -72,15 +76,16 @@ func setupBot(conf ttypes.BotConf, portNumber int) *net.TCPConn {
 }
 
 func setupBots() (chan bool) {
-	botConns = make([]*net.TCPConn, len(config.BotConfs))
-	botInfos = make([]ttypes.BotInfo, len(config.BotConfs))
+	botStates = make([]*BotState, len(config.BotConfs))
 	basePort := new(int)
 	botComplete := make(chan bool)
 	fmt.Sscanf(os.Args[1], "127.0.0.1:%d", basePort)
 	go func() {
 		for ix, b := range(config.BotConfs) {
-			botConns[ix] = setupBot(b, *basePort + ix + 1)
-			botInfos[ix] = ttypes.BotInfo{b.X, b.Y}
+			s := new(BotState)
+			botStates[ix] = s
+			s.Conn = setupBot(b, *basePort + ix + 1)
+			s.Info = ttypes.BotInfo{b.X, b.Y}
 		}
 		botComplete <- true
 	}()
@@ -134,15 +139,15 @@ func setupAll(listener *net.TCPListener) {
 	<- adjsComplete
 	<- botsComplete
 	
-	for _, c := range(botConns) {
-		fmt.Printf("%s\n", easynet.ReceiveFrom(c))
+	for _, s := range(botStates) {
+		fmt.Printf("%s\n", easynet.ReceiveFrom(s.Conn))
 	}
 }
 
 func killChildren() {
-	for _, botConn := range(botConns) {
+	for _, s := range(botStates) {
 		req := new(ttypes.BotMoveRequest)
 		req.Kill = true
-		easynet.SendJson(botConn, req)
+		easynet.SendJson(s.Conn, req)
 	}
 }

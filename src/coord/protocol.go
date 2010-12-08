@@ -80,7 +80,7 @@ func handleRequest(data []uint8) {
 		info := new(RespondNodeInfo)
 		info.Identifier = config.Identifier
 		info.Turn = respondingToRequestsFor
-		info.BotData = botInfos
+		info.BotData = botInfosForNeighbor(r.Identifier)
 		infoString, err := json.Marshal(info)
 		easynet.DieIfError(err, "JSON marshal error")
 		adjsServe[r.Identifier].Write(infoString)
@@ -94,8 +94,12 @@ func processNodes() {
 		respondingToRequestsFor = i
 		fmt.Printf("%d starting turn %d\n", config.Identifier, i)
 		
-		otherInfos := make([]ttypes.BotInfo, len(botInfos), len(botInfos)*len(adjsServe))
-		copy(otherInfos, botInfos)
+		otherInfos := make([]ttypes.BotInfo, len(botStates), len(botStates)*len(adjsServe))
+		
+		//Copy all infos from botStates into otherInfos
+		for i, s := range(botStates) {
+			otherInfos[i] = s.Info
+		}
 		
 		//Get updates from neighbors
 		for j, conn := range(adjsRequest) {
@@ -115,18 +119,18 @@ func processNodes() {
 			
 			otherInfos = append(otherInfos, info.BotData...)
 		}
-		for botNum, botConn := range(botConns) {
+		for botNum, s := range(botStates) {
 			req := new(ttypes.BotMoveRequest)
 			req.Terrain = config.Terrain
 			req.OtherBots = otherInfos
 			req.Messages = nil
-			req.YourX = botInfos[botNum].X
-			req.YourY = botInfos[botNum].Y
+			req.YourX = s.Info.X
+			req.YourY = s.Info.Y
 			req.Kill = false
-			easynet.SendJson(botConn, req)
+			easynet.SendJson(s.Conn, req)
 			
 			rsp := new(ttypes.BotMoveResponse)
-			easynet.ReceiveJson(botConn, rsp)
+			easynet.ReceiveJson(s.Conn, rsp)
 			switch {
 			case rsp.MoveDirection == "left":
 				if otherInfos[botNum].X > 0 {
@@ -135,10 +139,14 @@ func processNodes() {
 				}
 			}
 		}
+		//Copy new data back into botStates.
 		//RACE CONDITION: respondingToRequestsFor may be behind this
 		//by one turn, so some coords may get the wrong botInfos.
-		//Fix: make botInfos a map [turn]list
-		copy(botInfos, otherInfos)
+		//Fix: keep a dictionary mapping turn -> info set.
+		//Discard past 2 turns.
+		for i, _ := range(botStates) {
+			botStates[i].Info = otherInfos[i]
+		}
 	}
 	complete <- true
 }

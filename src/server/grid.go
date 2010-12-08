@@ -12,7 +12,7 @@ func simpleGrid(w uint, h uint) *ttypes.Grid {
 	grid := new(ttypes.Grid)
 	grid.Width = w
 	grid.Height = h
-	grid.Items = make([]byte, w*h)
+	grid.Items = make([]int, w*h)
 	return grid
 }
 
