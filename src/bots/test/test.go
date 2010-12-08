@@ -35,6 +35,7 @@ func listenForMoveRequests(conn *net.TCPConn) {
 		}
 		
 		fmt.Printf("Bot at %d, %d received messages: %v\n", r.YourX, r.YourY, r.Messages)
+		fmt.Printf("  Sees other bots: %v\n", r.OtherBots)
 		//Do something
 		
 		response := new(ttypes.BotMoveResponse)

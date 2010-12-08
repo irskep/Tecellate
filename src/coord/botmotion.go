@@ -26,8 +26,9 @@ func distance(x1 uint, y1 uint, x2 uint, y2 uint) float64 {
 	return math.Sqrt(float64(dx*dx+dy*dy))
 }
 
-func messagesHeardBy(info ttypes.BotInfo) []ttypes.Message {
+func perceptionOf(info ttypes.BotInfo) ([]ttypes.Message, []ttypes.BotInfo) {
 	messages := make([]ttypes.Message, 0, len(botStates))
+	otherBots := make([]ttypes.BotInfo, 0, 30)
 	for _, s := range(botStates) {
 		if s.Killed == false {
 			lm := s.Info.LastMessage
@@ -35,9 +36,12 @@ func messagesHeardBy(info ttypes.BotInfo) []ttypes.Message {
 			if d <= 2 && len(lm) > 1 {
 				messages = append(messages, ttypes.Message{lm, d})
 			}
+			if d <= 3 {
+				otherBots = append(otherBots, s.Info)
+			}
 		}
 	}
-	return messages
+	return messages, otherBots
 }
 
 // Stupid n^2 algorithm to see if any 2 bots overlap and mark them killed if they do
@@ -60,10 +64,11 @@ func moveBots(otherInfos []ttypes.BotInfo) {
 	for botNum, s := range(botStates) {
 		if s.Killed == false {
 			if s.TurnsToNextMove == 0 {
+				msges, botsSeen := perceptionOf(s.Info)
 				req := new(ttypes.BotMoveRequest)
 				req.Terrain = config.Terrain
-				req.OtherBots = otherInfos
-				req.Messages = messagesHeardBy(s.Info)
+				req.OtherBots = botsSeen
+				req.Messages = msges
 				req.YourX = s.Info.X
 				req.YourY = s.Info.Y
 				req.Kill = false
