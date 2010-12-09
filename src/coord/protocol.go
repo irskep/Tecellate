@@ -12,13 +12,10 @@ import (
 func listenForMaster(connectionToMaster *net.TCPConn) {
 	msg, err := easynet.ReceiveFromWithError(connectionToMaster)
 	if err != nil {
-		fmt.Printf("%d apparently was not the primary\n", config.Identifier)
-		fmt.Printf("%d error seen was: %v\n", config.Identifier, err)
+		fmt.Printf("%d got an error on the connection to master: %v\n", config.Identifier, err)
 	} else {
 		if string(msg) == "begin" {
-			fmt.Printf("%d is primary\n", config.Identifier)
-			// primary = true
-			// broadcastValid()
+			fmt.Printf("%d is the Chosen One!\n", config.Identifier)
 			processing = true
 			go processNodes()
 		}
@@ -36,7 +33,6 @@ func listenForPeer() {
 		//A crappy and hopefully temporary fix.
 		splitPoint := 0
 		if data[0] == "{"[0] {
-			fmt.Println("case a")
 			for i := 1; i < len(data); i++ {
 				if data[i-1] == "}"[0] && data[i] == "{"[0] {
 					splitPoint = i
@@ -44,7 +40,6 @@ func listenForPeer() {
 				}
 			}
 		} else {
-			fmt.Println("case b")
 			for i := 1; i < len(data); i++ {
 				if data[i] == "{"[0] {
 					splitPoint = i
@@ -53,7 +48,6 @@ func listenForPeer() {
 			}
 		}
 		if splitPoint == 0 {
-			fmt.Println("case 1")
 			handleRequest(data)
 		} else {
 			fmt.Println("case 2")

@@ -24,7 +24,6 @@ var respondingToRequestsFor int
 var botStates []*BotState
 
 // Global state
-var primary bool
 var complete chan bool
 var processing bool
 
@@ -36,7 +35,6 @@ func main() {
 	defer fmt.Println("-------------------")
 	
 	// Initialize globals
-	primary = false
 	processing = false
 	complete = make(chan bool)
 	
