@@ -12,7 +12,7 @@ import (
 func listenForMaster(connectionToMaster *net.TCPConn) {
 	msg, err := easynet.ReceiveFromWithError(connectionToMaster)
 	if err != nil {
-		fmt.Printf("%d got an error on the connection to master: %v\n", config.Identifier, err)
+		fmt.Printf("%d got an error on the connection to master (because it didn't receive BEGIN, which is fine): %v\n", config.Identifier, err)
 	} else {
 		if string(msg) == "begin" {
 			fmt.Printf("%d is the Chosen One!\n", config.Identifier)
@@ -21,8 +21,6 @@ func listenForMaster(connectionToMaster *net.TCPConn) {
 		}
 	}
 }
-
-var completionsRemaining int
 
 func listenForPeer() {
 	fmt.Printf("%d serving requests\n", config.Identifier)
@@ -50,7 +48,7 @@ func listenForPeer() {
 		if splitPoint == 0 {
 			handleRequest(data)
 		} else {
-			fmt.Println("case 2")
+			fmt.Println("Split occurred, wish I knew how to flush buffers...")
 			handleRequest(data[0:splitPoint])
 			handleRequest(data[splitPoint:len(data)])
 		}

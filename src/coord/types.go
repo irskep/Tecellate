@@ -12,11 +12,6 @@ type BotState struct {
 	Killed bool
 }
 
-type CompletionNotification struct {
-	Identifier int
-	LastProcessedTurn int
-}
-
 type Request struct {
 	Identifier int
 	Turn int

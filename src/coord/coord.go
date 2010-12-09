@@ -26,6 +26,7 @@ var botStates []*BotState
 // Global state
 var complete chan bool
 var processing bool
+var completionsRemaining int
 
 // Avoid race conditions
 var dataLock sync.RWMutex
