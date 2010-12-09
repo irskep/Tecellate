@@ -17,8 +17,10 @@ func listenForMaster(connectionToMaster *net.TCPConn) {
 	} else {
 		if string(msg) == "begin" {
 			fmt.Printf("%d is primary\n", config.Identifier)
-			primary = true
-			broadcastValid()
+			// primary = true
+			// broadcastValid()
+			processing = true
+			go processNodes()
 		}
 	}
 }
@@ -29,32 +31,48 @@ func listenForPeer() {
 	fmt.Printf("%d serving requests\n", config.Identifier)
 	completionsRemaining = len(adjsServe)
 	for data := range(listenServe) {
+		fmt.Println(string(data))
 		//Sometimes requests will be stuck together. Here I am separating them.
 		//A crappy and hopefully temporary fix.
 		splitPoint := 0
-		for i := 1; i < len(data); i++ {
-			if data[i-1] == "}"[0] && data[i] == "{"[0] {
-				splitPoint = i
-				handleRequest(data[0:splitPoint])
-				handleRequest(data[splitPoint:len(data)])
-				break
+		if data[0] == "{"[0] {
+			fmt.Println("case a")
+			for i := 1; i < len(data); i++ {
+				if data[i-1] == "}"[0] && data[i] == "{"[0] {
+					splitPoint = i
+					break
+				}
+			}
+		} else {
+			fmt.Println("case b")
+			for i := 1; i < len(data); i++ {
+				if data[i] == "{"[0] {
+					splitPoint = i
+					break
+				}
 			}
 		}
 		if splitPoint == 0 {
+			fmt.Println("case 1")
 			handleRequest(data)
+		} else {
+			fmt.Println("case 2")
+			handleRequest(data[0:splitPoint])
+			handleRequest(data[splitPoint:len(data)])
 		}
 	}
 }
 
 func handleRequest(data []uint8) {
+	if processing == false {
+		// The game's afoot!
+		processing = true
+		go processNodes()
+	}
 	r := new(Request)
 	err := json.Unmarshal(data, r)
 	easynet.DieIfError(err, "JSON error")
 	switch {
-	case r.Command == "Begin" && primary == false && waitingForStart == true:
-		fmt.Printf("%d handle Begin from %d\n", config.Identifier, r.Identifier)
-		waitingForStart = false
-		go processNodes()
 	case r.Command == "GetNodes":
 		fmt.Printf("%d handle GetNodes from %d\n", config.Identifier, r.Identifier)
 		for respondingToRequestsFor < r.Turn {
@@ -130,20 +148,6 @@ func processNodes() {
 	}
 	broadcastComplete()
 	complete<-true
-}
-
-func broadcastValid() {
-	note := new(Request)
-	note.Identifier = config.Identifier
-	note.Turn = respondingToRequestsFor
-	note.Command = "Begin"
-	
-	for i, conn := range(adjsRequest) {
-		fmt.Printf("%d broadcasting valid to %d\n", config.Identifier, i)
-		easynet.SendJson(conn, note)
-	}
-	waitingForStart = false
-	go processNodes()
 }
 
 func broadcastComplete() {

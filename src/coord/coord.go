@@ -25,8 +25,8 @@ var botStates []*BotState
 
 // Global state
 var primary bool
-var waitingForStart bool
 var complete chan bool
+var processing bool
 
 // Avoid race conditions
 var dataLock sync.RWMutex
@@ -37,7 +37,7 @@ func main() {
 	
 	// Initialize globals
 	primary = false
-	waitingForStart = true
+	processing = false
 	complete = make(chan bool)
 	
 	// Begin listening on the port passed on the command line
