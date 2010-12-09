@@ -28,6 +28,7 @@ run:
 	(sleep 0.5; ./build/tecellate testgrid.txt)
 
 fancyrun:
+	# For when you want to have the coordinators log in separate windows (use tail)
 	./build/coord 127.0.0.1:8002 >> out/coord1.txt &
 	./build/coord 127.0.0.1:8102 >> out/coord2.txt &
 	(sleep 0.5; ./build/tecellate testgrid.txt)
