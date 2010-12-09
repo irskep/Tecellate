@@ -12,14 +12,30 @@ This approach introduces significant overhead. Each agent coordinator will have 
 
 \subsection{Fixed Region Distribution}
 
-One way to alleviate the communication problem is to assign each agent coordinator a fixed portion of the grid to be responsible for. There will never be a recalculation of bounds and each coordinator has a constant set of neighbor coordinators to communicate with. Each turn, adjacent coordinators will exchange messages, and order confirmations for agents near their shared border, and full agent information transfers for agents moving from one coordinator's region to a neighbor's region.
+One way to alleviate the communication problem is to assign each agent coordinator a fixed portion of the grid to be responsible for. An example of such an assignment is shown in figure \ref{fixed}. There will never be a recalculation of coordinator bounds and each coordinator has a constant set of neighbor coordinators to communicate with. Each turn, adjacent coordinators exchange messages, order confirmations for agents near their shared border, and full agent information transfers for agents moving from one coordinator's region to a neighbor's region.
+
+\begin{figure*}
+    \begin{center}
+        \includegraphics[scale=0.5]{figures/assign_region.pdf}
+    \end{center}
+    \caption{Region split across two coordinators. The top coordinator has 8 agents and the bottom coordinator has 4.}
+    \label{fixed}
+\end{figure*}
 
 This strategy requires the least communication between agent coordinators when agents move relatively little, but requires much communication when many agents are near region borders or move between borders often. It also introduces inefficiency in work distribution when disproportionate numbers of agents are gathered in small regions.
 
 \subsection{Dynamic Grid Distribution}
 
-Like fixed region distribution, dynamic grid distribution assigns each agent coordinator a region of the grid to be responsible for. However, the regions themselves are arranged in a meta-grid. This grid arragenement allows rows and columns to be resized while the simulation is running, partially alleviating the work distribution problem.
+Like fixed region distribution, dynamic grid distribution assigns each agent coordinator a region of the grid to be responsible for. However, the regions can be resized while the simulation is running, partially alleviating the work distribution problem, making sure that every coordinator controls approximately the same number of agents as the rest. Figure \ref{dynamic} shows region assignments for two coordinators during a run.
+
+\begin{figure*}
+    \begin{center}
+        \includegraphics[scale=0.5]{figures/assign_split.pdf}
+    \end{center}
+    \caption{Fair agent split across two coordinators. Both coordinators have 6 agents.}
+    \label{dynamic}
+\end{figure*}
 
 \subsection{This Version}
 
-The initial implementation of Tecellate uses static assignment to test communication protocols and basic mechanics. 
+The initial implementation of Tecellate uses static assignment based on rectangular regions to test communication protocols and basic mechanics. 
