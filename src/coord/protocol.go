@@ -144,9 +144,6 @@ func broadcastValid() {
 	}
 	waitingForStart = false
 	go processNodes()
-	
-	time.Sleep(10000000)
-	go listenForPeer()
 }
 
 func broadcastComplete() {
