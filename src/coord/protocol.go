@@ -5,9 +5,15 @@ import (
 	"easynet"
 	"json"
 	"net"
+	"sync"
 	"time"
 	"ttypes"
 )
+
+// Avoid race conditions
+var dataLock sync.RWMutex
+var neighborsLeftUntilUnlock int
+var lastUnlocked int
 
 func listenForMaster(connectionToMaster *net.TCPConn) {
 	msg, err := easynet.ReceiveFromWithError(connectionToMaster)
@@ -25,6 +31,8 @@ func listenForMaster(connectionToMaster *net.TCPConn) {
 func listenForPeer() {
 	fmt.Printf("%d serving requests\n", config.Identifier)
 	completionsRemaining = len(adjsServe)
+	neighborsLeftUntilUnlock = len(adjsServe)
+	lastUnlocked = 0
 	for data := range(listenServe) {
 		fmt.Println(string(data))
 		//Sometimes requests will be stuck together. Here I am separating them.
@@ -69,8 +77,9 @@ func handleRequest(data []uint8) {
 		fmt.Printf("%d handle GetNodes from %d\n", config.Identifier, r.Identifier)
 		for respondingToRequestsFor < r.Turn {
 			fmt.Printf("%d not ready for GetNodes\n", config.Identifier)
-			time.Sleep(10000000)
+			time.Sleep(1000000)
 		}
+		
 		dataLock.RLock()
 		fmt.Printf("%d ready for GetNodes\n", config.Identifier)
 		info := new(RespondNodeInfo)
@@ -79,7 +88,16 @@ func handleRequest(data []uint8) {
 		info.BotData = botInfosForNeighbor(r.Identifier)
 		easynet.SendJson(adjsServe[r.Identifier], info)
 		fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
+		fmt.Printf("    and it was %v\n", info)
 		dataLock.RUnlock()
+		
+		neighborsLeftUntilUnlock -= 1
+		if neighborsLeftUntilUnlock <= 0 {
+			fmt.Printf("unlocking turn %d\n", lastUnlocked+1)
+			turnLocks[respondingToRequestsFor+1].Unlock()
+			lastUnlocked += 1
+			neighborsLeftUntilUnlock = len(adjsServe)
+		}
 	case r.Command == "Complete":
 		completionsRemaining -= 1
 		if completionsRemaining == 0 {
@@ -92,15 +110,14 @@ func handleRequest(data []uint8) {
 func processNodes() {
 	fmt.Printf("%d processing nodes\n", config.Identifier)
 	
-	dataLock.Lock()
-	defer dataLock.Unlock()
-	for i := 0; i < config.NumTurns; i++ {
-		respondingToRequestsFor = i
-		dataLock.Unlock()
-		
-		fmt.Printf("%d starting turn %d\n", config.Identifier, i)
+	for respondingToRequestsFor < config.NumTurns {
+		fmt.Printf("Blocking at %d\n", respondingToRequestsFor)
+		turnLocks[respondingToRequestsFor].Lock()
+		fmt.Printf("%d starting turn %d\n", config.Identifier, respondingToRequestsFor)
 		
 		otherInfos := getAgentInfoFromNeighbors()
+		
+		fmt.Printf("EVERYONE SHOULD SEE %v\n", otherInfos)
 		
 		declareDeaths(otherInfos)
 		
@@ -111,6 +128,8 @@ func processNodes() {
 		for i, _ := range(botStates) {
 			botStates[i].Info = otherInfos[i]
 		}
+		respondingToRequestsFor += 1
+		dataLock.Unlock()
 	}
 	broadcastComplete()
 	fmt.Println("Turns complete, signaling TCOMPLETE1")
