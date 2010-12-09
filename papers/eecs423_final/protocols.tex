@@ -24,7 +24,7 @@ A state transition diagram of this process is shown in figure \ref{master}.
 
 The coordinator is the most complex part of the system. At any given time, as many as four threads may be running simultaneously. The full state transition diagram is shown in figure \ref{coord}.
 
-At the high level, the coordinator connects to neighbors and agents, serves requests for information about the state of its agents in the last turn, and processes its own agents by requesting information from its neighbors and from its agents.
+At the high level, the coordinator connects to neighbors and agents, serves requests for information about the state of its agents in the last turn, and processes its own agents by requesting information from its neighbors and from its agents. In this way, the coordinators operate in lock-step, turn by turn, until all turns have been processed by all coordinators.
 
 \subsubsection{The main thread}
 
