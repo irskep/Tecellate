@@ -79,9 +79,7 @@ func handleRequest(data []uint8) {
 		info.Identifier = config.Identifier
 		info.Turn = respondingToRequestsFor
 		info.BotData = botInfosForNeighbor(r.Identifier)
-		infoString, err := json.Marshal(info)
-		easynet.DieIfError(err, "JSON marshal error")
-		adjsServe[r.Identifier].Write(infoString)
+		easynet.SendJson(adjsServe[r.Identifier], info)
 		fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
 		dataLock.RUnlock()
 	case r.Command == "Complete":
@@ -119,13 +117,10 @@ func processNodes() {
 			r.Turn = respondingToRequestsFor
 			r.Command = "GetNodes"
 			
-			rData, err := json.Marshal(r)
-			easynet.DieIfError(err, "JSON marshal error")
-			conn.Write(rData)
+			easynet.SendJson(conn, r)
 			
 			info := new(RespondNodeInfo)
-			err = json.Unmarshal(easynet.ReceiveFrom(conn), info)
-			easynet.DieIfError(err, "JSON unmarshal error")
+			easynet.ReceiveJson(conn, info)
 			
 			otherInfos = append(otherInfos, info.BotData...)
 		}
