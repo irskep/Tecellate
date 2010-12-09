@@ -48,8 +48,35 @@ It waits for two locks, \texttt{TCOMPLETE1} and \texttt{TCOMPLETE2}, to be relea
 
 \subsubsection{The listenMaster thread}
 
-The master process begins the simulation by sending \texttt{BEGIN} to any coordinator. This message is received by the \texttt{listenMaster} thread, whose only job is to spawn the \texttt{processNodes} thread and exit.
+The master process begins the simulation by sending \texttt{BEGIN} to any coordinator. This message is received by the \texttt{listenMaster} thread, whose only job is to spawn the \texttt{processTurns} thread and exit.
 
 \subsubsection{The listenPeers thread}
 
+When \texttt{listenPeers} is spawned, all connections to neighbors have been set up. This thread listens for requests on its \textbf{incoming} connections (one for each neighbor).
+
+When it receives a \texttt{CREQUEST} message containing the identifier of the requester, it sends back a \texttt{CRESPONSE} containing information about all of its agents that are relevant to the requester. (If agents are assigned to coordinators based on regions, then a neighbor does not need information about all of the coordinator's agents if some are far away.)
+
+Additionally, if the \texttt{processTurns} thread has not been spawned when a \texttt{CREQUEST} is received, then it is spawned because some other coordinator must have been sent \texttt{BEGIN} by the master.
+
+When sending \texttt{CRESPONSE} messages, the coordinator must be sure that it is sending information about the correct turn. To ensure this, a \texttt{turn} value is sent in the request and \texttt{listenPeers} blocks until the requested turn has been processed.
+
+When the \texttt{listenPeers} thread receives a \texttt{COMPLETE} message, it increments an internal counter. When the counter is equal to the number of its neighbors, it unlocks \texttt{TCOMPLETE1} and exits.
+
+\subsubsection{The processTurns thread}
+
+This thread is responsible for handling interactions with agents. To execute a turn, it begins by sending \texttt{CREQUEST} messages to its neighbors to find out about relevant nearby agents that it does not have direct control over. Then it sends \texttt{AREQUEST} messages to each agent and awaits their \texttt{ARESPONSE} responses. It resolves the actions taken by the agents, including eliminating them from the grid, and informs \texttt{listenPeers} that the new turn has been processed.
+
+The process repeats until all turns have been processed, at which point \texttt{TCOMPLETE2} is unlocked and \texttt{processTurns} exits.
+
+\subsection{Agent}
+
+\begin{figure*}
+    \begin{center}
+        \includegraphics[scale=0.5]{figures/state_agent.pdf}
+    \end{center}
+    \caption{State transition diagram for the agent processes.}
+    \label{agent}
+\end{figure*}
+
+The agent protocol is the simplest of all protocols defined for the system. It launches and waits for a connection from the coordinator, then repeatedly serves decision requests until told to exit.
 
