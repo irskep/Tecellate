@@ -34,12 +34,6 @@ type BotConf struct {
 	Y uint
 }
 
-type BotInfo struct {
-	X uint
-	Y uint
-	LastMessage string
-}
-
 type Message struct {
 	Body string
 	Distance float64
@@ -57,6 +51,14 @@ type BotMoveRequest struct {
 type BotMoveResponse struct {
 	MoveDirection string
 	BroadcastMessage string
+}
+
+type BotInfo struct {
+	X uint
+	Y uint
+	LastMessage string
+	TurnsToNextMove int
+	Killed bool
 }
 
 type Grid struct {

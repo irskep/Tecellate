@@ -86,7 +86,7 @@ func main() {
 	// Confirm termination
 	finalTally := new(ttypes.Finish)
 	for _, s := range(botStates) {
-		if s.Killed == false { finalTally.NumBots += 1 }
+		if !s.Dead() { finalTally.NumBots += 1 }
 	}
 	easynet.SendJson(connectionToMaster, finalTally)
 }
@@ -112,7 +112,7 @@ func setupBots() (chan bool) {
 			s := new(BotState)
 			botStates[ix] = s
 			s.Conn = setupBot(b, *basePort + ix + 1)
-			s.Info = ttypes.BotInfo{b.X, b.Y, ""}
+			s.Info = ttypes.BotInfo{b.X, b.Y, "", 0, false}
 		}
 		botComplete <- true
 	}()

@@ -12,7 +12,7 @@ func botInfosForNeighbor(neighbor int) []ttypes.BotInfo {
 	infos := make([]ttypes.BotInfo, 0, len(botStates))
 	
 	for _, s := range(botStates) {
-		if s.Killed == false {
+		if !s.Dead() {
 			infos = append(infos, s.Info)
 		}
 	}
@@ -45,12 +45,14 @@ func perceptionOf(s *BotState, otherInfos []ttypes.BotInfo) ([]ttypes.Message, [
 // Stupid n^2 algorithm to see if any 2 bots overlap and mark them killed if they do
 func declareDeaths(otherInfos []ttypes.BotInfo) {
 	for ix, s := range(botStates) {
-		if s.Killed == false {
+		if !s.Dead() {
 			for jx, oi := range(otherInfos) {
-				fmt.Printf("Checking %v-%v\n", s, oi)
-				if ix != jx && s.Info.X == oi.X && s.Info.Y == oi.Y {
-					fmt.Printf("Killing bot %v\n", s)
-					s.Killed = true
+				if !oi.Killed {
+					fmt.Printf("Checking %v-%v\n", s, oi)
+					if ix != jx && s.Info.X == oi.X && s.Info.Y == oi.Y {
+						fmt.Printf("Killing bot %v\n", s)
+						s.Info.Killed = true
+					}
 				}
 			}
 		}
@@ -60,8 +62,8 @@ func declareDeaths(otherInfos []ttypes.BotInfo) {
 func moveBots(otherInfos []ttypes.BotInfo) {
 	// fmt.Printf("All infos: %v\n", otherInfos)
 	for botNum, s := range(botStates) {
-		if s.Killed == false {
-			if s.TurnsToNextMove == 0 {
+		if !s.Dead() {
+			if s.Info.TurnsToNextMove == 0 {
 				msges, botsSeen := perceptionOf(s, otherInfos)
 				req := new(ttypes.BotMoveRequest)
 				req.Terrain = config.Terrain
@@ -95,13 +97,13 @@ func moveBots(otherInfos []ttypes.BotInfo) {
 				}
 			
 				// I could not for the life of me find Go's abs() function.
-				s.TurnsToNextMove = oldElevation-newElevation
-				if s.TurnsToNextMove < 0 {
-					s.TurnsToNextMove = -s.TurnsToNextMove
+				s.Info.TurnsToNextMove = oldElevation-newElevation
+				if s.Info.TurnsToNextMove < 0 {
+					s.Info.TurnsToNextMove = -s.Info.TurnsToNextMove
 				}
 			} else {
 				fmt.Printf("Bot %d hit rocky terrain\n", botNum)
-				s.TurnsToNextMove -= 1
+				s.Info.TurnsToNextMove -= 1
 				otherInfos[botNum].LastMessage = ""
 			}
 		}
