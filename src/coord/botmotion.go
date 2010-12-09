@@ -26,19 +26,17 @@ func distance(x1 uint, y1 uint, x2 uint, y2 uint) float64 {
 	return math.Sqrt(float64(dx*dx+dy*dy))
 }
 
-func perceptionOf(info ttypes.BotInfo) ([]ttypes.Message, []ttypes.BotInfo) {
+func perceptionOf(s *BotState, otherInfos []ttypes.BotInfo) ([]ttypes.Message, []ttypes.BotInfo) {
 	messages := make([]ttypes.Message, 0, len(botStates))
 	otherBots := make([]ttypes.BotInfo, 0, 30)
-	for _, s := range(botStates) {
-		if s.Killed == false {
-			lm := s.Info.LastMessage
-			d := distance(info.X, info.Y, s.Info.X, s.Info.Y)
-			if d <= 5 && len(lm) > 1 {
-				messages = append(messages, ttypes.Message{lm, d})
-			}
-			if d <= 3 {
-				otherBots = append(otherBots, s.Info)
-			}
+	for _, info := range(otherInfos) {
+		lm := info.LastMessage
+		d := distance(s.Info.X, s.Info.Y, info.X, info.Y)
+		if d <= 5 && len(lm) > 1 {
+			messages = append(messages, ttypes.Message{lm, d})
+		}
+		if d <= 3  {
+			otherBots = append(otherBots, info)
 		}
 	}
 	return messages, otherBots
@@ -49,6 +47,7 @@ func declareDeaths(otherInfos []ttypes.BotInfo) {
 	for ix, s := range(botStates) {
 		if s.Killed == false {
 			for jx, oi := range(otherInfos) {
+				fmt.Printf("Checking %v-%v\n", s, oi)
 				if ix != jx && s.Info.X == oi.X && s.Info.Y == oi.Y {
 					fmt.Printf("Killing bot %v\n", s)
 					s.Killed = true
@@ -63,7 +62,7 @@ func moveBots(otherInfos []ttypes.BotInfo) {
 	for botNum, s := range(botStates) {
 		if s.Killed == false {
 			if s.TurnsToNextMove == 0 {
-				msges, botsSeen := perceptionOf(s.Info)
+				msges, botsSeen := perceptionOf(s, otherInfos)
 				req := new(ttypes.BotMoveRequest)
 				req.Terrain = config.Terrain
 				req.OtherBots = botsSeen

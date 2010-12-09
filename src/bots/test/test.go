@@ -44,7 +44,7 @@ func listenForMoveRequests(conn *net.TCPConn) {
 		} else if r.YourY > 5 {
 			response.MoveDirection = "down"
 		}
-		response.BroadcastMessage = fmt.Sprintf("I am %v at %d, %d", os.Args[0], r.YourX, r.YourY)
+		response.BroadcastMessage = fmt.Sprintf("'I am %v at %d, %d'", os.Args[0], r.YourX, r.YourY)
 		responseString, err := json.Marshal(response)
 		easynet.DieIfError(err, "JSON marshal error")
 		conn.Write(responseString)

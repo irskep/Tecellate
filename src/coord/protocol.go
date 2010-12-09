@@ -83,7 +83,7 @@ func handleRequest(data []uint8) {
 	case r.Command == "Complete":
 		completionsRemaining -= 1
 		if completionsRemaining == 0 {
-			fmt.Println("Right ho, we're finished here chaps")
+			fmt.Println("All neighbors complete, signaling TCOMPLETE2")
 			complete<-true
 		}
 	}
@@ -100,28 +100,7 @@ func processNodes() {
 		
 		fmt.Printf("%d starting turn %d\n", config.Identifier, i)
 		
-		otherInfos := make([]ttypes.BotInfo, len(botStates), len(botStates)*len(adjsServe))
-		
-		//Copy all infos from botStates into otherInfos
-		for i, s := range(botStates) {
-			otherInfos[i] = s.Info
-		}
-		
-		//Get updates from neighbors
-		for j, conn := range(adjsRequest) {
-			fmt.Printf("%d turn %d, request neighbor %d\n", config.Identifier, i, j)
-			r := new(Request)
-			r.Identifier = config.Identifier
-			r.Turn = respondingToRequestsFor
-			r.Command = "GetNodes"
-			
-			easynet.SendJson(conn, r)
-			
-			info := new(RespondNodeInfo)
-			easynet.ReceiveJson(conn, info)
-			
-			otherInfos = append(otherInfos, info.BotData...)
-		}
+		otherInfos := getAgentInfoFromNeighbors()
 		
 		declareDeaths(otherInfos)
 		
@@ -134,7 +113,34 @@ func processNodes() {
 		}
 	}
 	broadcastComplete()
+	fmt.Println("Turns complete, signaling TCOMPLETE1")
 	complete<-true
+}
+
+func getAgentInfoFromNeighbors() []ttypes.BotInfo {
+	otherInfos := make([]ttypes.BotInfo, len(botStates), len(botStates)*len(adjsServe))
+	
+	//Copy all infos from botStates into otherInfos
+	for k, s := range(botStates) {
+		otherInfos[k] = s.Info
+	}
+	
+	//Get updates from neighbors
+	for j, conn := range(adjsRequest) {
+		fmt.Printf("%d turn %d, request neighbor %d\n", config.Identifier, respondingToRequestsFor, j)
+		r := new(Request)
+		r.Identifier = config.Identifier
+		r.Turn = respondingToRequestsFor
+		r.Command = "GetNodes"
+		
+		easynet.SendJson(conn, r)
+		
+		info := new(RespondNodeInfo)
+		easynet.ReceiveJson(conn, info)
+		
+		otherInfos = append(otherInfos, info.BotData...)
+	}
+	return otherInfos
 }
 
 func broadcastComplete() {
