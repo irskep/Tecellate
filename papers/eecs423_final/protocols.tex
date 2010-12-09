@@ -80,3 +80,16 @@ The process repeats until all turns have been processed, at which point \texttt{
 
 The agent protocol is the simplest of all protocols defined for the system. It launches and waits for a connection from the coordinator, then repeatedly serves decision requests until told to exit.
 
+\subsection{Discussion}
+
+\subsubsection{Efficiency}
+
+Consider a system with $|C|$ coordinators, $N$ neighbors per coordinator, $T$ turns, and $|A|$ agents. The master process sends $|C|$ messages (configurations) and receives $3|C|$ messages (two confirmations and one result per coordinator). The coordinators send $2N*T$ messages among themselves. Each coordinator also sends and receives one message per agent per turn, $|A|*T$. The total number of messages sent, therefore, is $4|C|+T(2N+|A|)$.
+
+The size of half the messages sent between the coordinators, the \texttt{CRESPONSE} messages, are proportional to $|A|$ in the worst case, so the worst-case number of bytes sent is proportional to $4|C|+T(N+|A|(N+1))$. This is a truly degenerate case, however, so the equation in the previous paragraph is roughly accurate.
+
+Since the number of messages grows linearly with respect to any individual variable, it meets the scalability requirements of the project.
+
+\subsubsection{Stability}
+
+
