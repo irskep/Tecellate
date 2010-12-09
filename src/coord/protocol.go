@@ -5,15 +5,9 @@ import (
 	"easynet"
 	"json"
 	"net"
-	"sync"
 	"time"
 	"ttypes"
 )
-
-// Avoid race conditions
-var dataLock sync.RWMutex
-var neighborsLeftUntilUnlock int
-var lastUnlocked int
 
 func listenForMaster(connectionToMaster *net.TCPConn) {
 	msg, err := easynet.ReceiveFromWithError(connectionToMaster)
@@ -32,7 +26,7 @@ func listenForPeer() {
 	fmt.Printf("%d serving requests\n", config.Identifier)
 	completionsRemaining = len(adjsServe)
 	neighborsLeftUntilUnlock = len(adjsServe)
-	lastUnlocked = 0
+	lastInfoListCopied = 0
 	for data := range(listenServe) {
 		fmt.Println(string(data))
 		//Sometimes requests will be stuck together. Here I am separating them.
@@ -80,22 +74,23 @@ func handleRequest(data []uint8) {
 			time.Sleep(1000000)
 		}
 		
-		dataLock.RLock()
 		fmt.Printf("%d ready for GetNodes\n", config.Identifier)
 		info := new(RespondNodeInfo)
 		info.Identifier = config.Identifier
 		info.Turn = respondingToRequestsFor
-		info.BotData = botInfosForNeighbor(r.Identifier)
+		if lastInfoListCopied == 0 {
+			info.BotData = botInfosForNeighbor(r.Identifier)
+		} else {
+			info.BotData = infoQueue[lastInfoListCopied][0:len(botStates)]
+		}
 		easynet.SendJson(adjsServe[r.Identifier], info)
 		fmt.Printf("%d sent GetNodes response to %d\n", config.Identifier, r.Identifier)
 		fmt.Printf("    and it was %v\n", info)
-		dataLock.RUnlock()
 		
 		neighborsLeftUntilUnlock -= 1
 		if neighborsLeftUntilUnlock <= 0 {
-			fmt.Printf("unlocking turn %d\n", lastUnlocked+1)
-			turnLocks[respondingToRequestsFor+1].Unlock()
-			lastUnlocked += 1
+			fmt.Printf("served all requests for %d\n", lastInfoListCopied)
+			lastInfoListCopied += 1
 			neighborsLeftUntilUnlock = len(adjsServe)
 		}
 	case r.Command == "Complete":
@@ -111,9 +106,18 @@ func processNodes() {
 	fmt.Printf("%d processing nodes\n", config.Identifier)
 	
 	for respondingToRequestsFor < config.NumTurns {
-		fmt.Printf("Blocking at %d\n", respondingToRequestsFor)
-		turnLocks[respondingToRequestsFor].Lock()
+		for lastInfoListCopied < respondingToRequestsFor {
+			fmt.Printf("%d wants to process %d but waits for %d\n", config.Identifier, respondingToRequestsFor, lastInfoListCopied)
+			time.Sleep(1000000)
+		}
 		fmt.Printf("%d starting turn %d\n", config.Identifier, respondingToRequestsFor)
+		
+		if respondingToRequestsFor > 0 {
+			fmt.Println(infoQueue)
+			for k, s := range(botStates) {
+				s.Info = infoQueue[respondingToRequestsFor][k]
+			}
+		}
 		
 		otherInfos := getAgentInfoFromNeighbors()
 		
@@ -123,13 +127,8 @@ func processNodes() {
 		
 		moveBots(otherInfos)
 		
-		dataLock.Lock()
-		//Copy new data back into botStates.
-		for i, _ := range(botStates) {
-			botStates[i].Info = otherInfos[i]
-		}
 		respondingToRequestsFor += 1
-		dataLock.Unlock()
+		infoQueue = append(infoQueue, otherInfos)
 	}
 	broadcastComplete()
 	fmt.Println("Turns complete, signaling TCOMPLETE1")

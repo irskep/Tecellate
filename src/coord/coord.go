@@ -6,7 +6,6 @@ import (
 	"net"
 	"strconv"
 	"easynet"
-	"sync"
 	"ttypes"
 )
 
@@ -22,12 +21,16 @@ var listenServe chan []uint8
 // Which turn we just completed and what the state of everything on that turn was
 var respondingToRequestsFor int
 var botStates []*BotState
-var turnLocks []sync.Mutex
 
 // Global state
 var complete chan bool
 var processing bool
 var completionsRemaining int
+
+// Avoid race conditions
+var neighborsLeftUntilUnlock int
+var lastInfoListCopied int
+var infoQueue [][]ttypes.BotInfo
 
 func main() {
 	// Print a nice separator at the end of execution so that 'make fancyrun' looks good
@@ -50,12 +53,7 @@ func main() {
 	easynet.ReceiveJson(connectionToMaster, config)
 	
 	respondingToRequestsFor = 0
-	// Set up a series of locks to avoid a race condition with state data
-	turnLocks = make([]sync.Mutex, config.NumTurns+1)
-	for i, _ := range(turnLocks) {
-		turnLocks[i].Lock()
-	}
-	turnLocks[0].Unlock()
+	infoQueue = make([][]ttypes.BotInfo, 1, config.NumTurns)
 	
 	// Confirm configuration
 	connectionToMaster.Write([]uint8("connected"))
