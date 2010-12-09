@@ -1,6 +1,22 @@
+\section{Future Work}
+
+The most pressing implementation issue is the lack of choice of coordinator assignment strategy. The current version of the system assigns agents to coordinators statically.
+
+To make dynamic reassignment possible, a protocol to transfer ownership of an agent must be designed. The agent must be serialized and shut down, its serialized form must be sent from one coordinator to another, and the new coordinator must start a new process for it.
+
+More work should also go into designing and implementing more predictable failure behavior.
+
 \section{Other Possible Simulation Rules}
 
 The rules outlined in Section \ref{rules} describe a minimal environment to test the utility and efficiency of Tecellate. The rules outlined in this section may add more interesting mechanics to the simulation.
+
+\subsection{Factions}
+
+Agents are not currently identified with a faction and act essentially as free agents. Under faction rules, they would be divided into teams in a competition for survival.
+
+\subsection{More Sophisticated Movement/Death Rules}
+
+In the current version of Tecellate, two agents that move into the same cell are killed. This is a very simplistic rule, and could be replaced with a system of support. For example, consider two agents A and B that want to move into the same cell. If they are alone, then neither may move. If C is on A's team and adjacent to the target cell and B is alone, then A may move into the cell and B is destroyed because A and C ``teamed up'' on him.
 
 \subsection{Food}
 
@@ -8,7 +24,7 @@ Agents must search the grid to find food. If their coordinator calculates that t
 
 \subsection{Reproduction}
 
-Two adjacent agents are able to produce a new agent if another adjacent cell is open and both agents have enough food to supply the new agent. The parent agents will lose that food.
+Two adjacent agents are able to produce a new agent if another adjacent cell is open and both agents have enough food to supply the new agent. The parent agents lose food in the act.
 
 \subsection{Cable Communication}
 

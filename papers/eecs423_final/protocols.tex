@@ -92,4 +92,6 @@ Since the number of messages grows linearly with respect to any individual varia
 
 \subsubsection{Stability}
 
+The first versions of the protocols do not focus on stability, so they are vulnerable to crashes and corruption. There are no allowances for crashed processes. If the master process crashes, the coordinators will finish and then attempt to report their results. If a coordinator crashes, the rest of the coordinators will crash as well as they try to communicate with broken sockets. The agents will be left running, since they will never be told to die. If an agent crashes, the coordinator will crash along with it, causing the whole system to fall.
 
+Since the simulation is deterministic, restarting the system on crash is not a terrible fate.
