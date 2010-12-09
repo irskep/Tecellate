@@ -19,9 +19,7 @@ func main() {
 	
 	for i, conn := range(connections) {
 		coordConfigs[i].Terrain = *grid
-		data, err := json.Marshal(coordConfigs[i])
-		if (err != nil) { log.Exit(err) }
-		conn.Write(data)
+		easynet.SendJson(conn, coordConfigs[i])
 	}
 	
 	for i, conn := range(connections) {
