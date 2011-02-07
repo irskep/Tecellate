@@ -1,6 +1,6 @@
 build: clean libs coord testbot master
 
-libs : lib/easynet.a lib/ttypes.a
+libs :
 	6g lib/easynet.go
 	6g lib/ttypes.go
 
