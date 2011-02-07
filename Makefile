@@ -48,5 +48,5 @@ paper_final:
 
 .PHONY : clean
 clean :
-	-rm -r build
+	-rm -r build out
 	-find . -name "*.6" | xargs -I"%s" rm %s

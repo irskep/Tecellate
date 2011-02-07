@@ -17,6 +17,10 @@ An agent may broadcast a message of 1024 bytes or less every turn regardless of 
 
 Agents are informed of their global position in the world. They are also informed of the position of any agents within a maximum number of cells.
 
+\subsection{Food}
+
+Agents must search the grid to find food. If their coordinator calculates that their food counter is below zero, they disappear from the grid. This rule would give agent programmers incentives to introduce distributed communication networks to inform faraway agents of abundant new food sources.
+
 \section{Usefulness of the Simulation}
 
 The simulation provides a close enough approximation of the real world to allow testing of high-level coordination algorithms to be tested using a very simple API.
