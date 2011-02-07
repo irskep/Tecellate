@@ -10,19 +10,19 @@ libs :
 	mv easynet.a lib
 	mv ttypes.a lib
 
-coord : build/coord
+coord : libs
 	6g -I "lib/" src/coord/coord.go src/coord/protocol.go src/coord/botmotion.go src/coord/types.go
 	6l -L "lib/" -o build/coord coord.6
 
-testbot : build/test
+testbot : libs
 	6g -I "lib/" src/bots/test/test.go
 	6l -L "lib/" -o build/test test.6
 
-master : build/tecellate
+master : libs
 	6g -I "lib/" src/server/tecellate.go src/server/grid.go
 	6l -L "lib/" -o build/tecellate tecellate.6
 
-run:
+run: coord testbot master
 	./build/coord 127.0.0.1:8002 &
 	./build/coord 127.0.0.1:8102 &
 	(sleep 0.5; ./build/tecellate testgrid.txt)
