@@ -10,3 +10,4 @@ paper.pdf
 *.a
 build/
 *.graffle
+out
