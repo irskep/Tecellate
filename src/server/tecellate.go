@@ -16,25 +16,25 @@ func main() {
 	grid, botConfs := readGridFromFile(os.Args[1])
 	connections := connectToCoordinators(config)
 	coordConfigs := configureCoordinators(config, botConfs, grid)
-	
+
 	for i, conn := range(connections) {
 		coordConfigs[i].Terrain = *grid
 		easynet.SendJson(conn, coordConfigs[i])
 	}
-	
+
 	for i, conn := range(connections) {
 		fmt.Printf("Master waiting for first confirmation from %d\n", i)
 		fmt.Printf("Master received first confirmation from %d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
 	}
-	
+
 	for i, conn := range(connections) {
 		fmt.Printf("Master waiting for second confirmation from %d\n", i)
 		fmt.Printf("Master received second confirmation from %d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
 	}
-	
+
 	fmt.Printf("Starting first turn\n")
 	connections[0].Write([]uint8("begin"))
-	
+
 	fmt.Println("Master now waiting for results")
 	for i, conn := range(connections) {
 		fmt.Printf("Final response from %d: %s\n", i+1, string(easynet.ReceiveFrom(conn)))
@@ -43,14 +43,14 @@ func main() {
 
 func loadConfig() *ttypes.Config {
 	config := new(ttypes.Config)
-	
+
 	configFile, err := os.Open("config.json", os.O_RDONLY, 0)
-	if err != nil { log.Exit(err) }
+	if err != nil { log.Panic(err) }
 	defer configFile.Close()
-	
+
 	configBytes, err := ioutil.ReadAll(configFile)
 	if err != nil {
-		log.Exit(err)
+		log.Panic(err)
 	} else {
 		json.Unmarshal(configBytes, config)
 	}

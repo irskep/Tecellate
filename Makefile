@@ -1,6 +1,9 @@
 build: clean libs coord testbot master
 
-libs :
+build_dir: clean
+	mkdir build
+
+libs : build_dir
 	6g lib/easynet.go
 	6g lib/ttypes.go
 
@@ -44,4 +47,5 @@ paper_final:
 
 .PHONY : clean
 clean :
+	-rm -r build
 	-find . -name "*.6" | xargs -I"%s" rm %s
