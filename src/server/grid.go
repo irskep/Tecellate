@@ -19,21 +19,21 @@ func simpleGrid(w uint, h uint) *ttypes.Grid {
 func scanAndReadUint(s *scanner.Scanner) uint {
 	s.Scan()
 	tok, err := strconv.Atoui(s.TokenText())
-	if err != nil { log.Exit(err) }
+	if err != nil { log.Panic(err) }
 	return tok
 }
 
 func readGridFromFile(path string) (*ttypes.Grid, []ttypes.BotConf) {
 	gridFile, err := os.Open(path, os.O_RDONLY, 0)
-	if err != nil { log.Exit(err) }
+	if err != nil { log.Panic(err) }
 	defer gridFile.Close()
-	
+
 	var s scanner.Scanner
 	s.Init(gridFile)
 	w := scanAndReadUint(&s)
 	h := scanAndReadUint(&s)
 	grid := simpleGrid(w, h)
-	
+
 	botConfs := make([]ttypes.BotConf, 0)
 	for j := uint(0); j < h; j++ {
 		for i := uint(0); i < w; i++ {
@@ -43,6 +43,6 @@ func readGridFromFile(path string) (*ttypes.Grid, []ttypes.BotConf) {
 			}
 		}
 	}
-	
+
 	return grid, botConfs
 }

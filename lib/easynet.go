@@ -11,7 +11,7 @@ import (
 )
 
 func DieIfError(err os.Error, msg string) {
-	if err != nil { log.Exit(msg, ": ", err) }
+	if err != nil { log.Panic(msg, ": ", err) }
 }
 
 func HostWithAddress(addrString string) *net.TCPListener {

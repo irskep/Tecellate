@@ -1,6 +1,9 @@
 build: clean libs coord testbot master
 
-libs : 
+build_dir: clean
+	mkdir build
+
+libs : build_dir
 	6g lib/easynet.go
 	6g lib/ttypes.go
 
@@ -29,6 +32,7 @@ run: coord testbot master
 
 fancyrun:
 	# For when you want to have the coordinators log in separate windows (use tail)
+	-mkdir out
 	./build/coord 127.0.0.1:8002 >> out/coord1.txt &
 	./build/coord 127.0.0.1:8102 >> out/coord2.txt &
 	(sleep 0.5; ./build/tecellate testgrid.txt)
@@ -44,4 +48,5 @@ paper_final:
 
 .PHONY : clean
 clean :
+	-rm -r build
 	-find . -name "*.6" | xargs -I"%s" rm %s
