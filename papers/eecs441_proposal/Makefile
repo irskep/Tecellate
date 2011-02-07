@@ -1,5 +1,5 @@
 DOC = paper
-INCLUDE_BIB = yes
+INCLUDE_BIB = no
 
 %.pdf : %.dot
 	dot -Tpdf $*.dot -o $*.pdf
