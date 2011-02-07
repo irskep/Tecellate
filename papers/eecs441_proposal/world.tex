@@ -11,7 +11,7 @@ If more than one agent attempt to move into the same cell, they are destroyed.
 
 \subsection{Messages}
 
-An agent may broadcast a message of 1024 bytes or less every turn regardless of any other action it takes. The broadcast system is a simplification of radio communication: nearby agents within a maximum radius will receive the message. Other agents will not hear it.
+An agent may broadcast a message of 1024 bytes or less every turn regardless of any other action it takes. The broadcast system is a simplification of radio communication: agents will receive other agents' broadcasts, but noise will be introduced proportional to the square of the distance between the agents.
 
 \subsection{Perception}
 
