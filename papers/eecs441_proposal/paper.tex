@@ -24,6 +24,16 @@
     This project will be based on work done in the fall of 2010 in EECS 423 (Distributed Systems). The current implementation allows for very rudimentary setup and movement but not much else.
 \end{abstract}
 
+\section{Introduction}
+
+Network simulations have become important tools for researching mobile networks. Most research groups do not have the ability to purchase and use thousands of mobile devices for research and have thus turned to simulation. However, as many previous simulation authors have noted, simulations will always sacrifice some element of realism. The authors have decided to take a novel approach in these sacrifices adding a new way to test wireless mobile networks.
+
+The simulation we propose to develop would operate at the link layer. That is there is every ``agent,'' the actors in the simulation, have a radio that sends and receives bytes. Thus, unlike the real world where the radio would have to convert the radio waves to a digital signal, in the simulation this is assumed to be done for you. However, it is up the agents to ensure that their link level connectivity is accurate. The simulation includes complications like interference from other sources and exponential drop-off of power as agents move away from the source of a transmission.
+
+In the physical world, devices move around with purpose and transmit with purpose. It is the authors assertion that in simulation the same should be true. However, modeling the purpose of actual people is not feasible. Instead, the authors propose to give the agents an alternative purpose: staying alive. Each agent has to ``eat'' to survive. Each turn it ``eats'' a unit of food. If it runs of food it dies. The goal of the agents is to stay alive as long as possible. Thus, it must find sources of food within the simulation. This added, game like element provides the agents with goals and a purpose for communication.
+
+By modeling the communication at the link layer and adding game like elements to our simulation we hope to provide an interesting test bed for networking and AI algorithms. The game like element in our simulation will help ensure the agents move around purposefully in the simulation grid. The link layer simulation ensures the communication problems which must be overcome for reliable communication is similar to real world problems. While, we do not think simulation approach would be the final word in networks simulation it should provide a useful platform for experimentation.
+
 \input{litsurvey}
 
 \input{world}
