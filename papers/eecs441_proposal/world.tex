@@ -1,23 +1,27 @@
 \section{Simulation Rules}
 \label{rules}
 
-The simulation is turn-based and runs over a fixed number of turns. The length of the turn is designed to simulate the time to send M packets. At the beginning of each turn, agents receive information about the terrain and other nearby agents. In response, agents can either attempt to move or remain still. During the turn the agents can also listen for messages and choose to broadcast their won. The broadcasts will be recieved by nearby agents during the next turn. When all agents have decided on an action for a turn, the actions are executed and a new turn begins.
+The simulation is turn-based and runs over a fixed number of turns. The length of the turn is designed to simulate the time to send M packets. At the beginning of each turn, agents receive information about the terrain and other nearby agents. In response, agents can either attempt to move or remain still. During the turn the agents can also listen for messages and choose to broadcast their own. The broadcasts will be recieved by nearby agents during the next turn. When all agents have decided on an action for a turn, the actions are executed and a new turn begins.
 
 \subsection{World and Movement}
 
 The simulation world consists of a $w$*$h$ grid of signed integers. If the number is non-negative, it is the terrain height. Otherwise, the cell is impassable. An agent can move at most one cell up, down, left, or right per turn. The move action takes one extra turn for every absolute height unit difference above 1. If more than one agent attempt to move into the same cell, they are destroyed.
 
+Agents may be divided into competing factions, though this may be an implementation detail of the agents.
+
 \subsection{Messages}
 
-The broadcast messages agents can send are a simpilification of radio communication. There are N frequencies an agent can broadcast on or listen too. An agent may broadcast a message of 1024 bytes on a single frequency. The agent may also listen for messages. Each agent can listen on M frequencies each turn where M is strictly less than N.
+The broadcast messages agents can send are a simpilification of radio communication. There are $N$ frequencies an agent can broadcast on or listen too. An agent may broadcast a message of 1024 bytes on a single frequency. The agent may also listen for messages on $M$ frequencies each turn where $M \leq N$.
 
-Like radio communication, the messages broadcast decay over distance. When an agent listens to a frequency the agent always recieves data. However, if no one is broadcasting on that frequency the agent will recieve random data back. Since the messages decays over distance, even if an agent hears it some parts of the message may be corrupted. The farther away the more corruption is in the message.
+Like radio communication, the messages broadcast decay over distance. When an agent listens to a frequency, the agent always recieves data. However, if no one is broadcasting on that frequency, the agent will recieve random data. Since the message decays over distance, even if an agent hears it some parts of the message may be corrupted. The farther away a listener is from a sender, the more corruption is in the message.
 
-Finally, if messages cross each other the following algorithm will be used to resolve the conflict. First, for each message the message will be corrupted based on its distance to its source, just as in the single broadcaster senario. Then, for each bit in each message their will be a probability K that the bit will be heard. The probablity will also be based on the distance to the source of the message. All of the bits that are heard are XORed together creating a composite message. If not bit are heard for a particular bit location a random value is chosen for that bit.
+Finally, if more than one message can be heard from the same position, the messages will be combined probabilistically.
+
+% Finally, if messages cross each other the following algorithm will be used to resolve the conflict. First, for each message the message will be corrupted based on its distance to its source, just as in the single broadcaster senario. Then, for each bit in each message their will be a probability K that the bit will be heard. The probablity will also be based on the distance to the source of the message. All of the bits that are heard are XORed together creating a composite message. If not bit are heard for a particular bit location a random value is chosen for that bit.
 
 \subsection{Perception}
 
-Agents are informed of their global position in the world. They are also informed of the position of any agents within a maximum number of cells.
+Agents may or may not be informed of their global position in the world. They also have some way of ``seeing'' nearby agents.
 
 \subsection{Food}
 
