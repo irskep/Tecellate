@@ -1,3 +1,11 @@
 \section{Literature Survey}
 
-There are a few existing simulations of wireless ad hoc networks. 
+There are a few existing simulations of wireless ad hoc networks that operate above the link layer. One of these is ns2, which has been around for several years \cite{ns2}. ns2 simulates multiple kinds of networks and protocols, and it has been popular among researchers. However, it is difficult to scale above a few hundred nodes \cite{swans}. It has only been documented to scale to a few thousand nodes.
+
+GloMoSim is a newer simulator \cite{glomosim}. It serves a similar purpose to ns2 and can simulate both wired and wireless networks, but it is more scalable in that it can run its event loop in parallel \cite{swans}. It can scale to tens of thousands of nodes.
+
+SWANS is a simulator created purely for ad hoc wireless network research in response to the inadequacy of ns2 and GloMoSim for ad hoc wireless network research \cite{swans}. It has a different configuration/modeling style from other solutions which allows it to accurately simulate millions of nodes on 2004 hardware.
+
+A specialized wireless ad hoc network simulator is $madhoc$, a system that attempts to accurately model wireless network characteristics in metropolitan settings \cite{madhoc}. The authors argue that other simulators' node movement algorithms do not accurately model real world environments, and consequently spend a great deal of effort modeling the characteristics of metropolitan environments.
+
+These simulators differ from Tecellate in that they simulate a higher level of the network and provide no inherent goal for communicating agents. They also simulate radio signal propagation much more accurately, which affects the computation requirements drastically.
