@@ -98,7 +98,7 @@ func main() {
 func setupBot(conf ttypes.BotConf, portNumber int) *net.TCPConn {
     addrString := "127.0.0.1:" + strconv.Itoa(portNumber)
     fd := []*os.File{os.Stdin, os.Stdout, os.Stderr}
-    _, err := os.ForkExec(conf.Path, []string{addrString}, nil, "", fd)
+    _, err := os.StartProcess(conf.Path, []string{addrString}, nil, "", fd)
     easynet.DieIfError(err, "Error launching bot")
 
     return easynet.Dial(addrString)
