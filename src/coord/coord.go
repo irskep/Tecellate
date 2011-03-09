@@ -13,7 +13,3 @@ type Coordinator struct {
     AvailableGameState game.GameState
     Peers []CoordinatorProxy
 }
-
-type CoordinatorProxy struct {
-    
-}
