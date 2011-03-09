@@ -7,3 +7,11 @@ File: coord/coord.go
 
 package coord
 
+type Coordinator struct {
+    AvailableGameState GameState
+    Peers []CoordinatorProxy
+}
+
+type CoordinatorProxy struct {
+    
+}
