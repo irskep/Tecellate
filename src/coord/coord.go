@@ -7,9 +7,21 @@ File: coord/coord.go
 
 package coord
 
-import "coord.game"
+import "coord/game"
 
 type Coordinator struct {
     AvailableGameState *game.GameState
     Peers []*CoordinatorProxy
+    RPCChannels []chan []byte
+}
+
+func NewCoordinator() *Coordinator {
+    initialState := game.NewGameState()
+    return &Coordinator{initialState, 
+                        make([]*CoordinatorProxy, 0),
+                        make([]chan []byte, 0)}
+}
+
+func (self *Coordinator) ConnectToLocal(other *Coordinator) {
+    
 }

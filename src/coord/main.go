@@ -9,8 +9,17 @@ COORD MAIN
 
 package main
 
-import "fmt"
+import (
+    "fmt"
+    "coord"
+)
 
 func main() {
     fmt.Println("coord/main.go")
+    
+    a := coord.NewCoordinator()
+    b := coord.NewCoordinator()
+    
+    a.ConnectToLocal(b)
+    b.ConnectToLocal(a)
 }
