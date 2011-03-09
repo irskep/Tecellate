@@ -6,8 +6,13 @@ type CoordinatorProxy struct {
     conn chan []byte
 }
 
-func (self *CoordinatorProxy) RequestStatesInBox(bottomLeft Point, topRight Point, turn int) []AgentState {
-    return nil;
+type GameStateResponse struct {
+    Turn int
+    AgentStates []AgentState
+}
+
+func (self *CoordinatorProxy) RequestStatesInBox(bottomLeft Point, topRight Point, turn int) *GameStateResponse {
+    return &GameStateResponse{turn, nil};
 }
 
 func (self *CoordinatorProxy) SendComplete() {

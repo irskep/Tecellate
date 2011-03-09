@@ -10,6 +10,6 @@ package coord
 import "coord.game"
 
 type Coordinator struct {
-    AvailableGameState game.GameState
-    Peers []CoordinatorProxy
+    AvailableGameState *game.GameState
+    Peers []*CoordinatorProxy
 }
