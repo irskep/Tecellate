@@ -12,5 +12,5 @@ package main
 import "fmt"
 
 func main() {
-    fmt.Println("coord.go")
+    fmt.Println("coord/main.go")
 }
