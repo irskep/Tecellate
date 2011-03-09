@@ -7,3 +7,8 @@ File: agent/agent.go
 
 package agent
 
+import "fmt"
+
+func hello() {
+    fmt.Println("Hello")
+}
