@@ -12,3 +12,7 @@ import "fmt"
 func hello() {
     fmt.Println("Hello")
 }
+
+func Hello() {
+    hello()
+}

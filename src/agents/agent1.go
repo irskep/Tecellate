@@ -8,7 +8,9 @@ File: agents/agent1.go
 package main
 
 import "fmt"
+import "agent"
 
 func main() {
     fmt.Println("agent1.go")
+    agent.Hello()
 }
