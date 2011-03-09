@@ -23,5 +23,11 @@ func NewCoordinator() *Coordinator {
 }
 
 func (self *Coordinator) ConnectToLocal(other *Coordinator) {
-    
+    newChannel := make(chan []byte)
+    self.Peers = append(self.Peers, NewCoordProxyWithChannel(newChannel))
+    other.AddRPCChannel(newChannel)
+}
+
+func (self *Coordinator) AddRPCChannel(newChannel chan []byte) {
+    self.RPCChannels = append(self.RPCChannels, newChannel)
 }

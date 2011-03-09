@@ -11,8 +11,8 @@ type GameStateResponse struct {
     AgentStates []game.AgentState
 }
 
-func NewFromLocal(other *Coordinator) *CoordinatorProxy {
-    return nil;
+func NewCoordProxyWithChannel(channel chan []byte) *CoordinatorProxy {
+    return &CoordinatorProxy{channel}
 }
 
 func (self *CoordinatorProxy) RequestStatesInBox(bottomLeft game.Point, 
