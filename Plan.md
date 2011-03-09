@@ -1,11 +1,10 @@
 Game
 ----
 
-* Tests
 * More accurate agent communication and perception
 * Food
 * Better death (instead of dying just deny move request)
-* Resurrection
+* Resurrection?
 
 Infrastructure
 --------------
@@ -19,8 +18,9 @@ Infrastructure
     * Some smarts or config file loading for determining partitions
 * Large-scale testing
 
-Nice To Have
-------------
+Miscellaneous
+-------------
 
+* Tests
 * Granular logging that can be configured with command line arguments
 * Agents in multiple languages
