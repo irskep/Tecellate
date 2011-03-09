@@ -1,3 +1,8 @@
+
+test:
+	gobuild -t -run
+	rm _testmain _testmain.6 _testmain.go
+
 .PHONY : clean
 clean :
 	-rm -r build out
