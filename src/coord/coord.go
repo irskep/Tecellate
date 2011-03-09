@@ -7,8 +7,10 @@ File: coord/coord.go
 
 package coord
 
+import "coord.game"
+
 type Coordinator struct {
-    AvailableGameState GameState
+    AvailableGameState game.GameState
     Peers []CoordinatorProxy
 }
 

@@ -1,9 +1,9 @@
-package coord
+package game
 
 type AgentState struct {
     Turn int
     Live bool
-    
+    Position Point
 }
 
 type AgentProxy struct {

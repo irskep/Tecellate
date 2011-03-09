@@ -1,4 +1,4 @@
-package coord
+package game
 
 type GameState struct {
     Turn int
