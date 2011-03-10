@@ -28,7 +28,7 @@ func (self *AgentProxy) Turn() bool {
             select {
                 case msg = <-self.conn:
                     fmt.Println("proxy recieved a message")
-                    fmt.Println(link.Message(msg).String())
+                    fmt.Println(msg)
                     break loop
                 case <-timeout.C:
                     fmt.Println("Timeout")
@@ -48,6 +48,10 @@ func (self *AgentProxy) Turn() bool {
 
 func (self *AgentProxy) start_turn() bool {
     self.conn <- *link.NewMessage(link.Commands["Start"])
+    return self.await_cmd_ack("Start")
+}
+
+func (self *AgentProxy) await_cmd_ack(cmd string) bool {
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.conn:
@@ -55,7 +59,7 @@ func (self *AgentProxy) start_turn() bool {
         if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
             switch acked := msg.Args[0].(type) {
             case link.Command:
-                if acked == link.Commands["Start"] {
+                if acked == link.Commands[cmd] {
                     return true
                 }
             }
