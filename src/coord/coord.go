@@ -36,24 +36,52 @@ type Coordinator struct {
 
 /* Initialization */
 
+// Create a new Coordinator. Initialize but do not fill the data structures.
 func NewCoordinator() *Coordinator {
-    initialState := game.NewGameState()
-    return &Coordinator{initialState, 
+    return &Coordinator{game.NewGameState(), 
                         make([]*CoordinatorProxy, 0),
                         make([]chan []byte, 0),
                         make(chan int),
                         make([]chan int, 0)}
 }
 
+// LOCAL/TESTING
+
+// Set up a connection with another coordinator in the same process.
 func (self *Coordinator) ConnectToLocal(other *Coordinator) {
+    // We communicate over this channel instead of a netchan
     newChannel := make(chan []byte)
+    
+    // Add a proxy for new peer
     self.peers = append(self.peers, NewCoordProxyWithChannel(newChannel))
-    self.nextTurnAvailableSignals = append(self.nextTurnAvailableSignals, make(chan int))
+    
+    // Tell peer to listen for RPC requests from me
     other.AddRPCChannel(newChannel)
 }
 
+// Set up the server end of an RPC relationship
 func (self *Coordinator) AddRPCChannel(newChannel chan []byte) {
+    // Add the given channel to a list of RPC channels to be read later
     self.rpcChannels = append(self.rpcChannels, newChannel)
+    
+    // Also add a channel-as-lock to correspond to this RPC channel.
+    // Every time a new turn is available, the turn's number is sent down this channel.
+    // There is one channel per RPC server, so the processing loop sends k ints to k RPC threads.
+    self.nextTurnAvailableSignals = append(self.nextTurnAvailableSignals, make(chan int))
+}
+
+// REMOTE/PRODUCTION
+
+// TCP-based version of ConnectToLocal.
+func (self *Coordinator) ConnectToRemote(address []byte) {
+    
+}
+
+// Rather than having ConnectToRemote call some specific function, have it dial a
+// TCP port which we will listen on, accept connections on, and add those connections
+// to self.rpcChannels as netchans.
+func (self *Coordinator) ListenForRPCConnectionSetupRequests(address []byte) {
+    
 }
 
 /* RPC Server */
@@ -66,7 +94,7 @@ func (self *Coordinator) StartRPCServer() {
 
 func (self *Coordinator) serveRPCRequestsOnChannel(requestChannel chan []byte,
                                                    nextTurnAvailable chan int) {
-    for i := 0; i <3 /* <3 <3 <3 */; i++ {
+    for i := 0 ; ; i++ {    // Spin forever. Process will exit without our help.
         
         // Wait for turn i to become available
         <- nextTurnAvailable
@@ -92,7 +120,8 @@ func (self *Coordinator) serveRPCRequestsOnChannel(requestChannel chan []byte,
 /* Processing */
 
 func (self *Coordinator) ProcessTurns(complete chan bool) {
-    for i := 0; i <3 /* <3 <3 <3 */; i++ {
+    for i := 0; i <3 /* <3 <3 <3 */; i++ {  // TODO: THREE TIMES IS ARBITRARY AND FOR TESTING
+        
         // Signal the availability of turn i to the RPC servers
         for pi, _ := range(self.peers) {
             self.nextTurnAvailableSignals[pi] <- i

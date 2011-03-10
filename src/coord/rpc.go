@@ -7,6 +7,8 @@ import (
     "json"
 )
 
+/* Request */
+
 type GameStateRequest struct {
     Turn int
     BottomLeft geo.Point
@@ -17,6 +19,8 @@ func GameStateRequestJson(turn int, bottomLeft geo.Point, topRight geo.Point) []
     requestBytes, _ :=  json.Marshal(GameStateRequest{turn, bottomLeft, topRight})
     return requestBytes
 }
+
+/* Response */
 
 type GameStateResponse struct {
     Turn int
