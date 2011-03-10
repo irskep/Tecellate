@@ -1,4 +1,4 @@
-package game
+package config
 
 type Config struct {
     AgentStarts []AgentStart

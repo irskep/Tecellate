@@ -1,4 +1,4 @@
-package game
+package agent
 
 // State
 
@@ -8,7 +8,7 @@ type AgentState struct {
     Position Point
     Energy int
     TurnsToNextAllowedMove uint
-    
+
     NextMove Move
 }
 
