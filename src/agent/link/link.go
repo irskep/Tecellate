@@ -25,11 +25,11 @@ type Message struct {
     Args Arguments
 }
 
-func NewMessage(cmd Command, args ... Argument) Message {
-    return Message{Cmd: cmd, Args: args}
+func NewMessage(cmd Command, args ... Argument) *Message {
+    return &Message{Cmd: cmd, Args: args}
 }
 
-func (self Message) String() string {
+func (self *Message) String() string {
     return fmt.Sprintf("<Message cmd:%s args:%s>", cmdsr[self.Cmd], self.Args)
 }
 
