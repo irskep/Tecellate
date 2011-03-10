@@ -6,6 +6,7 @@ type Config struct {
     AgentStarts []AgentStart
     MessageStyle string     // boolean|noise|none
     UseFood bool
+    RandomlyDelayProcessing bool
 }
 
 type AgentStart struct {

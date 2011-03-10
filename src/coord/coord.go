@@ -9,12 +9,14 @@ package coord
 
 import (
     "coord/game"
+    "coord/config"
 )
 
 type Coordinator struct {
     availableGameState *game.GameState
     peers []*CoordinatorProxy
     rpcChannels []chan []byte
+    conf *config.Config
     
     // RPC server threads send an ints down this channel representing
     // a turn info request served.
@@ -37,8 +39,14 @@ func NewCoordinator() *Coordinator {
     return &Coordinator{game.NewGameState(), 
                         make([]*CoordinatorProxy, 0),
                         make([]chan []byte, 0),
+                        nil,
                         make(chan int),
                         make([]chan int, 0)}
+}
+
+func (self *Coordinator) Configure(conf *config.Config) {
+    self.conf = conf
+    self.availableGameState.Configure(conf)
 }
 
 // LOCAL/TESTING
