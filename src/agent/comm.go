@@ -23,16 +23,6 @@ func StartComm(conn link.Link) (*comm, chan<- bool) {
     self.conn = conn
     done := make(chan bool)
     self.done = done
-//     go func(self *comm) {
-//         loop: for {
-//             select {
-//             case msg <- self.conn:
-//                 //asdf
-//             case <-self.done:
-//                 break loop
-//             }
-//         }
-//     }(self)
     return self, done
 }
 
@@ -40,52 +30,65 @@ func (self *comm) ack_start() {
     self.conn <- *link.NewMessage(link.Commands["Ack"], link.Commands["Start"])
 }
 
-func (self *comm) complete() {
-    self.conn <- *link.NewMessage(link.Commands["Complete"])
-    self.await_cmd_ack("Complete")
+func (self *comm) complete() bool {
+    return self.acked_send(link.NewMessage(link.Commands["Complete"]))
 }
 
-func (self *comm) await_cmd_ack(cmd string) bool {
-    handel := func(msg *link.Message) bool {
-        proc := func(ack bool) bool {
-            switch acked := msg.Args[0].(type) {
-            case link.Command:
-                if acked == link.Commands[cmd] {
-                    return ack
-                }
-            default:
-                var s string
-                if ack {
-                    s = fmt.Sprintf("Acked incorrect cmd (expected %s) %s", cmd, msg)
-                } else {
-                    s = fmt.Sprintf("Ncked incorrect cmd (expected %s) %s", cmd, msg)
-                }
-                panic(s)
-            }
-            panic("unreachable")
-        }
+func (self *comm) await_cmd_ack(cmd link.Command) bool {
+    msg := self.recv()
 
-        if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
-            return proc(true)
-        } else if msg.Cmd == link.Commands["Nak"] && len(msg.Args) == 1 {
-            return proc(false)
-        } else {
-            s := fmt.Sprintf("Unexpected Message %s", msg)
+    proc := func(ack bool) bool {
+        switch acked := msg.Args[0].(type) {
+        case link.Command:
+            if acked == cmd {
+                return ack
+            }
+        default:
+            var s string
+            if ack {
+                s = fmt.Sprintf("Acked incorrect cmd (expected %s) %s", cmd, msg)
+            } else {
+                s = fmt.Sprintf("Ncked incorrect cmd (expected %s) %s", cmd, msg)
+            }
             panic(s)
         }
         panic("unreachable")
     }
 
+    if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
+        return proc(true)
+    } else if msg.Cmd == link.Commands["Nak"] && len(msg.Args) == 1 {
+        return proc(false)
+    }
+    s := fmt.Sprintf("Unexpected Message %s", msg)
+    panic(s)
+}
+
+func (self *comm) recv() *link.Message {
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.conn:
-        timeout.Stop()
-        return handel(&msg)
+        return &msg
     case <-timeout.C:
         timeout.Stop()
         panic("Agent believes the server to be unresponsive.")
     }
-    panic("unreachable")
+    panic("Did not recieve message.")
+}
+
+func (self *comm) send(msg *link.Message) {
+    timeout := time.NewTicker(link.Timeout)
+    select {
+    case self.conn <- *msg:
+    case <-timeout.C:
+        timeout.Stop()
+        panic("Agent believes the server to be unresponsive.")
+    }
+}
+
+func (self *comm) acked_send(msg *link.Message) bool {
+    self.send(msg)
+    return self.await_cmd_ack(msg.Cmd)
 }
 
 func (self *comm) Look() link.Vision {
@@ -105,23 +108,7 @@ func (self *comm) Inventory() link.Inventory {
 }
 
 func (self *comm) Move(move link.Move) bool {
-    self.conn <- *link.NewMessage(link.Commands["Move"], move)
-    timeout := time.NewTicker(link.Timeout)
-    select {
-    case msg := <-self.conn:
-        if msg.Cmd == link.Commands["Ack"] {
-                return true
-        } else if msg.Cmd == link.Commands["Nak"] {
-                return false
-        } else {
-            s := fmt.Sprintf("Unexpected Message %s", msg)
-            panic(s)
-        }
-    case <-timeout.C:
-        timeout.Stop()
-        panic("Server unresponsive")
-    }
-    panic("unreachable")
+    return self.acked_send(link.NewMessage(link.Commands["Move"], move))
 }
 
 func (self *comm) Collect() {

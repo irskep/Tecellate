@@ -8,6 +8,7 @@ File: agents/agent1.go
 package simple
 
 import "agent"
+import "fmt"
 
 type Simple struct {
     /// pass
@@ -18,6 +19,8 @@ func NewSimple() *Simple {
 }
 
 func (self *Simple) Turn(comm agent.Comm) {
-    comm.Move(agent.NewMove(1, 0))
+    if !comm.Move(agent.NewMove(1, 0)) {
+        fmt.Println("Move Failed!")
+    }
     return
 }

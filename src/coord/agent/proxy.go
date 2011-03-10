@@ -20,7 +20,7 @@ func (self *AgentProxy) Turn() bool {
     var handlers = map[link.Command](func(*link.Message) bool) {
         link.Commands["Move"]:
             func(msg *link.Message) bool {
-                self.ack_cmd(msg.Cmd)
+                self.nak_cmd(msg.Cmd)
                 return false
             },
         link.Commands["Complete"]:
@@ -91,4 +91,8 @@ func (self *AgentProxy) await_cmd_ack(cmd string) bool {
 
 func (self *AgentProxy) ack_cmd(cmd link.Command) {
     self.conn <- *link.NewMessage(link.Commands["Ack"], cmd)
+}
+
+func (self *AgentProxy) nak_cmd(cmd link.Command) {
+    self.conn <- *link.NewMessage(link.Commands["Nak"], cmd)
 }
