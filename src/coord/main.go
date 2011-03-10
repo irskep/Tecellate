@@ -23,7 +23,7 @@ func main() {
     a := coord.NewCoordinator()
     b := coord.NewCoordinator()
     
-    conf := config.Config{nil, "boolean", false, true}
+    conf := config.Config{nil, "none", false, true}
     a.Configure(&conf)
     b.Configure(&conf)
     

@@ -2,6 +2,11 @@ package coord
 
 import geo "coord/geometry"
 
+import (
+    "time"
+    "rand"
+)
+
 func (self *Coordinator) ProcessTurns(complete chan bool) {
     for i := 0; i <3 /* <3 <3 <3 */; i++ {  // TODO: THREE TIMES IS ARBITRARY AND FOR TESTING
         
@@ -18,6 +23,9 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         
         // Process new data
         // BLAH BLAH BLAH BLAH BLAH
+        if (self.conf.RandomlyDelayProcessing) {
+            time.Sleep(int64(float64(1e9)*rand.Float64()))
+        }
         
         // Wait for all RPC requests from peers to go through the other goroutine
         for _, _ = range(self.peers) {
