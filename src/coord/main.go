@@ -12,6 +12,7 @@ package main
 import (
     "fmt"
     "coord"
+    "log"
 )
 
 func main() {
@@ -25,4 +26,14 @@ func main() {
     
     a.StartRPCServer()
     b.StartRPCServer()
+    
+    complete := make(chan bool)
+    
+    go a.ProcessTurns(complete)
+    go b.ProcessTurns(complete)
+    
+    <- complete
+    <- complete
+    
+    log.Println("Done")
 }
