@@ -9,8 +9,10 @@ package main
 
 import "fmt"
 import "agents/simple"
+// import "agent"
 
 func main() {
     fmt.Println("agents/simple/main.go")
     fmt.Println(simple.NewSimple())
+//     agent.Run(simple.NewSimple())
 }

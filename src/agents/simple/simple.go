@@ -18,5 +18,6 @@ func NewSimple() *Simple {
 }
 
 func (self *Simple) Turn(comm agent.Comm) {
-
+    comm.Move(agent.NewMove(1, 0))
+    return
 }
