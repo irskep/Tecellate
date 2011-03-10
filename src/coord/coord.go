@@ -10,24 +10,45 @@ package coord
 import "coord/game"
 
 type Coordinator struct {
-    AvailableGameState *game.GameState
-    Peers []*CoordinatorProxy
-    RPCChannels []chan []byte
+    availableGameState *game.GameState
+    peers []*CoordinatorProxy
+    rpcChannels []chan []byte
+    
+    // RPC server threads send an ints down this channel representing
+    // a turn info request served.
+    // So when len(peers) ints are received, the processing loop
+    // may continue. (None of this code is written yet.)
+    rpcRequestsReceivedConfirmation chan int
 }
+
+/* Initialization */
 
 func NewCoordinator() *Coordinator {
     initialState := game.NewGameState()
     return &Coordinator{initialState, 
                         make([]*CoordinatorProxy, 0),
-                        make([]chan []byte, 0)}
+                        make([]chan []byte, 0),
+                        make(chan int)}
 }
 
 func (self *Coordinator) ConnectToLocal(other *Coordinator) {
     newChannel := make(chan []byte)
-    self.Peers = append(self.Peers, NewCoordProxyWithChannel(newChannel))
+    self.peers = append(self.peers, NewCoordProxyWithChannel(newChannel))
     other.AddRPCChannel(newChannel)
 }
 
 func (self *Coordinator) AddRPCChannel(newChannel chan []byte) {
-    self.RPCChannels = append(self.RPCChannels, newChannel)
+    self.rpcChannels = append(self.rpcChannels, newChannel)
+}
+
+/* Running */
+
+func (self *Coordinator) StartRPCServer() {
+    for _, channel := range(self.rpcChannels) {
+        go self.serveRPCRequestsOnChannel(channel)
+    }
+}
+
+func (self *Coordinator) serveRPCRequestsOnChannel(channel chan []byte) {
+    
 }

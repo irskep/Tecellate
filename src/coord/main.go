@@ -22,4 +22,7 @@ func main() {
     
     a.ConnectToLocal(b)
     b.ConnectToLocal(a)
+    
+    a.StartRPCServer()
+    b.StartRPCServer()
 }
