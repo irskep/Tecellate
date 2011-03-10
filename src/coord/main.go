@@ -20,32 +20,25 @@ func main() {
     fmt.Println("coord/main.go")
     
     // Initialize
-    a := coord.NewCoordinator()
-    b := coord.NewCoordinator()
+    coords := coord.CoordinatorList(3, &config.Config{0, nil, "none", false, true})
     
-    conf := config.Config{nil, "none", false, true}
-    a.Configure(&conf)
-    b.Configure(&conf)
-    
-    // Set up test environment
-    a.ConnectToLocal(b)
-    b.ConnectToLocal(a)
-    
-    // Start RPC threads
-    a.StartRPCServer()
-    b.StartRPCServer()
+    coord.ConnectInChain(coords)
     
     // This channel will receive one 'true' for each process completion
     complete := make(chan bool)
     
-    // Begin processing. If running one coordinator per process, should perhaps
-    // run ProcessTurns on the main thread because why the hell not.
-    go a.ProcessTurns(complete)
-    go b.ProcessTurns(complete)
+    for _, c := range(coords) {
+        c.StartRPCServer()
+    }
+    
+    for _, c := range(coords) {
+        go c.ProcessTurns(complete)
+    }
     
     // Wait for processing to complete
-    <- complete
-    <- complete
+    for _, _ = range(coords) {
+        <- complete
+    }
     
     // Yo ho, me hearties, yo ho!
     log.Println("Done")

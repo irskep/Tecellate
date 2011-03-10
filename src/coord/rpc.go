@@ -12,13 +12,14 @@ import (
 /* Request */
 
 type GameStateRequest struct {
+    SenderIdentifier int
     Turn int
     BottomLeft geo.Point
     TopRight geo.Point
 }
 
-func GameStateRequestJson(turn int, bottomLeft geo.Point, topRight geo.Point) []byte {
-    requestBytes, _ :=  json.Marshal(GameStateRequest{turn, bottomLeft, topRight})
+func GameStateRequestJson(identifier int, turn int, bottomLeft geo.Point, topRight geo.Point) []byte {
+    requestBytes, _ :=  json.Marshal(GameStateRequest{identifier, turn, bottomLeft, topRight})
     return requestBytes
 }
 

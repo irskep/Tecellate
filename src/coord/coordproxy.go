@@ -3,17 +3,18 @@ package coord
 import geo "coord/geometry"
 
 type CoordinatorProxy struct {
+    parentIdentifier int
     conn chan []byte
 }
 
-func NewCoordProxyWithChannel(channel chan []byte) *CoordinatorProxy {
-    return &CoordinatorProxy{channel}
+func NewCoordProxy(parentIdentifier int, channel chan []byte) *CoordinatorProxy {
+    return &CoordinatorProxy{parentIdentifier, channel}
 }
 
 func (self *CoordinatorProxy) RequestStatesInBox(turn int,
                                                  bottomLeft geo.Point,
                                                  topRight geo.Point) *GameStateResponse {
-    self.conn <- GameStateRequestJson(turn, bottomLeft, topRight)
+    self.conn <- GameStateRequestJson(self.parentIdentifier, turn, bottomLeft, topRight)
     return GameStateResponseFromJson(<- self.conn)
 }
 

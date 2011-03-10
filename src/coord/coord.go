@@ -10,6 +10,7 @@ package coord
 import (
     "coord/game"
     "coord/config"
+    "log"
 )
 
 type Coordinator struct {
@@ -47,6 +48,7 @@ func NewCoordinator() *Coordinator {
 func (self *Coordinator) Configure(conf *config.Config) {
     self.conf = conf
     self.availableGameState.Configure(conf)
+    log.Printf("%d: Configured", conf.Identifier)
 }
 
 // LOCAL/TESTING
@@ -57,7 +59,7 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
     newChannel := make(chan []byte)
     
     // Add a proxy for new peer
-    self.peers = append(self.peers, NewCoordProxyWithChannel(newChannel))
+    self.peers = append(self.peers, NewCoordProxy(self.conf.Identifier, newChannel))
     
     // Tell peer to listen for RPC requests from me
     other.AddRPCChannel(newChannel)
