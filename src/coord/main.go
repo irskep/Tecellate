@@ -10,6 +10,7 @@ COORD MAIN
 package main
 
 import (
+    "coord/config"
     "fmt"
     "coord"
     "log"
@@ -21,6 +22,10 @@ func main() {
     // Initialize
     a := coord.NewCoordinator()
     b := coord.NewCoordinator()
+    
+    conf := config.Config{nil, "boolean", false, true}
+    a.Configure(&conf)
+    b.Configure(&conf)
     
     // Set up test environment
     a.ConnectToLocal(b)
