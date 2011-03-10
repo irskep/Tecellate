@@ -15,15 +15,12 @@ type Comm interface {
 
 type comm struct {
     conn link.Link
-    done <-chan bool
 }
 
-func StartComm(conn link.Link) (*comm, chan<- bool) {
+func StartComm(conn link.Link) *comm {
     self := new(comm)
     self.conn = conn
-    done := make(chan bool)
-    self.done = done
-    return self, done
+    return self
 }
 
 func (self *comm) ack_start() {

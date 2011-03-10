@@ -18,11 +18,10 @@ func Run(agent Agent, conn link.Link) {
     complete := make(chan bool)
     go func(conn link.Link, done chan<- bool) {
         start := func() {
-            cm, done := StartComm(conn)
+            cm := StartComm(conn)
             cm.ack_start()
             agent.Turn(cm)
             cm.complete()
-            done <- true
         }
 
         loop: for {
