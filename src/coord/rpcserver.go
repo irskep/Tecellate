@@ -1,9 +1,5 @@
 package coord
 
-import (
-    "log"
-)
-
 func (self *Coordinator) StartRPCServer() {
     for i, requestChannel := range(self.rpcChannels) {
         go self.serveRPCRequestsOnChannel(requestChannel, self.nextTurnAvailableSignals[i])
@@ -13,7 +9,7 @@ func (self *Coordinator) StartRPCServer() {
 func (self *Coordinator) serveRPCRequestsOnChannel(requestChannel chan []byte,
                                                    nextTurnAvailable chan int) {
     for i := 0 ; ; i++ {    // Spin forever. Process will exit without our help.
-        log.Printf("%d: Waiting for turn %d", self.conf.Identifier, i)
+        self.log.Printf("Waiting for turn %d", i)
         // Wait for turn i to become available
         <- nextTurnAvailable
         
@@ -21,7 +17,7 @@ func (self *Coordinator) serveRPCRequestsOnChannel(requestChannel chan []byte,
         request := GameStateRequestFromJson(<- requestChannel)
         
         // Build a response object
-        log.Printf("%d: Sender %d asked for %d, sending %d", self.conf.Identifier, request.SenderIdentifier, request.Turn, i)
+        self.log.Printf("Sender %d asked for %d, sending %d", request.SenderIdentifier, request.Turn, i)
         
         // Send the response
         requestChannel <- GameStateResponseJson(i, nil)

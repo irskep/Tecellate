@@ -10,8 +10,12 @@ package coord
 import (
     "coord/game"
     "coord/config"
+    "fmt"
     "log"
+    "os"
 )
+
+/* Coordinator bucket and convenience methods */
 
 type CoordinatorSlice []*Coordinator
 
@@ -31,6 +35,8 @@ func (self CoordinatorSlice) Run() {
     }
 }
 
+/* Coordinator type */
+
 type Coordinator struct {
     availableGameState *game.GameState
     peers []*CoordinatorProxy
@@ -49,6 +55,8 @@ type Coordinator struct {
     // B requests new data from A, A's RPC server does not provide
     // the old data by mistake.
     nextTurnAvailableSignals []chan int
+    
+    log *log.Logger
 }
 
 /* Initialization */
@@ -60,13 +68,15 @@ func NewCoordinator() *Coordinator {
                         make([]chan []byte, 0),
                         nil,
                         make(chan int),
-                        make([]chan int, 0)}
+                        make([]chan int, 0),
+                        nil}
 }
 
 func (self *Coordinator) Configure(conf *config.Config) {
     self.conf = conf
     self.availableGameState.Configure(conf)
-    log.Printf("%d: Configured", conf.Identifier)
+    self.log = log.New(os.Stdin, fmt.Sprintf("%d: ", conf.Identifier), 0)
+    self.log.Printf("Configured")
 }
 
 func (self *Coordinator) Run() {
