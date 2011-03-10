@@ -9,6 +9,10 @@ type Point struct {
     Y int
 }
 
+func NewPoint(x, y int) *Point {
+    return &Point{X:x, Y:y}
+}
+
 func (self Point) Distance(other Point) float64 {
     dx := float64(self.X - other.X)
     dy := float64(self.Y - other.Y)

@@ -32,8 +32,8 @@ type Move interface {
     Move() geo.Point // relative to current position
 }
 
-type Hearing interface {
-    Hear(uint8) []byte
+type Audio interface {
+    Hear() []byte
 }
 
 type Broadcast interface {

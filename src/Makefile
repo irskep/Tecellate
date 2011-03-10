@@ -2,7 +2,7 @@
 build: clean
 	gobuild -a
 
-test: clean
+test: build 
 	gobuild -t -run
 	rm _testmain _testmain.6 _testmain.go
 

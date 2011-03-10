@@ -7,12 +7,28 @@ File: agent/agent.go
 
 package agent
 
-import "fmt"
+import "agent/link"
+import geo "coord/geometry"
 
-func hello() {
-    fmt.Println("Hello")
+type Agent interface {
+    Turn(Comm)
 }
 
-func Hello() {
-    hello()
+type Comm interface {
+    Look() link.Vision
+    Listen(uint8) link.Audio
+    Broadcast(link.Broadcast) bool
+    Inventory() link.Inventory
+    Move(link.Move) bool
+    Collect()
+}
+
+type Move struct {
+    pos geo.Point
+}
+
+func NewMove(x, y int) *Move {
+    self := new(Move)
+    self.pos = *geo.NewPoint(x,y)
+    return self
 }
