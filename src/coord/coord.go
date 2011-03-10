@@ -7,7 +7,10 @@ File: coord/coord.go
 
 package coord
 
-import "coord/game"
+import (
+    "coord/game"
+    "json"
+)
 
 type Coordinator struct {
     availableGameState *game.GameState
@@ -50,5 +53,15 @@ func (self *Coordinator) StartRPCServer() {
 }
 
 func (self *Coordinator) serveRPCRequestsOnChannel(channel chan []byte) {
-    
+    for i := 0; i <3 /* <3 <3 <3 */; i++ {
+        requestBytes := <- channel
+        var request GameStateRequest
+        _ = json.Unmarshal(requestBytes, &request)
+        
+        responseBytes, _ :=  json.Marshal(GameStateResponse{i, nil})
+        
+        channel <- responseBytes
+        
+        self.rpcRequestsReceivedConfirmation <- request.Turn
+    }
 }
