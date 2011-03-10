@@ -13,6 +13,24 @@ import (
     "log"
 )
 
+type CoordinatorSlice []*Coordinator
+
+func (self CoordinatorSlice) Run() {
+    // This channel will receive one 'true' for each process completion
+    complete := make(chan bool)
+    
+    // Start the necessary threads
+    for _, c := range(self) {
+        c.StartRPCServer()
+        go c.ProcessTurns(complete)
+    }
+    
+    // Wait for processing to complete
+    for _, _ = range(self) {
+        <- complete
+    }
+}
+
 type Coordinator struct {
     availableGameState *game.GameState
     peers []*CoordinatorProxy
@@ -49,6 +67,14 @@ func (self *Coordinator) Configure(conf *config.Config) {
     self.conf = conf
     self.availableGameState.Configure(conf)
     log.Printf("%d: Configured", conf.Identifier)
+}
+
+func (self *Coordinator) Run() {
+    // Spawns a bunch of goroutines and exits
+    self.StartRPCServer()
+    
+    // Run on main thread so we don't need a 'complete' channel
+    self.ProcessTurns(nil)
 }
 
 // LOCAL/TESTING

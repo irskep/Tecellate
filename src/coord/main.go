@@ -20,22 +20,8 @@ func main() {
     fmt.Println("coord/main.go")
     
     // Initialize
-    coords := coord.CoordinatorList(3, &config.Config{0, nil, "none", false, true})
-    
-    coord.ConnectInChain(coords)
-    
-    // This channel will receive one 'true' for each process completion
-    complete := make(chan bool)
-    
-    for _, c := range(coords) {
-        c.StartRPCServer()
-        go c.ProcessTurns(complete)
-    }
-    
-    // Wait for processing to complete
-    for _, _ = range(coords) {
-        <- complete
-    }
+    coords := coord.ChainedLocalCoordinators(3, &config.Config{0, nil, "none", false, true})
+    coords.Run()
     
     // Yo ho, me hearties, yo ho!
     log.Println("Done")

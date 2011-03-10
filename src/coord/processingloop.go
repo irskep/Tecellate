@@ -37,5 +37,8 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
     }
     
     log.Printf("%d: Sending complete", self.conf.Identifier)
-    complete <- true
+    
+    if complete != nil {
+        complete <- true
+    }
 }
