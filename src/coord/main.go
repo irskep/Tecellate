@@ -29,9 +29,6 @@ func main() {
     
     for _, c := range(coords) {
         c.StartRPCServer()
-    }
-    
-    for _, c := range(coords) {
         go c.ProcessTurns(complete)
     }
     
