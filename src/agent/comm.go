@@ -46,22 +46,46 @@ func (self *comm) complete() {
 }
 
 func (self *comm) await_cmd_ack(cmd string) bool {
+    handel := func(msg *link.Message) bool {
+        proc := func(ack bool) bool {
+            switch acked := msg.Args[0].(type) {
+            case link.Command:
+                if acked == link.Commands[cmd] {
+                    return ack
+                }
+            default:
+                var s string
+                if ack {
+                    s = fmt.Sprintf("Acked incorrect cmd (expected %s) %s", cmd, msg)
+                } else {
+                    s = fmt.Sprintf("Ncked incorrect cmd (expected %s) %s", cmd, msg)
+                }
+                panic(s)
+            }
+            panic("unreachable")
+        }
+
+        if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
+            return proc(true)
+        } else if msg.Cmd == link.Commands["Nak"] && len(msg.Args) == 1 {
+            return proc(false)
+        } else {
+            s := fmt.Sprintf("Unexpected Message %s", msg)
+            panic(s)
+        }
+        panic("unreachable")
+    }
+
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.conn:
         timeout.Stop()
-        if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
-            switch acked := msg.Args[0].(type) {
-            case link.Command:
-                if acked == link.Commands[cmd] {
-                    return true
-                }
-            }
-        }
+        return handel(&msg)
     case <-timeout.C:
         timeout.Stop()
+        panic("Agent believes the server to be unresponsive.")
     }
-    return false
+    panic("unreachable")
 }
 
 func (self *comm) Look() link.Vision {
