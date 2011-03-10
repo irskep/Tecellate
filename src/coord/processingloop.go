@@ -3,12 +3,14 @@ package coord
 import geo "coord/geometry"
 
 import (
-    "time"
     "rand"
+    "time"
 )
 
 func (self *Coordinator) ProcessTurns(complete chan bool) {
     for i := 0; i <3 /* <3 <3 <3 */; i++ {  // TODO: THREE TIMES IS ARBITRARY AND FOR TESTING
+        
+        self.log.Printf("Making turn %d available", i)
         
         // Signal the availability of turn i to the RPC servers
         for pi, _ := range(self.peers) {
@@ -32,5 +34,10 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
             <- self.rpcRequestsReceivedConfirmation
         }
     }
-    complete <- true
+    
+    self.log.Printf("Sending complete")
+    
+    if complete != nil {
+        complete <- true
+    }
 }
