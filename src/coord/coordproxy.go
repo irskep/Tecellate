@@ -14,7 +14,7 @@ func (self *CoordinatorProxy) RequestStatesInBox(turn int,
                                                  bottomLeft geo.Point,
                                                  topRight geo.Point) *GameStateResponse {
     self.conn <- GameStateRequestJson(turn, bottomLeft, topRight)
-    return GameStateResponseJson(<- self.conn)
+    return GameStateResponseFromJson(<- self.conn)
 }
 
 func (self *CoordinatorProxy) SendComplete() {

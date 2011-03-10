@@ -11,7 +11,6 @@ import geo "coord/geometry"
 
 import (
     "coord/game"
-    "json"
     "log"
 )
 
@@ -100,16 +99,13 @@ func (self *Coordinator) serveRPCRequestsOnChannel(requestChannel chan []byte,
         <- nextTurnAvailable
         
         // Read a request
-        requestBytes := <- requestChannel
-        var request GameStateRequest
-        _ = json.Unmarshal(requestBytes, &request)
+        request := GameStateRequestFromJson(<- requestChannel)
         
         // Build a response object
         log.Printf("Asked for %d, sending %d", request.Turn, i)
         
         // Send the response
-        responseBytes, _ :=  json.Marshal(GameStateResponse{i, nil})
-        requestChannel <- responseBytes
+        requestChannel <- GameStateResponseJson(i, nil)
         
         // Send an RPC request confirmation down the pipes so the
         // processing loop knows when it is allowed to proceed
