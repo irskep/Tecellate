@@ -7,28 +7,42 @@ File: agent/agent.go
 
 package agent
 
+import "fmt"
 import "agent/link"
-import geo "coord/geometry"
 
 type Agent interface {
     Turn(Comm)
 }
 
-type Comm interface {
-    Look() link.Vision
-    Listen(uint8) link.Audio
-    Broadcast(link.Broadcast) bool
-    Inventory() link.Inventory
-    Move(link.Move) bool
-    Collect()
-}
+func Run(agent Agent, conn link.Link) {
+    complete := make(chan bool)
+    go func(conn link.Link, done chan<- bool) {
+        start := func() {
+            cm, done := StartComm(conn)
+            cm.ack_start()
+            agent.Turn(cm)
+            done <- true
+        }
 
-type Move struct {
-    pos geo.Point
-}
-
-func NewMove(x, y int) *Move {
-    self := new(Move)
-    self.pos = *geo.NewPoint(x,y)
-    return self
+        loop: for {
+            switch msg := <-conn; {
+                case msg.Cmd == link.Commands["Start"]:
+                    start()
+                case msg.Cmd == link.Commands["Exit"]:
+                    break loop
+                default:
+                    panic(
+                        fmt.Sprintf(
+                            "Command %s not valid for current state.",
+                            msg.Cmd,
+                        ),
+                    )
+            }
+        }
+        done <- true
+    }(conn, complete)
+    if ok := <-complete; ok {
+        return
+    }
+    panic("we had an issue.")
 }

@@ -1,4 +1,5 @@
 master/main
 coord/main
-agents/agent1
+agents/simple/main
+*main
 
