@@ -40,7 +40,7 @@ func (self CoordinatorSlice) Run() {
 type Coordinator struct {
     availableGameState *game.GameState
     peers []*CoordinatorProxy
-    rpcChannels []chan []byte
+    rpcChannels []chan interface{}
     conf *config.Config
     
     // RPC server threads send an ints down this channel representing
@@ -65,7 +65,7 @@ type Coordinator struct {
 func NewCoordinator() *Coordinator {
     return &Coordinator{game.NewGameState(), 
                         make([]*CoordinatorProxy, 0),
-                        make([]chan []byte, 0),
+                        make([]chan interface{}, 0),
                         nil,
                         make(chan int),
                         make([]chan int, 0),
@@ -92,7 +92,7 @@ func (self *Coordinator) Run() {
 // Set up a connection with another coordinator in the same process.
 func (self *Coordinator) ConnectToLocal(other *Coordinator) {
     // We communicate over this channel instead of a netchan
-    newChannel := make(chan []byte)
+    newChannel := make(chan interface{})
     
     // Add a proxy for new peer
     self.peers = append(self.peers, NewCoordProxy(self.conf.Identifier, newChannel))
@@ -102,7 +102,7 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
 }
 
 // Set up the server end of an RPC relationship
-func (self *Coordinator) AddRPCChannel(newChannel chan []byte) {
+func (self *Coordinator) AddRPCChannel(newChannel chan interface{}) {
     // Add the given channel to a list of RPC channels to be read later
     self.rpcChannels = append(self.rpcChannels, newChannel)
     
