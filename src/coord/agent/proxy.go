@@ -18,29 +18,50 @@ func NewAgentProxy(conn link.Link) *AgentProxy {
 
 func (self *AgentProxy) Turn() bool {
     complete := make(chan bool)
+    if !self.start_turn() {
+        return false
+    }
     go func(done chan<- bool) {
-        timeout := time.NewTicker(1e9) // timeout is 1 second
+        timeout := time.NewTicker(link.Timeout)
         loop: for {
             var msg link.Message
             select {
                 case msg = <-self.conn:
-                    fmt.Println(msg)
+                    fmt.Println("proxy recieved a message")
+                    fmt.Println(link.Message(msg).String())
+                    break loop
                 case <-timeout.C:
                     fmt.Println("Timeout")
                     timeout.Stop()
                     break loop
             }
+            println("loop")
         }
+        println("end loop")
         done <- true
+        return
     }(complete)
-    self.start_turn()
-    return <-complete
+    c := <-complete
+    println(c)
+    return c
 }
 
 func (self *AgentProxy) start_turn() bool {
     self.conn <- *link.NewMessage(link.Commands["Start"])
-    if msg := <- self.conn; msg.Cmd == link.Commands["Ack"] {
-        return true
+    timeout := time.NewTicker(link.Timeout)
+    select {
+    case msg := <-self.conn:
+        timeout.Stop()
+        if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
+            switch acked := msg.Args[0].(type) {
+            case link.Command:
+                if acked == link.Commands["Start"] {
+                    return true
+                }
+            }
+        }
+    case <-timeout.C:
+        timeout.Stop()
     }
     return false
 }

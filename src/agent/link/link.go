@@ -3,6 +3,8 @@ package link
 import "fmt"
 import "strings"
 
+const Timeout = 1e9
+
 type Command uint8
 var Commands map[string]Command
 var cmdsr []string
@@ -30,7 +32,7 @@ func NewMessage(cmd Command, args ... Argument) *Message {
     return &Message{Cmd: cmd, Args: args}
 }
 
-func (self *Message) String() string {
+func (self Message) String() string {
     return fmt.Sprintf("<Message cmd:%s args:%s>", cmdsr[self.Cmd], self.Args)
 }
 

@@ -1,6 +1,6 @@
 package agent
 
-
+import "fmt"
 import geo "coord/geometry"
 
 type Move struct {
@@ -15,4 +15,8 @@ func NewMove(x, y int) *Move {
 
 func (self *Move) Move() geo.Point {
     return self.pos
+}
+
+func (self Move) String() string {
+    return fmt.Sprintf("%d, %d", self.pos.X, self.pos.Y)
 }
