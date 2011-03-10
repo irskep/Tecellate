@@ -21,6 +21,7 @@ func Run(agent Agent, conn link.Link) {
             cm, done := StartComm(conn)
             cm.ack_start()
             agent.Turn(cm)
+            cm.complete()
             done <- true
         }
 

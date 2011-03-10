@@ -40,6 +40,30 @@ func (self *comm) ack_start() {
     self.conn <- *link.NewMessage(link.Commands["Ack"], link.Commands["Start"])
 }
 
+func (self *comm) complete() {
+    self.conn <- *link.NewMessage(link.Commands["Complete"])
+    self.await_cmd_ack("Complete")
+}
+
+func (self *comm) await_cmd_ack(cmd string) bool {
+    timeout := time.NewTicker(link.Timeout)
+    select {
+    case msg := <-self.conn:
+        timeout.Stop()
+        if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
+            switch acked := msg.Args[0].(type) {
+            case link.Command:
+                if acked == link.Commands[cmd] {
+                    return true
+                }
+            }
+        }
+    case <-timeout.C:
+        timeout.Stop()
+    }
+    return false
+}
+
 func (self *comm) Look() link.Vision {
     return nil
 }
