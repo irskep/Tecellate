@@ -1,11 +1,13 @@
 package agent
 
+import geo "coord/geometry"
+
 // State
 
 type AgentState struct {
     Turn int
     Live bool
-    Position Point
+    Position geo.Point
     Energy int
     TurnsToNextAllowedMove uint
 
@@ -13,7 +15,7 @@ type AgentState struct {
 }
 
 type Move struct {
-    Position Point
+    Position geo.Point
     Messages []Message
     Collect bool
 }
@@ -21,7 +23,7 @@ type Move struct {
 type Message struct {
     Body string
     Frequency int
-    Source Point
+    Source geo.Point
 }
 
 // Actions

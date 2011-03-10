@@ -1,18 +1,21 @@
 package game
 
+import "coord/agent"
+import "coord/config"
+
 type GameState struct {
     Turn int
-    Agents []*Agent
+    Agents []*agent.Agent
 }
 
 func NewGameState() *GameState {
-    return &GameState{0, make([]*Agent, 0)}
+    return &GameState{0, make([]*agent.Agent, 0)}
 }
 
-func (self *GameState) Configure(config Config) {
-    
+func (self *GameState) Configure(conf config.Config) {
+
 }
 
-func (self *GameState) ApplyMoves(moves []*Move, agentStates []*AgentState) {
-    
+func (self *GameState) ApplyMoves(moves []*agent.Move, agentStates []*agent.AgentState) {
+
 }

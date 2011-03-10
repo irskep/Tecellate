@@ -1,6 +1,7 @@
 package coord
 
-import "coord/game"
+import geo "coord/geometry"
+import "coord/agent"
 
 type CoordinatorProxy struct {
     conn chan []byte
@@ -8,15 +9,15 @@ type CoordinatorProxy struct {
 
 type GameStateResponse struct {
     Turn int
-    AgentStates []game.AgentState
+    AgentStates []agent.AgentState
 }
 
 func NewCoordProxyWithChannel(channel chan []byte) *CoordinatorProxy {
     return &CoordinatorProxy{channel}
 }
 
-func (self *CoordinatorProxy) RequestStatesInBox(bottomLeft game.Point, 
-                                                 topRight game.Point, 
+func (self *CoordinatorProxy) RequestStatesInBox(bottomLeft geo.Point,
+                                                 topRight geo.Point,
                                                  turn int) *GameStateResponse {
     return &GameStateResponse{turn, nil};
 }
