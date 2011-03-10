@@ -7,11 +7,8 @@ File: coord/coord.go
 
 package coord
 
-import geo "coord/geometry"
-
 import (
     "coord/game"
-    "log"
 )
 
 type Coordinator struct {
@@ -81,61 +78,4 @@ func (self *Coordinator) ConnectToRemote(address []byte) {
 // to self.rpcChannels as netchans.
 func (self *Coordinator) ListenForRPCConnectionSetupRequests(address []byte) {
     
-}
-
-/* RPC Server */
-
-func (self *Coordinator) StartRPCServer() {
-    for i, requestChannel := range(self.rpcChannels) {
-        go self.serveRPCRequestsOnChannel(requestChannel, self.nextTurnAvailableSignals[i])
-    }
-}
-
-func (self *Coordinator) serveRPCRequestsOnChannel(requestChannel chan []byte,
-                                                   nextTurnAvailable chan int) {
-    for i := 0 ; ; i++ {    // Spin forever. Process will exit without our help.
-        
-        // Wait for turn i to become available
-        <- nextTurnAvailable
-        
-        // Read a request
-        request := GameStateRequestFromJson(<- requestChannel)
-        
-        // Build a response object
-        log.Printf("Asked for %d, sending %d", request.Turn, i)
-        
-        // Send the response
-        requestChannel <- GameStateResponseJson(i, nil)
-        
-        // Send an RPC request confirmation down the pipes so the
-        // processing loop knows when it is allowed to proceed
-        self.rpcRequestsReceivedConfirmation <- request.Turn
-    }
-}
-
-/* Processing */
-
-func (self *Coordinator) ProcessTurns(complete chan bool) {
-    for i := 0; i <3 /* <3 <3 <3 */; i++ {  // TODO: THREE TIMES IS ARBITRARY AND FOR TESTING
-        
-        // Signal the availability of turn i to the RPC servers
-        for pi, _ := range(self.peers) {
-            self.nextTurnAvailableSignals[pi] <- i
-        }
-        
-        for _, peer := range(self.peers) {
-            // Probably actually don't want this to be blocking...
-            // Also, STORE THE RESULT AND DO SOMETHING WITH IT.
-            _ = peer.RequestStatesInBox(i, geo.Point{0,0}, geo.Point{0,0})
-        }
-        
-        // Process new data
-        // BLAH BLAH BLAH BLAH BLAH
-        
-        // Wait for all RPC requests from peers to go through the other goroutine
-        for _, _ = range(self.peers) {
-            <- self.rpcRequestsReceivedConfirmation
-        }
-    }
-    complete <- true
 }
