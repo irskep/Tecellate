@@ -125,6 +125,7 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         
         for _, peer := range(self.peers) {
             // Probably actually don't want this to be blocking...
+            // Also, STORE THE RESULT AND DO SOMETHING WITH IT.
             _ = peer.RequestStatesInBox(i, geo.Point{0,0}, geo.Point{0,0})
         }
         
