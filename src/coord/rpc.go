@@ -1,5 +1,3 @@
-// TODO: CHECK ANY ERRORS WHATSOEVER
-
 package coord
 
 import geo "coord/geometry"
