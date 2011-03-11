@@ -15,16 +15,13 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
     for i := 0; i <3 /* <3 <3 <3 */; i++ {  // TODO: THREE TIMES IS ARBITRARY AND FOR TESTING
         
         self.log.Printf("Making turn %d available", i)
-        
-        // Signal the availability of turn i to the RPC servers
         for pi, _ := range(self.peers) {
             self.nextTurnAvailableSignals[pi] <- i
         }
         
         responses := self.peerDataForTurn(i)
+        transforms := self.transformsForNextTurn(responses)
         
-        // Process new data
-        nextState := self.nextGameState(responses)
         if (self.conf.RandomlyDelayProcessing) {
             time.Sleep(int64(float64(1e9)*rand.Float64()))
         }
@@ -34,7 +31,11 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
             <- self.rpcRequestsReceivedConfirmation
         }
         
-        self.applyState(nextState)
+        self.availableGameState.Advance()
+        //  i, agent
+        for _, _ = range(self.availableGameState.Agents) {
+            // agent.Apply(transforms[i])
+        }
     }
     
     self.log.Printf("Sending complete")
@@ -62,20 +63,15 @@ func (self *Coordinator) peerDataForTurn(turn int) []*GameStateResponse {
 
 type ProspectiveMap *bool   // Make this a struct later
 
-func (self *Coordinator) buildProspectiveMap(peerData []*GameStateResponse) ProspectiveMap {
+func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) ProspectiveMap {
     agents := self.availableGameState.Agents
     for _, agent := range(agents) {
         success := agent.Turn()
-        self.log.Printf("%u", success)
+        state := agent.State()
+        self.log.Printf("%u, %v", success, state)
     }
+    // transforms = make([]*StateTransform, len(agents))
+    // Do some magic to make the transforms
+    // Return transforms
     return nil;
-}
-
-func (self *Coordinator) nextGameState(peerData []*GameStateResponse) *game.GameState {
-    _ = self.buildProspectiveMap(peerData)
-    return self.availableGameState.CopyAndAdvance()
-}
-
-func (self *Coordinator) applyState(nextState *game.GameState) {
-    
 }
