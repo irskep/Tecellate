@@ -21,9 +21,11 @@ type Move struct {
 }
 
 type Transform interface {
+    Turn() uint64
     Position() *geo.Point
     Energy() Energy
-    Dead() bool
+    Alive() bool
+    Wait() uint16
 }
 
 type Message struct {
@@ -44,7 +46,6 @@ func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
         Wait:0,
         Inventory:NewInventory(energy),
     }
-    self.NewMove()
     return self
 }
 
@@ -65,7 +66,19 @@ func (self *AgentState) NewMessage(freq uint8, msg []byte) *Message {
     return m
 }
 
-func (self *Move) Goto(pos *geo.Point) bool {
+func (self *AgentState) transform(trans Transform) {
+    self.Turn = trans.Turn()
+    self.Position = trans.Position()
+    self.Inventory.Energy = trans.Energy()
+    self.Live = trans.Alive()
+    self.Wait = trans.Wait()
+}
+
+func (self *AgentState) Mv(pos *geo.Point) bool {
+    return self.Move.mv(pos)
+}
+
+func (self *Move) mv(pos *geo.Point) bool {
     if !self.setmv {
         self.Position = pos
         self.setmv = true

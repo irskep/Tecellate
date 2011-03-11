@@ -51,7 +51,7 @@ func (self *AgentProxy) Turn() bool {
         link.Commands["Move"]:
             argnum(1, func(msg *link.Message) bool {
                 mv := msg.Args[0].(link.Move).Move()
-                if self.State.Move.Goto(&mv) {
+                if self.State.Mv(&mv) {
                     self.ack_cmd(msg.Cmd)
                 } else {
                     self.nak_cmd(msg.Cmd)
@@ -71,6 +71,7 @@ func (self *AgentProxy) Turn() bool {
     }
 
     complete := make(chan bool)
+    self.State.NewMove()
     if !self.start_turn() {
         return false
     }
