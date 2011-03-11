@@ -28,6 +28,7 @@ func (self *comm) ack_start() {
 }
 
 func (self *comm) complete() bool {
+//     fmt.Println("started complete")
     return self.acked_send(link.NewMessage(link.Commands["Complete"]))
 }
 
@@ -76,6 +77,9 @@ func (self *comm) recv() *link.Message {
 func (self *comm) send(msg *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
+    case m := <-self.conn:
+        fmt.Println(m)
+        panic("unresolved message in pipe.")
     case self.conn <- *msg:
     case <-timeout.C:
         timeout.Stop()
@@ -105,7 +109,9 @@ func (self *comm) Inventory() link.Inventory {
 }
 
 func (self *comm) Move(move link.Move) bool {
-    return self.acked_send(link.NewMessage(link.Commands["Move"], move))
+    c := self.acked_send(link.NewMessage(link.Commands["Move"], move))
+//     fmt.Println("completed move")
+    return c
 }
 
 func (self *comm) Collect() {

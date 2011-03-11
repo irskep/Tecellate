@@ -29,13 +29,15 @@ type Inventory struct {
 }
 
 func NewAgentState(turn uint64, pos *geo.Point, energy uint8) *AgentState {
-    return &AgentState{
+    self := &AgentState{
         Turn:turn,
         Live:true,
         Position:pos,
         Wait:0,
         Inventory:NewInventory(energy),
     }
+    self.NewMove()
+    return self
 }
 
 func NewInventory(energy uint8) *Inventory {
@@ -55,8 +57,8 @@ func (self *AgentState) NewMessage(freq uint8, msg []byte) *Message {
     return m
 }
 
-func (self *Move) Move(pos *geo.Point) bool {
-    if self.setmv {
+func (self *Move) Goto(pos *geo.Point) bool {
+    if !self.setmv {
         self.Position = pos
         self.setmv = true
         return true

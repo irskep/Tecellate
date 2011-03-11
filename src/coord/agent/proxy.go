@@ -8,39 +8,61 @@ import (
 )
 import (
     "agent/link"
+    geo "coord/geometry"
 )
 
 type AgentProxy struct {
-    State AgentState
+    State *AgentState
     conn link.Link
     log *log.Logger
 }
 
 func NewAgentProxy(conn link.Link) *AgentProxy {
     self := new(AgentProxy)
-//     self.State = NewAgentState()
+    self.State = NewAgentState(0, geo.NewPoint(0, 0), 0)
     self.conn = conn
     self.log = log.New(os.Stdout, "AgentProxy : ", 0)
     return self
 }
 
 func (self *AgentProxy) Turn() bool {
-    var handlers = map[link.Command](func(*link.Message) bool) {
+    type handler (func(*link.Message) bool)
+
+    check_args := func(count int, args link.Arguments) bool {
+        if len(args) == count {
+            return true
+        }
+        self.log.Println("Error : Wrong number of arguments recieved")
+        return false
+    }
+
+    argnum := func(count int, f handler) handler {
+        return func(msg *link.Message) bool {
+            check_args(count, msg.Args)
+            return f(msg)
+        }
+    }
+
+    var handlers = map[link.Command]handler {
         link.Commands["Move"]:
-            func(msg *link.Message) bool {
-                self.nak_cmd(msg.Cmd)
+            argnum(1, func(msg *link.Message) bool {
+                mv := msg.Args[0].(link.Move).Move()
+                if self.State.Move.Goto(&mv) {
+                    self.ack_cmd(msg.Cmd)
+                } else {
+                    self.nak_cmd(msg.Cmd)
+                }
                 return false
-            },
+            }),
         link.Commands["Complete"]:
-            func(msg *link.Message) bool {
+            argnum(0, func(msg *link.Message) bool {
                 self.ack_cmd(msg.Cmd)
                 return true
-            },
+            }),
     }
 
     handle := func(msg *link.Message) bool {
-        self.log.Println("proxy recieved a message")
-        self.log.Println(msg)
+        self.log.Println("recv", msg)
         return handlers[msg.Cmd](msg)
     }
 
@@ -99,6 +121,7 @@ func (self *AgentProxy) await_cmd_ack(cmd string) bool {
 
 func (self *AgentProxy) ack_cmd(cmd link.Command) {
     self.conn <- *link.NewMessage(link.Commands["Ack"], cmd)
+//     self.log.Println(link.NewMessage(link.Commands["Ack"], cmd))
 }
 
 func (self *AgentProxy) nak_cmd(cmd link.Command) {
