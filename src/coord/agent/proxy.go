@@ -13,14 +13,16 @@ import (
 
 type AgentProxy struct {
     State *AgentState
-    conn link.Link
+    snd link.Link
+    rcv link.Link
     log *log.Logger
 }
 
-func NewAgentProxy(conn link.Link) *AgentProxy {
+func NewAgentProxy(send, recv link.Link) *AgentProxy {
     self := new(AgentProxy)
     self.State = NewAgentState(0, geo.NewPoint(0, 0), 0)
-    self.conn = conn
+    self.snd = send
+    self.rcv = recv
     self.log = log.New(os.Stdout, "AgentProxy : ", 0)
     return self
 }
@@ -75,7 +77,7 @@ func (self *AgentProxy) Turn() bool {
         loop: for {
             var msg link.Message
             select {
-                case msg = <-self.conn:
+                case msg = <-self.rcv:
                     if handle(&msg) {
                         timeout.Stop()
                         done <- true
@@ -96,14 +98,15 @@ func (self *AgentProxy) Turn() bool {
 }
 
 func (self *AgentProxy) start_turn() bool {
-    self.conn <- *link.NewMessage(link.Commands["Start"])
+    self.snd <- *link.NewMessage(link.Commands["Start"])
     return self.await_cmd_ack("Start")
 }
 
 func (self *AgentProxy) await_cmd_ack(cmd string) bool {
     timeout := time.NewTicker(link.Timeout)
     select {
-    case msg := <-self.conn:
+    case msg := <-self.rcv:
+        self.log.Println(msg)
         timeout.Stop()
         if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
             switch acked := msg.Args[0].(type) {
@@ -120,10 +123,10 @@ func (self *AgentProxy) await_cmd_ack(cmd string) bool {
 }
 
 func (self *AgentProxy) ack_cmd(cmd link.Command) {
-    self.conn <- *link.NewMessage(link.Commands["Ack"], cmd)
+    self.snd <- *link.NewMessage(link.Commands["Ack"], cmd)
 //     self.log.Println(link.NewMessage(link.Commands["Ack"], cmd))
 }
 
 func (self *AgentProxy) nak_cmd(cmd link.Command) {
-    self.conn <- *link.NewMessage(link.Commands["Nak"], cmd)
+    self.snd <- *link.NewMessage(link.Commands["Nak"], cmd)
 }

@@ -14,17 +14,19 @@ type Comm interface {
 }
 
 type comm struct {
-    conn link.Link
+    snd link.Link
+    rcv link.Link
 }
 
-func StartComm(conn link.Link) *comm {
+func StartComm(send, recv link.Link) *comm {
     self := new(comm)
-    self.conn = conn
+    self.snd = send
+    self.rcv = recv
     return self
 }
 
 func (self *comm) ack_start() {
-    self.conn <- *link.NewMessage(link.Commands["Ack"], link.Commands["Start"])
+    self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Start"]))
 }
 
 func (self *comm) complete() bool {
@@ -65,7 +67,7 @@ func (self *comm) await_cmd_ack(cmd link.Command) bool {
 func (self *comm) recv() *link.Message {
     timeout := time.NewTicker(link.Timeout)
     select {
-    case msg := <-self.conn:
+    case msg := <-self.rcv:
         return &msg
     case <-timeout.C:
         timeout.Stop()
@@ -77,10 +79,10 @@ func (self *comm) recv() *link.Message {
 func (self *comm) send(msg *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
-    case m := <-self.conn:
+    case m := <-self.rcv:
         fmt.Println(m)
         panic("unresolved message in pipe.")
-    case self.conn <- *msg:
+    case self.snd <- *msg:
     case <-timeout.C:
         timeout.Stop()
         panic("Agent believes the server to be unresponsive.")

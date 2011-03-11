@@ -22,5 +22,8 @@ func (self *Simple) Turn(comm agent.Comm) {
     if !comm.Move(agent.NewMove(1, 0)) {
         fmt.Println("Move Failed!")
     }
+    if !comm.Move(agent.NewMove(1, 0)) {
+        fmt.Println("Move Failed!")
+    }
     return
 }

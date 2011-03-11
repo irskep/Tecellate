@@ -14,18 +14,19 @@ type Agent interface {
     Turn(Comm)
 }
 
-func Run(agent Agent, conn link.Link) {
+func Run(agent Agent, send, recv link.Link) {
     complete := make(chan bool)
-    go func(conn link.Link, done chan<- bool) {
+    go func(send, recv link.Link, done chan<- bool) {
         start := func() {
-            cm := StartComm(conn)
+            fmt.Println("Start Recieved")
+            cm := StartComm(send, recv)
             cm.ack_start()
             agent.Turn(cm)
             cm.complete()
         }
 
         loop: for {
-            switch msg := <-conn; {
+            switch msg := <-recv; {
                 case msg.Cmd == link.Commands["Start"]:
                     start()
                 case msg.Cmd == link.Commands["Exit"]:
@@ -40,7 +41,7 @@ func Run(agent Agent, conn link.Link) {
             }
         }
         done <- true
-    }(conn, complete)
+    }(send, recv, complete)
     if ok := <-complete; ok {
         return
     }
