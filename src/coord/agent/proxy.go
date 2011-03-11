@@ -12,7 +12,7 @@ import (
 )
 
 type AgentProxy struct {
-    State *AgentState
+    state *AgentState
     snd link.SendLink
     rcv link.RecvLink
     log *log.Logger
@@ -20,11 +20,19 @@ type AgentProxy struct {
 
 func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
     self := new(AgentProxy)
-    self.State = NewAgentState(0, geo.NewPoint(0, 0), 0)
+    self.state = NewAgentState(0, geo.NewPoint(0, 0), 0)
     self.snd = send
     self.rcv = recv
     self.log = log.New(os.Stdout, "AgentProxy : ", 0)
     return self
+}
+
+func (self *AgentProxy) State() *AgentState {
+    return self.state
+}
+
+func (self *AgentProxy) Apply(trans Transform) {
+    self.state.transform(trans)
 }
 
 func (self *AgentProxy) Turn() bool {
@@ -51,7 +59,7 @@ func (self *AgentProxy) Turn() bool {
         link.Commands["Move"]:
             argnum(1, func(msg *link.Message) bool {
                 mv := msg.Args[0].(link.Move).Move()
-                if self.State.Mv(&mv) {
+                if self.state.Mv(&mv) {
                     self.ack_cmd(msg.Cmd)
                 } else {
                     self.nak_cmd(msg.Cmd)
@@ -71,7 +79,7 @@ func (self *AgentProxy) Turn() bool {
     }
 
     complete := make(chan bool)
-    self.State.NewMove()
+    self.state.NewMove()
     if !self.start_turn() {
         return false
     }

@@ -23,7 +23,7 @@ func CoordinatorList(k int, configTemplate *config.Config) CoordinatorSlice {
     coords := make(CoordinatorSlice, k)
     for i := 0; i < k; i++ {
         coords[i] = NewCoordinator()
-        coords[i].Configure(configTemplate.Duplicate(i, geo.Point{0, 0}, geo.Point{0, 0}))
+        coords[i].Configure(configTemplate.Duplicate(i, geo.NewPoint(0, 0), geo.NewPoint(0, 0)))
     }
     return coords
 }
