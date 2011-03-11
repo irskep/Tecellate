@@ -2,6 +2,8 @@
 
 package coord
 
+import geo "coord/geometry"
+
 import (
     "coord/config"
     "log"
@@ -10,7 +12,7 @@ import (
 /* Stick together building blocks */
 
 func ChainedLocalCoordinators(k int, configTemplate *config.Config) CoordinatorSlice {
-    coords := CoordinatorList(3, &config.Config{0, nil, "none", false, true})
+    coords := CoordinatorList(3, configTemplate)
     ConnectInChain(coords)
     return coords
 }
@@ -21,11 +23,7 @@ func CoordinatorList(k int, configTemplate *config.Config) CoordinatorSlice {
     coords := make(CoordinatorSlice, k)
     for i := 0; i < k; i++ {
         coords[i] = NewCoordinator()
-        coords[i].Configure(&config.Config{i,
-                                           configTemplate.AgentStarts, 
-                                           configTemplate.MessageStyle, 
-                                           configTemplate.UseFood, 
-                                           configTemplate.RandomlyDelayProcessing})
+        coords[i].Configure(configTemplate.Duplicate(i, geo.Point{0, 0}, geo.Point{0, 0}))
     }
     return coords
 }
