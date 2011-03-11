@@ -5,12 +5,16 @@ import "coord/config"
 
 type GameState struct {
     Turn int
-    Agents []*agent.Agent
+    Agents []agent.Agent
     conf *config.Config
 }
 
 func NewGameState() *GameState {
-    return &GameState{0, make([]*agent.Agent, 0), nil}
+    return &GameState{0, make([]agent.Agent, 0), nil}
+}
+
+func (self *GameState) CopyAndAdvance() *GameState {
+    return &GameState{self.Turn+1, self.Agents, self.conf}
 }
 
 func (self *GameState) Configure(conf *config.Config) {

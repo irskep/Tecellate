@@ -40,7 +40,8 @@ func (self CoordinatorSlice) Run() {
 type Coordinator struct {
     availableGameState *game.GameState
     peers []*CoordinatorProxy
-    rpcChannels []chan interface{}
+    rpcSendChannels []chan interface{}
+    rpcRecvChannels []chan interface{}
     conf *config.Config
     
     // RPC server threads send an ints down this channel representing
@@ -63,13 +64,14 @@ type Coordinator struct {
 
 // Create a new Coordinator. Initialize but do not fill the data structures.
 func NewCoordinator() *Coordinator {
-    return &Coordinator{game.NewGameState(), 
-                        make([]*CoordinatorProxy, 0),
-                        make([]chan interface{}, 0),
-                        nil,
-                        make(chan int),
-                        make([]chan int, 0),
-                        nil}
+    return &Coordinator{availableGameState: game.NewGameState(), 
+                        peers: make([]*CoordinatorProxy, 0),
+                        rpcSendChannels: make([]chan interface{}, 0),
+                        rpcRecvChannels: make([]chan interface{}, 0),
+                        conf: nil,
+                        rpcRequestsReceivedConfirmation: make(chan int),
+                        nextTurnAvailableSignals: make([]chan int, 0),
+                        log: nil}
 }
 
 func (self *Coordinator) Configure(conf *config.Config) {
@@ -92,19 +94,21 @@ func (self *Coordinator) Run() {
 // Set up a connection with another coordinator in the same process.
 func (self *Coordinator) ConnectToLocal(other *Coordinator) {
     // We communicate over this channel instead of a netchan
-    newChannel := make(chan interface{})
+    newSendChannel := make(chan interface{})
+    newRecvChannel := make(chan interface{})
     
     // Add a proxy for new peer
-    self.peers = append(self.peers, NewCoordProxy(self.conf.Identifier, newChannel))
+    self.peers = append(self.peers, NewCoordProxy(self.conf.Identifier, newSendChannel, newRecvChannel))
     
     // Tell peer to listen for RPC requests from me
-    other.AddRPCChannel(newChannel)
+    other.AddRPCChannel(newRecvChannel, newSendChannel)
 }
 
 // Set up the server end of an RPC relationship
-func (self *Coordinator) AddRPCChannel(newChannel chan interface{}) {
+func (self *Coordinator) AddRPCChannel(newSendChannel chan interface{}, newRecvChannel chan interface{}) {
     // Add the given channel to a list of RPC channels to be read later
-    self.rpcChannels = append(self.rpcChannels, newChannel)
+    self.rpcSendChannels = append(self.rpcSendChannels, newSendChannel)
+    self.rpcRecvChannels = append(self.rpcRecvChannels, newRecvChannel)
     
     // Also add a channel-as-lock to correspond to this RPC channel.
     // Every time a new turn is available, the turn's number is sent down this channel.
@@ -135,7 +139,7 @@ func (self *Coordinator) ConnectToRemote(address []byte) {
 
 // Rather than having ConnectToRemote call some specific function, have it dial a
 // TCP port which we will listen on, accept connections on, and add those connections
-// to self.rpcChannels as netchans.
+// to self.rpcSendChannels as netchans.
 func (self *Coordinator) ListenForRPCConnectionSetupRequests(address []byte) {
     
 }

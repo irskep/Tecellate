@@ -17,3 +17,7 @@ type GameStateResponse struct {
     Turn int
     AgentStates []agent.AgentState
 }
+
+func (self GameStateResponse) CopyToHeap() *GameStateResponse {
+    return &GameStateResponse{self.Turn, self.AgentStates}
+}
