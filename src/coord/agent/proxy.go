@@ -1,18 +1,26 @@
 package agent
 
-import "fmt"
-import "time"
-import "agent/link"
+import (
+//     "fmt"
+    "time"
+    "log"
+    "os"
+)
+import (
+    "agent/link"
+)
 
 type AgentProxy struct {
     State AgentState
     conn link.Link
+    log *log.Logger
 }
 
 func NewAgentProxy(conn link.Link) *AgentProxy {
     self := new(AgentProxy)
 //     self.State = NewAgentState()
     self.conn = conn
+    self.log = log.New(os.Stdout, "AgentProxy : ", 0)
     return self
 }
 
@@ -31,8 +39,8 @@ func (self *AgentProxy) Turn() bool {
     }
 
     handle := func(msg *link.Message) bool {
-        fmt.Println("proxy recieved a message")
-        fmt.Println(msg)
+        self.log.Println("proxy recieved a message")
+        self.log.Println(msg)
         return handlers[msg.Cmd](msg)
     }
 
@@ -53,7 +61,7 @@ func (self *AgentProxy) Turn() bool {
                     }
                     timeout = time.NewTicker(link.Timeout)
                 case <-timeout.C:
-                    fmt.Println("Agent Proxy Timed Out")
+                    self.log.Println("Agent Proxy Timed Out")
                     timeout.Stop()
                     done <- false
                     break loop

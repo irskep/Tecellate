@@ -1,5 +1,5 @@
 package agent
 
 type Agent interface {
-    Turn()
+    Turn() bool
 }
