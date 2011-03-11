@@ -20,3 +20,13 @@ func (self *GameState) Configure(conf *config.Config) {
 func (self *GameState) ApplyMoves(moves []*agent.Move, agentStates []*agent.AgentState) {
 
 }
+
+type Map struct {
+    Terrain [][]int
+    Width uint
+    Height uint
+}
+
+func NewMap(w uint, h uint) *Map {
+    return &Map{make([][]int, w, h), w, h}
+}

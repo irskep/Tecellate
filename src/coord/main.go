@@ -20,7 +20,7 @@ func main() {
     fmt.Println("coord/main.go")
     
     // Initialize
-    coords := coord.ChainedLocalCoordinators(3, &config.Config{0, nil, "none", false, true})
+    coords := coord.ChainedLocalCoordinators(3, config.BasicTestConfig())
     coords.Run()
     
     // Yo ho, me hearties, yo ho!
