@@ -23,11 +23,11 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         
         responses := make([]*GameStateResponse, len(self.peers))
         responsesReceived := make(chan bool)
-        for i, peer := range(self.peers) {
-            go func(p int) {
-                responses[p] = peer.RequestStatesInBox(p, geo.Point{0,0}, geo.Point{0,0})
+        for p, _ := range(self.peers) {
+            go func(turn int, peerIndex int) {
+                responses[peerIndex] = self.peers[peerIndex].RequestStatesInBox(turn, geo.Point{0,0}, geo.Point{0,0})
                 responsesReceived <- true
-            }(i)
+            }(i, p)
         }
         
         for _, _ = range(self.peers) {

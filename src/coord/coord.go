@@ -98,7 +98,7 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
     newRecvChannel := make(chan interface{})
     
     // Add a proxy for new peer
-    self.peers = append(self.peers, NewCoordProxy(self.conf.Identifier, newSendChannel, newRecvChannel))
+    self.peers = append(self.peers, NewCoordProxy(other.conf.Identifier, self.conf.Identifier, newSendChannel, newRecvChannel))
     
     // Tell peer to listen for RPC requests from me
     other.AddRPCChannel(newRecvChannel, newSendChannel)
