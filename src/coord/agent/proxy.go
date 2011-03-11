@@ -40,8 +40,10 @@ func (self *AgentProxy) Turn() bool {
 
     argnum := func(count int, f handler) handler {
         return func(msg *link.Message) bool {
-            check_args(count, msg.Args)
-            return f(msg)
+            if check_args(count, msg.Args) {
+                return f(msg)
+            }
+            return false
         }
     }
 

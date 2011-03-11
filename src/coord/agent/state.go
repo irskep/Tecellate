@@ -2,6 +2,8 @@ package agent
 
 import geo "coord/geometry"
 
+type Energy uint8
+
 type AgentState struct {
     Turn uint64
     Live bool
@@ -18,6 +20,12 @@ type Move struct {
     setmv bool
 }
 
+type Transform interface {
+    Position() *geo.Point
+    Energy() Energy
+    Dead() bool
+}
+
 type Message struct {
     Msg []byte
     Frequency uint8
@@ -25,10 +33,10 @@ type Message struct {
 }
 
 type Inventory struct {
-    Energy uint8
+    Energy Energy
 }
 
-func NewAgentState(turn uint64, pos *geo.Point, energy uint8) *AgentState {
+func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
     self := &AgentState{
         Turn:turn,
         Live:true,
@@ -40,7 +48,7 @@ func NewAgentState(turn uint64, pos *geo.Point, energy uint8) *AgentState {
     return self
 }
 
-func NewInventory(energy uint8) *Inventory {
+func NewInventory(energy Energy) *Inventory {
     return &Inventory{
         Energy:energy,
     }
