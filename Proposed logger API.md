@@ -1,8 +1,9 @@
-LoggerForKeyPath("info.coord.1.proxy.2")
-LogAtKeyPath("info.coord.1.proxy.2", "This is an info message")
+Init(io.Writer)
 
-DeclareOutputPipe("info\b(\..*)", os.Stdout)
-DeclareOutputSocket("info\b(\..*)", "127.0.0.1:934234")
+Logger("info.coord.1.proxy.2")
+Log("info.coord.1.proxy.2", "This is an info message")
+
+Redirect("info\b(\..*)", io.Writer)
 
 ReadConfiguration("log_config")
     {
