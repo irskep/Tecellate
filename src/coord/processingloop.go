@@ -21,18 +21,7 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
             self.nextTurnAvailableSignals[pi] <- i
         }
         
-        responses := make([]*GameStateResponse, len(self.peers))
-        responsesReceived := make(chan bool)
-        for p, _ := range(self.peers) {
-            go func(turn int, peerIndex int) {
-                responses[peerIndex] = self.peers[peerIndex].RequestStatesInBox(turn, geo.Point{0,0}, geo.Point{0,0})
-                responsesReceived <- true
-            }(i, p)
-        }
-        
-        for _, _ = range(self.peers) {
-            <- responsesReceived
-        }
+        responses := self.peerDataForTurn(i)
         
         // Process new data
         nextState := self.nextGameState(responses)
@@ -53,6 +42,22 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
     if complete != nil {
         complete <- true
     }
+}
+
+func (self *Coordinator) peerDataForTurn(turn int) []*GameStateResponse {
+    responses := make([]*GameStateResponse, len(self.peers))
+    responsesReceived := make(chan bool)
+    for p, _ := range(self.peers) {
+        go func(peerIndex int) {
+            responses[peerIndex] = self.peers[peerIndex].RequestStatesInBox(turn, geo.Point{0,0}, geo.Point{0,0})
+            responsesReceived <- true
+        }(p)
+    }
+    
+    for _, _ = range(self.peers) {
+        <- responsesReceived
+    }
+    return responses
 }
 
 type ProspectiveMap *bool   // Make this a struct later
