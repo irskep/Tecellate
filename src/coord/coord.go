@@ -75,7 +75,7 @@ func NewCoordinator() *Coordinator {
 func (self *Coordinator) Configure(conf *config.Config) {
     self.conf = conf
     self.availableGameState.Configure(conf)
-    self.log = log.New(os.Stdin, fmt.Sprintf("%d: ", conf.Identifier), 0)
+    self.log = log.New(os.Stdout, fmt.Sprintf("%d: ", conf.Identifier), 0)
     self.log.Printf("Configured")
 }
 
@@ -110,6 +110,20 @@ func (self *Coordinator) AddRPCChannel(newChannel chan interface{}) {
     // Every time a new turn is available, the turn's number is sent down this channel.
     // There is one channel per RPC server, so the processing loop sends k ints to k RPC threads.
     self.nextTurnAvailableSignals = append(self.nextTurnAvailableSignals, make(chan int))
+}
+
+// LOCAL THAT MIMICS REMOTE BETTER
+
+type LocalPeeringRequest struct {
+    
+}
+
+func (self *Coordinator) ListenLocal(k int) {
+    go func() {
+        for i := 0; i < k; i++ {
+            
+        }
+    }()
 }
 
 // REMOTE/PRODUCTION
