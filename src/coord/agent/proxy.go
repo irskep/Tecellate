@@ -13,12 +13,12 @@ import (
 
 type AgentProxy struct {
     State *AgentState
-    snd link.Link
-    rcv link.Link
+    snd link.SendLink
+    rcv link.RecvLink
     log *log.Logger
 }
 
-func NewAgentProxy(send, recv link.Link) *AgentProxy {
+func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
     self := new(AgentProxy)
     self.State = NewAgentState(0, geo.NewPoint(0, 0), 0)
     self.snd = send

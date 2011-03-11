@@ -48,4 +48,5 @@ func (self Arguments) String() string {
     return strings.Join(s, "")
 }
 
-type Link chan Message
+type SendLink chan<- Message
+type RecvLink <-chan Message

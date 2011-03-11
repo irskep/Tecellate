@@ -7,19 +7,27 @@ File: agent/agent.go
 
 package agent
 
-import "fmt"
-import "agent/link"
+import (
+    "os"
+    "fmt"
+    "log"
+)
+import (
+    "agent/link"
+)
 
 type Agent interface {
     Turn(Comm)
+    Id() uint
 }
 
-func Run(agent Agent, send, recv link.Link) {
+func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
+    logger := log.New(os.Stdout, fmt.Sprintf("Agent(%d) : ", agent.Id()), 0)
     complete := make(chan bool)
-    go func(send, recv link.Link, done chan<- bool) {
+    go func(send link.SendLink, recv link.RecvLink, done chan<- bool) {
         start := func() {
-            fmt.Println("Start Recieved")
-            cm := StartComm(send, recv)
+            logger.Println("Start Recieved")
+            cm := StartComm(send, recv, logger)
             cm.ack_start()
             agent.Turn(cm)
             cm.complete()

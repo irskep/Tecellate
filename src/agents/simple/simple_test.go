@@ -9,9 +9,9 @@ import cagent "coord/agent"
 
 func TestSimple(t *testing.T) {
     fmt.Println("Testing Simple Turn Rollover")
-    agnt := make(link.Link, 10)
-    prox := make(link.Link, 10)
-    simple :=  NewSimple()
+    agnt := make(chan link.Message, 10)
+    prox := make(chan link.Message, 10)
+    simple := NewSimple(1)
     proxy := cagent.NewAgentProxy(prox, agnt)
     go func() {
         agent.Run(simple, agnt, prox)

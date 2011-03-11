@@ -13,6 +13,6 @@ import "agents/simple"
 
 func main() {
     fmt.Println("agents/simple/main.go")
-    fmt.Println(simple.NewSimple())
+    fmt.Println(simple.NewSimple(0))
 //     agent.Run(simple.NewSimple())
 }

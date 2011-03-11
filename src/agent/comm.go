@@ -1,8 +1,13 @@
 package agent
 
-import "fmt"
-import "time"
-import "agent/link"
+import (
+    "fmt"
+    "time"
+    "log"
+)
+import (
+    "agent/link"
+)
 
 type Comm interface {
     Look() link.Vision
@@ -14,14 +19,16 @@ type Comm interface {
 }
 
 type comm struct {
-    snd link.Link
-    rcv link.Link
+    snd link.SendLink
+    rcv link.RecvLink
+    log *log.Logger
 }
 
-func StartComm(send, recv link.Link) *comm {
+func StartComm(send link.SendLink, recv link.RecvLink, log *log.Logger) *comm {
     self := new(comm)
     self.snd = send
     self.rcv = recv
+    self.log = log
     return self
 }
 
@@ -80,7 +87,7 @@ func (self *comm) send(msg *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
     case m := <-self.rcv:
-        fmt.Println(m)
+        self.log.Println(m)
         panic("unresolved message in pipe.")
     case self.snd <- *msg:
     case <-timeout.C:

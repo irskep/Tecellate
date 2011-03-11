@@ -11,11 +11,11 @@ import "agent"
 import "fmt"
 
 type Simple struct {
-    /// pass
+    id uint
 }
 
-func NewSimple() *Simple {
-    return &Simple{}
+func NewSimple(id uint) *Simple {
+    return &Simple{id:id}
 }
 
 func (self *Simple) Turn(comm agent.Comm) {
@@ -26,4 +26,8 @@ func (self *Simple) Turn(comm agent.Comm) {
         fmt.Println("Move Failed!")
     }
     return
+}
+
+func (self *Simple) Id() uint {
+    return self.id
 }
