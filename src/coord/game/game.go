@@ -19,12 +19,19 @@ func (self *GameState) Advance() {
     self.Turn += 1
 }
 
-func (self *GameState) Copy() {
-    &GameState{self.Turn, self.Agents, self.Terrain.Copy(), self.Energy.Copy(), self.conf}
+func (self *GameState) Copy() *GameState {
+    return &GameState{
+            self.Turn,
+            self.Agents,
+            self.Terrain.Copy(),
+            self.Energy.Copy(),
+            self.conf,
+    }
 }
 
 func (self *GameState) Configure(conf *config.Config) {
     self.conf = conf
+    self.Agents = conf.Agents
 }
 
 func (self *GameState) ApplyMoves(moves []*agent.Move, agentStates []*agent.AgentState) {
@@ -43,8 +50,8 @@ func NewMap(w uint, h uint) *Map {
 
 func (self *Map) Copy() *Map {
     newMap := NewMap(self.Width, self.Height)
-    for i := 0; i < self.Width; i++ {
-        for j := 0; j < self.Height; j++ {
+    for i := uint(0); i < self.Width; i++ {
+        for j := uint(0); j < self.Height; j++ {
             newMap.Values[i][j] = self.Values[i][j]
         }
     }

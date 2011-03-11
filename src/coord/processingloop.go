@@ -2,9 +2,9 @@ package coord
 
 import geo "coord/geometry"
 
-import (
-    "coord/game"
-)
+// import (
+//     "coord/game"
+// )
 
 import (
     "rand"
@@ -13,33 +13,33 @@ import (
 
 func (self *Coordinator) ProcessTurns(complete chan bool) {
     for i := 0; i <3 /* <3 <3 <3 */; i++ {  // TODO: THREE TIMES IS ARBITRARY AND FOR TESTING
-        
+
         self.log.Printf("Making turn %d available", i)
         for pi, _ := range(self.peers) {
             self.nextTurnAvailableSignals[pi] <- i
         }
-        
+
         responses := self.peerDataForTurn(i)
-        transforms := self.transformsForNextTurn(responses)
-        
+        _ = self.transformsForNextTurn(responses)
+
         if (self.conf.RandomlyDelayProcessing) {
             time.Sleep(int64(float64(1e9)*rand.Float64()))
         }
-        
+
         // Wait for all RPC requests from peers to go through the other goroutine
         for _, _ = range(self.peers) {
             <- self.rpcRequestsReceivedConfirmation
         }
-        
+
         self.availableGameState.Advance()
         //  i, agent
         for _, _ = range(self.availableGameState.Agents) {
             // agent.Apply(transforms[i])
         }
     }
-    
+
     self.log.Printf("Sending complete")
-    
+
     if complete != nil {
         complete <- true
     }
@@ -54,7 +54,7 @@ func (self *Coordinator) peerDataForTurn(turn int) []*GameStateResponse {
             responsesReceived <- true
         }(p)
     }
-    
+
     for _, _ = range(self.peers) {
         <- responsesReceived
     }
@@ -68,7 +68,7 @@ func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) Pr
     for _, agent := range(agents) {
         success := agent.Turn()
         state := agent.State()
-        self.log.Printf("%u, %v", success, state)
+        self.log.Printf("%v, %s", success, state)
     }
     // transforms = make([]*StateTransform, len(agents))
     // Do some magic to make the transforms
