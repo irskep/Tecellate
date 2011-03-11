@@ -6,13 +6,13 @@ import "coord/config"
 type GameState struct {
     Turn int
     Agents []agent.Agent
-    Terrain Map
-    Energy Map
+    Terrain *Map
+    Energy *Map
     conf *config.Config
 }
 
 func NewGameState() *GameState {
-    return &GameState{0, make([]agent.Agent, 0), nil}
+    return &GameState{0, make([]agent.Agent, 0), nil, nil, nil}
 }
 
 func (self *GameState) Advance() {
