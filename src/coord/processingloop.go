@@ -3,6 +3,10 @@ package coord
 import geo "coord/geometry"
 
 import (
+    "coord/game"
+)
+
+import (
     "rand"
     "time"
 )
@@ -17,14 +21,21 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
             self.nextTurnAvailableSignals[pi] <- i
         }
         
-        for _, peer := range(self.peers) {
-            // Probably actually don't want this to be blocking...
-            // Also, STORE THE RESULT AND DO SOMETHING WITH IT.
-            _ = peer.RequestStatesInBox(i, geo.Point{0,0}, geo.Point{0,0})
+        responses := make([]*GameStateResponse, len(self.peers))
+        responsesReceived := make(chan bool)
+        for i, peer := range(self.peers) {
+            go func(p int) {
+                responses[p] = peer.RequestStatesInBox(p, geo.Point{0,0}, geo.Point{0,0})
+                responsesReceived <- true
+            }(i)
+        }
+        
+        for _, _ = range(self.peers) {
+            <- responsesReceived
         }
         
         // Process new data
-        // BLAH BLAH BLAH BLAH BLAH
+        nextState := self.nextGameState(responses)
         if (self.conf.RandomlyDelayProcessing) {
             time.Sleep(int64(float64(1e9)*rand.Float64()))
         }
@@ -33,6 +44,8 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         for _, _ = range(self.peers) {
             <- self.rpcRequestsReceivedConfirmation
         }
+        
+        self.applyState(nextState)
     }
     
     self.log.Printf("Sending complete")
@@ -40,4 +53,24 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
     if complete != nil {
         complete <- true
     }
+}
+
+type ProspectiveMap *bool   // Make this a struct later
+
+func (self *Coordinator) buildProspectiveMap(peerData []*GameStateResponse) ProspectiveMap {
+    agents := self.availableGameState.Agents
+    for _, agent := range(agents) {
+        success := agent.Turn()
+        self.log.Printf("%u", success)
+    }
+    return nil;
+}
+
+func (self *Coordinator) nextGameState(peerData []*GameStateResponse) *game.GameState {
+    _ = self.buildProspectiveMap(peerData)
+    return self.availableGameState.CopyAndAdvance()
+}
+
+func (self *Coordinator) applyState(nextState *game.GameState) {
+    
 }

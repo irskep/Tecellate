@@ -3,6 +3,7 @@ package coord
 import geo "coord/geometry"
 
 import (
+    "log"
     "time"
 )
 
@@ -10,19 +11,20 @@ var timeout int64 = 5*1e9
 
 type CoordinatorProxy struct {
     parentIdentifier int
-    conn chan interface{}
+    sendChannel chan interface{}
+    recvChannel chan interface{}
 }
 
-func NewCoordProxy(parentIdentifier int, channel chan interface{}) *CoordinatorProxy {
-    return &CoordinatorProxy{parentIdentifier, channel}
+func NewCoordProxy(parentIdentifier int, sendChan chan interface{}, recvChan chan interface{}) *CoordinatorProxy {
+    return &CoordinatorProxy{parentIdentifier, sendChan, recvChan}
 }
 
 func (self *CoordinatorProxy) request(request interface{}) interface{} {
-    self.conn <- request
+    self.sendChannel <- request
     
     timeout := time.NewTicker(timeout)
     select {
-    case response := <- self.conn:
+    case response := <- self.recvChannel:
         timeout.Stop()
         return response
     case <-timeout.C:
@@ -33,9 +35,12 @@ func (self *CoordinatorProxy) request(request interface{}) interface{} {
 
 func (self *CoordinatorProxy) RequestStatesInBox(turn int,
                                                  bottomLeft geo.Point,
-                                                 topRight geo.Point) GameStateResponse {
+                                                 topRight geo.Point) *GameStateResponse {
     request := GameStateRequest{self.parentIdentifier, turn, bottomLeft, topRight}
-    return self.request(request).(GameStateResponse)
+    log.Printf("req: %v", request)
+    response := self.request(request)
+    log.Printf("rsp: %v", response)
+    return (response.(GameStateResponse)).CopyToHeap()
 }
 
 func (self *CoordinatorProxy) SendComplete() {
