@@ -1,10 +1,11 @@
 package config
 
 import geo "coord/geometry"
+import "coord/agent"
 
 type Config struct {
     Identifier int
-    AgentStarts []AgentStart
+    Agents []agent.Agent
     MessageStyle string     // boolean|noise|none
     UseFood bool
     RandomlyDelayProcessing bool
@@ -13,9 +14,9 @@ type Config struct {
     TopRight *geo.Point
 }
 
-func NewConfig(id int, agents []AgentStart, style string, food bool, delay bool, bl, tr *geo.Point) *Config {
+func NewConfig(id int, agents []agent.Agent, style string, food bool, delay bool, bl, tr *geo.Point) *Config {
     return &Config{Identifier: id,
-                   AgentStarts: agents,
+                   Agents: agents,
                    MessageStyle: style,
                    UseFood: food,
                    RandomlyDelayProcessing: delay,
@@ -26,7 +27,6 @@ func NewConfig(id int, agents []AgentStart, style string, food bool, delay bool,
 
 func BasicTestConfig() *Config {
     return &Config{Identifier: 0,
-                   AgentStarts: nil,
                    MessageStyle: "none",
                    UseFood: false,
                    RandomlyDelayProcessing: true,
@@ -35,16 +35,11 @@ func BasicTestConfig() *Config {
 
 func (self *Config) Duplicate(identifier int, bottomLeft, topRight *geo.Point) *Config {
     return &Config{Identifier: identifier,
-                   AgentStarts: self.AgentStarts,
+                   Agents: self.Agents,
                    MessageStyle: self.MessageStyle,
                    UseFood: self.UseFood,
                    RandomlyDelayProcessing: self.RandomlyDelayProcessing,
                    BottomLeft: bottomLeft,
                    TopRight: topRight,
     }
-}
-
-type AgentStart struct {
-    Position geo.Point
-    Kind string
 }
