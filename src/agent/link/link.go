@@ -5,6 +5,9 @@ import "strings"
 
 const Timeout = 1e9
 
+type SendLink chan<- Message
+type RecvLink <-chan Message
+
 type Command uint8
 var Commands map[string]Command
 var cmdsr []string
@@ -33,7 +36,7 @@ func NewMessage(cmd Command, args ... Argument) *Message {
 }
 
 func (self Message) String() string {
-    return fmt.Sprintf("<Message cmd:%s args:%s>", cmdsr[self.Cmd], self.Args)
+    return fmt.Sprintf("<Message cmd:%s args:%s>", self.Cmd, self.Args)
 }
 
 func (self Arguments) String() string {
@@ -48,5 +51,6 @@ func (self Arguments) String() string {
     return strings.Join(s, "")
 }
 
-type SendLink chan<- Message
-type RecvLink <-chan Message
+func (self Command) String() string {
+    return cmdsr[self]
+}

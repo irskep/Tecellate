@@ -75,10 +75,20 @@ func (self *comm) recv() *link.Message {
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.rcv:
+        self.log.Println("recv :", msg)
         return &msg
     case <-timeout.C:
         timeout.Stop()
         panic("Agent believes the server to be unresponsive.")
+    }
+    panic("Did not recieve message.")
+}
+
+func (self *comm) recv_forever() *link.Message {
+    select {
+    case msg := <-self.rcv:
+        self.log.Println("recv :", msg)
+        return &msg
     }
     panic("Did not recieve message.")
 }
@@ -90,6 +100,7 @@ func (self *comm) send(msg *link.Message) {
         self.log.Println(m)
         panic("unresolved message in pipe.")
     case self.snd <- *msg:
+        self.log.Println("sent :", msg)
     case <-timeout.C:
         timeout.Stop()
         panic("Agent believes the server to be unresponsive.")

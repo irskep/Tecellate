@@ -74,7 +74,6 @@ func (self *AgentProxy) Turn() bool {
     }
 
     handle := func(msg *link.Message) bool {
-        self.log.Println("recv", msg)
         return handlers[msg.Cmd](msg)
     }
 
@@ -84,22 +83,15 @@ func (self *AgentProxy) Turn() bool {
         return false
     }
     go func(done chan<- bool) {
-        timeout := time.NewTicker(link.Timeout)
-        loop: for {
-            var msg link.Message
-            select {
-                case msg = <-self.rcv:
-                    if handle(&msg) {
-                        timeout.Stop()
-                        done <- true
-                        break loop
-                    }
-                    timeout = time.NewTicker(link.Timeout)
-                case <-timeout.C:
-                    self.log.Println("Agent Proxy Timed Out")
-                    timeout.Stop()
+        for {
+            if ok, msg := self.recv(); ok {
+                if handle(msg) {
+                    done <- true
+                    break
+                }
+            } else {
                     done <- false
-                    break loop
+                    break
             }
         }
         return
@@ -109,35 +101,60 @@ func (self *AgentProxy) Turn() bool {
 }
 
 func (self *AgentProxy) start_turn() bool {
-    self.snd <- *link.NewMessage(link.Commands["Start"])
-    return self.await_cmd_ack("Start")
+    return self.acked_send(link.NewMessage(link.Commands["Start"]))
 }
 
-func (self *AgentProxy) await_cmd_ack(cmd string) bool {
+func (self *AgentProxy) ack_cmd(cmd link.Command) {
+    self.send(link.NewMessage(link.Commands["Ack"], cmd))
+}
+
+func (self *AgentProxy) nak_cmd(cmd link.Command) {
+    self.send(link.NewMessage(link.Commands["Nak"], cmd))
+}
+
+func (self *AgentProxy) recv() (bool, *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.rcv:
-        self.log.Println(msg)
-        timeout.Stop()
-        if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
-            switch acked := msg.Args[0].(type) {
-            case link.Command:
-                if acked == link.Commands[cmd] {
-                    return true
-                }
-            }
-        }
+        self.log.Println("recv :", &msg)
+        return true, &msg
     case <-timeout.C:
         timeout.Stop()
+        self.log.Println("Client unresponsive.")
+    }
+    return false, nil
+}
+
+func (self *AgentProxy) send(msg *link.Message) bool {
+    timeout := time.NewTicker(link.Timeout)
+    select {
+    case m := <-self.rcv:
+        self.log.Println("recv unresolved message", m)
+    case self.snd <- *msg:
+        self.log.Println("sent :", msg)
+        return true
+    case <-timeout.C:
+        timeout.Stop()
+        self.log.Println("Client unresponsive.")
     }
     return false
 }
 
-func (self *AgentProxy) ack_cmd(cmd link.Command) {
-    self.snd <- *link.NewMessage(link.Commands["Ack"], cmd)
-//     self.log.Println(link.NewMessage(link.Commands["Ack"], cmd))
+func (self *AgentProxy) acked_send(msg *link.Message) bool {
+    self.send(msg)
+    return self.await_cmd_ack(msg.Cmd)
 }
 
-func (self *AgentProxy) nak_cmd(cmd link.Command) {
-    self.snd <- *link.NewMessage(link.Commands["Nak"], cmd)
+func (self *AgentProxy) await_cmd_ack(cmd link.Command) bool {
+    if ok, msg := self.recv(); ok {
+        if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
+            switch acked := msg.Args[0].(type) {
+            case link.Command:
+                if acked == cmd {
+                    return true
+                }
+            }
+        }
+    }
+    return false
 }

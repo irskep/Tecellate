@@ -15,7 +15,7 @@ import (
 )
 
 func TestSimple(t *testing.T) {
-    fmt.Println("Testing Simple Turn Rollover")
+    fmt.Println("\n\nTesting Simple Turn Rollover")
     agnt := make(chan link.Message, 10)
     prox := make(chan link.Message, 10)
     simple := NewSimple(1)
@@ -29,7 +29,7 @@ func TestSimple(t *testing.T) {
 }
 
 func TestWithCoord(t *testing.T) {
-    fmt.Println("Testing With Coord")
+    fmt.Println("\n\nTesting With Coord")
     agnt := make(chan link.Message, 10)
     prox := make(chan link.Message, 10)
     simple := NewSimple(1)

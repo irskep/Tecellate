@@ -23,29 +23,24 @@ type Agent interface {
 
 func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
     logger := log.New(os.Stdout, fmt.Sprintf("Agent(%d) : ", agent.Id()), 0)
+    comm := StartComm(send, recv, logger)
     complete := make(chan bool)
     go func(send link.SendLink, recv link.RecvLink, done chan<- bool) {
         start := func() {
-            logger.Println("Start Recieved")
-            cm := StartComm(send, recv, logger)
-            cm.ack_start()
-            agent.Turn(cm)
-            cm.complete()
+            comm.ack_start()
+            agent.Turn(comm)
+            comm.complete()
         }
 
-        loop: for {
-            switch msg := <-recv; {
-                case msg.Cmd == link.Commands["Start"]:
-                    start()
-                case msg.Cmd == link.Commands["Exit"]:
-                    break loop
-                default:
-                    panic(
-                        fmt.Sprintf(
-                            "Command %s not valid for current state.",
-                            msg.Cmd,
-                        ),
-                    )
+        for {
+            switch msg := comm.recv_forever(); {
+            case msg.Cmd == link.Commands["Start"]:
+                start()
+            case msg.Cmd == link.Commands["Exit"]:
+                break
+            default:
+                s := fmt.Sprintf("Command %s not valid for current state.", msg.Cmd)
+                panic(s)
             }
         }
         done <- true
