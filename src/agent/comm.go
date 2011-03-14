@@ -15,7 +15,8 @@ type Comm interface {
     Broadcast(uint8, []byte) bool
     Inventory() link.Inventory
     Move(x, y int) bool
-    Collect()
+    PrevResult() bool
+    Collect() bool
 }
 
 type comm struct {
@@ -125,7 +126,7 @@ func (self *comm) Listen(freq uint8) link.Audio {
 }
 
 func (self *comm) Broadcast(freq uint8, msg []byte) bool {
-    return false
+    return self.acked_send(link.NewMessage(link.Commands["Broadcast"], newBroadcast(freq, msg)))
 }
 
 func (self *comm) Inventory() link.Inventory {
@@ -138,7 +139,12 @@ func (self *comm) Move(x,y int) bool {
     return c
 }
 
-func (self *comm) Collect() {
-    return
+func (self *comm) PrevResult() bool {
+    self.send(link.NewMessage(link.Commands["PrevResult"]))
+    self.recv()
+    return false
 }
 
+func (self *comm) Collect() bool {
+    return self.acked_send(link.NewMessage(link.Commands["Collect"]))
+}

@@ -25,9 +25,11 @@ func (self *Simple) Turn(comm agent.Comm) {
     if !comm.Move(1, 0) {
         fmt.Println("Move Failed!")
     }
+    comm.Collect()
     fmt.Println(comm.Look())
     fmt.Println(comm.Listen(23))
     fmt.Println(comm.Broadcast(23, []byte("hello")))
+    fmt.Println(comm.PrevResult())
     return
 }
 

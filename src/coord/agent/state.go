@@ -96,5 +96,9 @@ func (self *AgentState) Listen(freq uint8) []byte {
 }
 
 func (self *AgentState) Broadcast(freq uint8, msg []byte) bool {
-    return true
+    return false
+}
+
+func (self *AgentState) PrevResult() bool {
+    return false
 }
