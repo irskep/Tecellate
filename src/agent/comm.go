@@ -12,9 +12,9 @@ import (
 type Comm interface {
     Look() link.Vision
     Listen(uint8) link.Audio
-    Broadcast(link.Broadcast) bool
+    Broadcast(uint8, []byte) bool
     Inventory() link.Inventory
-    Move(link.Move) bool
+    Move(x, y int) bool
     Collect()
 }
 
@@ -113,14 +113,18 @@ func (self *comm) acked_send(msg *link.Message) bool {
 }
 
 func (self *comm) Look() link.Vision {
+    self.send(link.NewMessage(link.Commands["Look"]))
+    self.recv()
     return nil
 }
 
 func (self *comm) Listen(freq uint8) link.Audio {
+    self.send(link.NewMessage(link.Commands["Listen"], newListen(freq)))
+    self.recv()
     return nil
 }
 
-func (self *comm) Broadcast(b link.Broadcast) bool {
+func (self *comm) Broadcast(freq uint8, msg []byte) bool {
     return false
 }
 
@@ -128,8 +132,8 @@ func (self *comm) Inventory() link.Inventory {
     return nil
 }
 
-func (self *comm) Move(move link.Move) bool {
-    c := self.acked_send(link.NewMessage(link.Commands["Move"], move))
+func (self *comm) Move(x,y int) bool {
+    c := self.acked_send(link.NewMessage(link.Commands["Move"], newMove(x, y)))
 //     fmt.Println("completed move")
     return c
 }

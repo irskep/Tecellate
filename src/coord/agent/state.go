@@ -86,3 +86,15 @@ func (self *Move) mv(pos *geo.Point) bool {
     }
     return false
 }
+
+func (self *AgentState) Collect() bool {
+    return false
+}
+
+func (self *AgentState) Listen(freq uint8) []byte {
+    return nil
+}
+
+func (self *AgentState) Broadcast(freq uint8, msg []byte) bool {
+    return true
+}

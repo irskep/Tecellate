@@ -19,12 +19,15 @@ func NewSimple(id uint) *Simple {
 }
 
 func (self *Simple) Turn(comm agent.Comm) {
-    if !comm.Move(agent.NewMove(1, 0)) {
+    if !comm.Move(1, 0) {
         fmt.Println("Move Failed!")
     }
-    if !comm.Move(agent.NewMove(1, 0)) {
+    if !comm.Move(1, 0) {
         fmt.Println("Move Failed!")
     }
+    fmt.Println(comm.Look())
+    fmt.Println(comm.Listen(23))
+    fmt.Println(comm.Broadcast(23, []byte("hello")))
     return
 }
 

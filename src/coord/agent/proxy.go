@@ -1,7 +1,7 @@
 package agent
 
 import (
-//     "fmt"
+    "fmt"
     "time"
     "log"
     "os"
@@ -56,6 +56,11 @@ func (self *AgentProxy) Turn() bool {
     }
 
     var handlers = map[link.Command]handler {
+        link.Commands["Complete"]:
+            argnum(0, func(msg *link.Message) bool {
+                self.ack_cmd(msg.Cmd)
+                return true
+            }),
         link.Commands["Move"]:
             argnum(1, func(msg *link.Message) bool {
                 mv := msg.Args[0].(link.Move).Move()
@@ -66,15 +71,43 @@ func (self *AgentProxy) Turn() bool {
                 }
                 return false
             }),
-        link.Commands["Complete"]:
+        link.Commands["Look"]:
             argnum(0, func(msg *link.Message) bool {
-                self.ack_cmd(msg.Cmd)
-                return true
+                self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, nil))
+                return false
+            }),
+        link.Commands["Listen"]:
+            argnum(1, func(msg *link.Message) bool {
+                freq := msg.Args[0].(link.Listen).Listen()
+                self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, freq))
+                return false
+            }),
+        link.Commands["Broadcast"]:
+            argnum(1, func(msg *link.Message) bool {
+                freq, pkt := msg.Args[0].(link.Broadcast).Message()
+                if self.state.Broadcast(freq, pkt) {
+                    self.ack_cmd(msg.Cmd)
+                } else {
+                    self.nak_cmd(msg.Cmd)
+                }
+                return false
+            }),
+        link.Commands["Collect"]:
+            argnum(0, func(msg *link.Message) bool {
+                if self.state.Collect() {
+                    self.ack_cmd(msg.Cmd)
+                } else {
+                    self.nak_cmd(msg.Cmd)
+                }
+                return false
             }),
     }
 
     handle := func(msg *link.Message) bool {
-        return handlers[msg.Cmd](msg)
+        if f, ok := handlers[msg.Cmd]; ok {
+            return f(msg)
+        }
+        panic(fmt.Sprintf("Command %s not found.", msg.Cmd))
     }
 
     complete := make(chan bool)

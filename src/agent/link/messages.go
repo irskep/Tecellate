@@ -32,6 +32,10 @@ type Move interface {
     Move() geo.Point // relative to current position
 }
 
+type Listen interface {
+    Listen() uint8
+}
+
 type Audio interface {
     Hear() []byte
 }

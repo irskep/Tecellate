@@ -3,20 +3,20 @@ package agent
 import "fmt"
 import geo "coord/geometry"
 
-type Move struct {
+type move struct {
     pos geo.Point
 }
 
-func NewMove(x, y int) *Move {
-    self := new(Move)
+func newMove(x, y int) *move {
+    self := new(move)
     self.pos = *geo.NewPoint(x,y)
     return self
 }
 
-func (self *Move) Move() geo.Point {
+func (self *move) Move() geo.Point {
     return self.pos
 }
 
-func (self Move) String() string {
+func (self move) String() string {
     return fmt.Sprintf("%d, %d", self.pos.X, self.pos.Y)
 }
