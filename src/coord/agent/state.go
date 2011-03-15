@@ -8,7 +8,7 @@ type AgentState struct {
     Turn uint64
     Live bool
     Position *geo.Point
-    Inventory *Inventory
+    inventory *Inventory
     Wait uint16  // the number of turns till the next movment
     Move *Move
 }
@@ -44,7 +44,7 @@ func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
         Live:true,
         Position:pos,
         Wait:0,
-        Inventory:NewInventory(energy),
+        inventory:NewInventory(energy),
     }
     return self
 }
@@ -69,7 +69,7 @@ func (self *AgentState) NewMessage(freq uint8, msg []byte) *Message {
 func (self *AgentState) transform(trans Transform) {
     self.Turn = trans.Turn()
     self.Position = trans.Position()
-    self.Inventory.Energy = trans.Energy()
+    self.inventory.Energy = trans.Energy()
     self.Live = trans.Alive()
     self.Wait = trans.Wait()
 }
@@ -101,4 +101,8 @@ func (self *AgentState) Broadcast(freq uint8, msg []byte) bool {
 
 func (self *AgentState) PrevResult() bool {
     return false
+}
+
+func (self *AgentState) Inventory() *Inventory {
+    return nil
 }

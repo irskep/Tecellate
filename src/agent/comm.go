@@ -130,6 +130,8 @@ func (self *comm) Broadcast(freq uint8, msg []byte) bool {
 }
 
 func (self *comm) Inventory() link.Inventory {
+    self.send(link.NewMessage(link.Commands["Inventory"]))
+    self.recv()
     return nil
 }
 

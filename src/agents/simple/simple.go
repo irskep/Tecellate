@@ -30,6 +30,7 @@ func (self *Simple) Turn(comm agent.Comm) {
     fmt.Println(comm.Listen(23))
     fmt.Println(comm.Broadcast(23, []byte("hello")))
     fmt.Println(comm.PrevResult())
+    fmt.Println(comm.Inventory())
     return
 }
 

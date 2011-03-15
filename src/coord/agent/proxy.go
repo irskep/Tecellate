@@ -101,6 +101,11 @@ func (self *AgentProxy) Turn() bool {
                 }
                 return false
             }),
+        link.Commands["Inventory"]:
+            argnum(0, func(msg *link.Message) bool {
+                self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, self.state.Inventory()))
+                return false
+            }),
         link.Commands["PrevResult"]:
             argnum(0, func(msg *link.Message) bool {
                 self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, self.state.PrevResult()))
