@@ -1,6 +1,7 @@
 package coord
 
 import geo "coord/geometry"
+import game "coord/game"
 
 import (
     "fmt"
@@ -10,6 +11,13 @@ import (
 )
 
 var timeout int64 = 5*1e9
+
+type GameStateRequest struct {
+    SenderIdentifier int
+    Turn int
+    BottomLeft geo.Point
+    TopRight geo.Point
+}
 
 type CoordinatorProxy struct {
     Identifier int
@@ -45,12 +53,12 @@ func (self *CoordinatorProxy) request(request interface{}) interface{} {
 
 func (self *CoordinatorProxy) RequestStatesInBox(turn int,
                                                  bottomLeft geo.Point,
-                                                 topRight geo.Point) *GameStateResponse {
+                                                 topRight geo.Point) *game.GameStateResponse {
     request := GameStateRequest{self.parentIdentifier, turn, bottomLeft, topRight}
     self.log.Printf("req: %v", request)
     response := self.request(request)
     self.log.Printf("rsp: %v", response)
-    return (response.(GameStateResponse)).CopyToHeap()
+    return (response.(game.GameStateResponse)).CopyToHeap()
 }
 
 func (self *CoordinatorProxy) SendComplete() {

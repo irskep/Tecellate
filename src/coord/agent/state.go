@@ -2,13 +2,17 @@ package agent
 
 import geo "coord/geometry"
 
+import (
+    "fmt"
+)
+
 type Energy uint8
 
 type AgentState struct {
     Turn uint64
     Live bool
     Position *geo.Point
-    inventory *Inventory
+    Inventory *Inventory
     Wait uint16  // the number of turns till the next movment
     Move *Move
 }
@@ -36,7 +40,7 @@ func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
         Live:true,
         Position:pos,
         Wait:0,
-        inventory:NewInventory(energy),
+        Inventory:NewInventory(energy),
     }
     return self
 }
@@ -58,10 +62,15 @@ func (self *AgentState) NewMessage(freq uint8, msg []byte) *Message {
     return m
 }
 
+func (self *AgentState) String() string {
+    return fmt.Sprintf("AgentState(turn=%u, live=%t, position=%v, inventory=%v, wait=%u, move=%v)",
+                       self.Turn, self.Live, self.Position.String(), self.Inventory, self.Wait, self.Move.String())
+}
+
 func (self *AgentState) transform(trans Transform) {
     self.Turn = trans.Turn()
     self.Position = trans.Position()
-    self.inventory.Energy = trans.Energy()
+    self.Inventory.Energy = trans.Energy()
     self.Live = trans.Alive()
     self.Wait = trans.Wait()
 }
@@ -77,6 +86,16 @@ func (self *Move) mv(pos *geo.Point) bool {
         return true
     }
     return false
+}
+
+func (self *Move) String() string {
+    if self == nil {
+        return "<nil>"
+    }
+    return fmt.Sprintf("Move(position=%v, %d messages, collect=%t", 
+                       self.Position.String(),
+                       len(self.Messages),
+                       self.Collect)
 }
 
 func (self *AgentState) Collect() bool {
@@ -95,6 +114,6 @@ func (self *AgentState) PrevResult() bool {
     return false
 }
 
-func (self *AgentState) Inventory() *Inventory {
-    return self.inventory
+func (self *AgentState) GetInventory() *Inventory {
+    return self.Inventory
 }

@@ -25,7 +25,7 @@ func (self *Coordinator) serveRPCRequestsOnChannels(identifier int,
         self.log.Printf("Sender %d asked for %d, sending %d", request.SenderIdentifier, self.availableGameState.Turn, i)
         
         // Send the response
-        responseChannel <- GameStateResponse{i, nil}
+        responseChannel <- self.availableGameState.MakeRPCResponse()
         
         // Send an RPC request confirmation down the pipes so the
         // processing loop knows when it is allowed to proceed

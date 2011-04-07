@@ -13,7 +13,7 @@ type Comm interface {
     Look() link.Vision
     Listen(uint8) link.Audio
     Broadcast(uint8, []byte) bool
-    Inventory() link.Inventory
+    GetInventory() link.Inventory
     Move(x, y int) bool
     PrevResult() bool
     Collect() bool
@@ -129,7 +129,7 @@ func (self *comm) Broadcast(freq uint8, msg []byte) bool {
     return self.acked_send(link.NewMessage(link.Commands["Broadcast"], newBroadcast(freq, msg)))
 }
 
-func (self *comm) Inventory() link.Inventory {
+func (self *comm) GetInventory() link.Inventory {
     self.send(link.NewMessage(link.Commands["Inventory"]))
     self.recv()
     return nil

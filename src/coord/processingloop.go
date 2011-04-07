@@ -1,5 +1,6 @@
 package coord
 
+import game "coord/game"
 import geo "coord/geometry"
 import cagent "coord/agent"
 
@@ -18,7 +19,8 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
 
         responses := self.peerDataForTurn(i)
         transforms := self.transformsForNextTurn(responses)
-
+        
+        // Stress test to discover race conditions
         if (self.conf.RandomlyDelayProcessing) {
             time.Sleep(int64(float64(1e9)*rand.Float64()))
         }
@@ -28,10 +30,7 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
             <- self.rpcRequestsReceivedConfirmation
         }
 
-        self.availableGameState.Advance()
-        for i, prox := range(self.availableGameState.Agents) {
-            prox.Apply(transforms[i])
-        }
+        self.availableGameState.Advance(transforms)
     }
 
     self.log.Printf("Sending complete")
@@ -41,8 +40,8 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
     }
 }
 
-func (self *Coordinator) peerDataForTurn(turn int) []*GameStateResponse {
-    responses := make([]*GameStateResponse, len(self.peers))
+func (self *Coordinator) peerDataForTurn(turn int) []*game.GameStateResponse {
+    responses := make([]*game.GameStateResponse, len(self.peers))
     responsesReceived := make(chan bool)
     for p, _ := range(self.peers) {
         go func(peerIndex int) {
@@ -57,7 +56,11 @@ func (self *Coordinator) peerDataForTurn(turn int) []*GameStateResponse {
     return responses
 }
 
-func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) []cagent.Transform {
+func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateResponse) []cagent.Transform {
+    self.log.Printf("From my neighbors, I see:")
+    for _, s := range peerData {
+        self.log.Printf("%v", *s)
+    }
     agents := self.availableGameState.Agents
     transforms := make([]cagent.Transform, len(agents))
 

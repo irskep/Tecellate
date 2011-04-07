@@ -1,31 +1,31 @@
 package game
 
-import "coord/agent"
+import cagent "coord/agent"
+
 import "coord/config"
+
+import (
+    "fmt"
+)
 
 type GameState struct {
     Turn uint64
-    Agents []agent.Agent
+    Agents []cagent.Agent
     Terrain *Map
     Energy *Map
     conf *config.Config
+    statesToServe []cagent.AgentState
 }
 
 func NewGameState() *GameState {
-    return &GameState{0, make([]agent.Agent, 0), nil, nil, nil}
+    return &GameState{0, make([]cagent.Agent, 0), nil, nil, nil, nil}
 }
 
-func (self *GameState) Advance() {
+func (self *GameState) Advance(transforms []cagent.Transform) {
     self.Turn += 1
-}
-
-func (self *GameState) Copy() *GameState {
-    return &GameState{
-            self.Turn,
-            self.Agents,
-            self.Terrain.Copy(),
-            self.Energy.Copy(),
-            self.conf,
+    self.statesToServe = nil
+    for i, agent := range(self.Agents) {
+        agent.Apply(transforms[i])
     }
 }
 
@@ -34,26 +34,32 @@ func (self *GameState) Configure(conf *config.Config) {
     self.Agents = conf.Agents
 }
 
-func (self *GameState) ApplyMoves(moves []*agent.Move, agentStates []*agent.AgentState) {
-
-}
-
-type Map struct {
-    Values [][]int
-    Width uint
-    Height uint
-}
-
-func NewMap(w uint, h uint) *Map {
-    return &Map{make([][]int, w, h), w, h}
-}
-
-func (self *Map) Copy() *Map {
-    newMap := NewMap(self.Width, self.Height)
-    for i := uint(0); i < self.Width; i++ {
-        for j := uint(0); j < self.Height; j++ {
-            newMap.Values[i][j] = self.Values[i][j]
+func (self *GameState) AgentStates() []cagent.AgentState {
+    if self.statesToServe == nil {
+        self.statesToServe = make([]cagent.AgentState, len(self.Agents))
+        for _, agent := range(self.Agents) {
+            self.statesToServe = append(self.statesToServe, *agent.State())
         }
     }
-    return newMap
+    return self.statesToServe
+}
+
+func (self *GameState) MakeRPCResponse() GameStateResponse {
+    return GameStateResponse{self.Turn, self.AgentStates()}
+}
+
+// RPC response
+
+type GameStateResponse struct {
+    Turn uint64
+    AgentStates []cagent.AgentState
+}
+
+func (self GameStateResponse) CopyToHeap() *GameStateResponse {
+    return &GameStateResponse{self.Turn, self.AgentStates}
+}
+
+func (self GameStateResponse) String() string {
+    
+    return fmt.Sprintf("Turn %d: %v", self.Turn, self.AgentStates)
 }
