@@ -17,6 +17,16 @@ type StateTransform struct {
     wait uint16
 }
 
+func transformFromState(state cagent.AgentState) *StateTransform {
+    self := new(StateTransform)
+    self.turn = state.Turn
+    self.pos = state.Position
+    self.energy = state.Inventory().Energy
+    self.alive = state.Live
+    self.wait = state.Wait
+    return self
+}
+
 func newTransform(turn uint64,
                   pos *geo.Point,
                   energy cagent.Energy,

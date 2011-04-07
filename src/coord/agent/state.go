@@ -96,5 +96,5 @@ func (self *AgentState) PrevResult() bool {
 }
 
 func (self *AgentState) Inventory() *Inventory {
-    return nil
+    return self.inventory
 }
