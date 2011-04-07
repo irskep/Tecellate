@@ -59,13 +59,14 @@ func (self *Coordinator) peerDataForTurn(turn int) []*GameStateResponse {
 
 func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) []cagent.Transform {
     agents := self.availableGameState.Agents
-    transforms := make([]*StateTransform, len(agents))
-    
+    transforms := make([]cagent.Transform, len(agents))
+
     for ix, agent := range(agents) {
         _ = agent.Turn()
         state := agent.State()
-        transforms[ix] = transformFromState(state)
-        transforms[ix].turn = self.availableGameState.Turn+1
+        t := transformFromState(state)
+        t.turn = self.availableGameState.Turn+1
+        transforms[ix] = t
     }
-    return []cagent.Transform(transforms);
+    return transforms;
 }
