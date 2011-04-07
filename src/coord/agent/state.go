@@ -102,10 +102,10 @@ func (self *AgentState) Inventory() *Inventory {
     return self.inventory
 }
 
-func (self *AgentState) ToString() string {
-    return fmt.Sprintf("<AgentState id:%v pos:%v>", self.id, self.Position.ToString())
+func (self *AgentState) String() string {
+    return fmt.Sprintf("<AgentState id:%v pos:%v>", self.id, self.Position.String())
 }
 
-func (self *Move) ToString() string {
-    return fmt.Sprintf("<Move %s %s>", self.Position.ToString(), self.Messages)
+func (self *Move) String() string {
+    return fmt.Sprintf("<Move %s %s>", self.Position.String(), self.Messages)
 }

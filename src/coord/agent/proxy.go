@@ -128,7 +128,7 @@ func (self *AgentProxy) Turn() bool {
     self.state.NewMove()
     self.getid()
     self.log.Println("Starting Turn", self.state.Turn)
-    self.log.Println(self.state.ToString())
+    self.log.Println(self.state)
     if !self.start_turn() {
         return false
     }

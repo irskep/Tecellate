@@ -17,7 +17,7 @@ func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) []
         t := transformFromState(state)
         t.turn = self.availableGameState.Turn+1
         if state.Move != nil {
-            self.log.Println(state.Move.ToString())
+            self.log.Println(state.Move)
         }
         transforms[ix] = t
     }

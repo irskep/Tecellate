@@ -20,6 +20,6 @@ func (self Point) Distance(other Point) float64 {
     return math.Sqrt(dx*dx + dy*dy)
 }
 
-func (self *Point) ToString() string {
+func (self *Point) String() string {
     return fmt.Sprintf("<Point (%d, %d)>", self.X, self.Y)
 }
