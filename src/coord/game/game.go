@@ -4,7 +4,7 @@ import "coord/agent"
 import "coord/config"
 
 type GameState struct {
-    Turn int
+    Turn uint64
     Agents []agent.Agent
     Terrain *Map
     Energy *Map

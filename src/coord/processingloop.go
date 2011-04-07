@@ -1,10 +1,7 @@
 package coord
 
 import geo "coord/geometry"
-
-// import (
-//     "coord/game"
-// )
+import cagent "coord/agent"
 
 import (
     "rand"
@@ -20,7 +17,7 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         }
 
         responses := self.peerDataForTurn(i)
-        _ = self.transformsForNextTurn(responses)
+        transforms := self.transformsForNextTurn(responses)
 
         if (self.conf.RandomlyDelayProcessing) {
             time.Sleep(int64(float64(1e9)*rand.Float64()))
@@ -32,11 +29,8 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         }
 
         self.availableGameState.Advance()
-        //  i, agent
-        self.log.Println(self.availableGameState.Agents)
-        for _, prox := range(self.availableGameState.Agents) {
-            self.log.Println(prox)
-            // agent.Apply(transforms[i])
+        for i, prox := range(self.availableGameState.Agents) {
+            prox.Apply(transforms[i])
         }
     }
 
@@ -63,17 +57,15 @@ func (self *Coordinator) peerDataForTurn(turn int) []*GameStateResponse {
     return responses
 }
 
-type ProspectiveMap *bool   // Make this a struct later
-
-func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) ProspectiveMap {
+func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) []cagent.Transform {
     agents := self.availableGameState.Agents
-    for _, agent := range(agents) {
-        success := agent.Turn()
+    transforms := make([]*StateTransform, len(agents))
+    
+    for ix, agent := range(agents) {
+        _ = agent.Turn()
         state := agent.State()
-        self.log.Printf("%v, %s", success, state)
+        transforms[ix] = transformFromState(state)
+        transforms[ix].turn = self.availableGameState.Turn+1
     }
-    // transforms = make([]*StateTransform, len(agents))
-    // Do some magic to make the transforms
-    // Return transforms
-    return nil;
+    return []cagent.Transform(transforms);
 }

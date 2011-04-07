@@ -17,7 +17,7 @@ type StateTransform struct {
     wait uint16
 }
 
-func transformFromState(state cagent.AgentState) *StateTransform {
+func transformFromState(state *cagent.AgentState) *StateTransform {
     self := new(StateTransform)
     self.turn = state.Turn
     self.pos = state.Position
