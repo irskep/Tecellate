@@ -1,5 +1,6 @@
 package agent
 
+import "fmt"
 import geo "coord/geometry"
 
 import (
@@ -9,6 +10,7 @@ import (
 type Energy uint8
 
 type AgentState struct {
+    id int
     Turn uint64
     Live bool
     Position *geo.Point
@@ -36,6 +38,7 @@ type Inventory struct {
 
 func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
     self := &AgentState{
+        id:-1,
         Turn:turn,
         Live:true,
         Position:pos,
@@ -116,4 +119,12 @@ func (self *AgentState) PrevResult() bool {
 
 func (self *AgentState) GetInventory() *Inventory {
     return self.Inventory
+}
+
+func (self *AgentState) String() string {
+    return fmt.Sprintf("<AgentState id:%v pos:%v>", self.id, self.Position.String())
+}
+
+func (self *Move) String() string {
+    return fmt.Sprintf("<Move %s %s>", self.Position.String(), self.Messages)
 }

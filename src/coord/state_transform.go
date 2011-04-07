@@ -27,18 +27,9 @@ func transformFromState(state *cagent.AgentState) *StateTransform {
     return self
 }
 
-func newTransform(turn uint64,
-                  pos *geo.Point,
-                  energy cagent.Energy,
-                  alive bool,
-                  wait uint16) *StateTransform {
-    self := new(StateTransform)
-    self.turn = turn
-    self.pos = pos
-    self.energy = energy
-    self.alive = alive
-    self.wait = wait
-    return self
+func (self *StateTransform) mv(move *cagent.Move) {
+    self.pos.X += move.Position.X
+    self.pos.Y += move.Position.Y
 }
 
 func (self *StateTransform) Turn() uint64 { return self.turn }

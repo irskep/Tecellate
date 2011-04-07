@@ -126,7 +126,9 @@ func (self *AgentProxy) Turn() bool {
 
     complete := make(chan bool)
     self.state.NewMove()
+    self.getid()
     self.log.Println("Starting Turn", self.state.Turn)
+    self.log.Println(self.state)
     if !self.start_turn() {
         return false
     }
@@ -149,6 +151,22 @@ func (self *AgentProxy) Turn() bool {
     return c
 }
 
+func (self *AgentProxy) getid() {
+    if self.state.id == -1 {
+        self.send(link.NewMessage(link.Commands["Id"]))
+        if ok, msg := self.recv(); ok {
+            if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 2 {
+                cmd := msg.Args[0].(link.Command)
+                if cmd == link.Commands["Id"] {
+                    id := msg.Args[1].(uint)
+                    self.log.Println("My id is:", id)
+                    self.state.id = int(id)
+                }
+            }
+        }
+    }
+}
+
 func (self *AgentProxy) start_turn() bool {
     return self.acked_send(link.NewMessage(link.Commands["Start"]))
 }
@@ -165,7 +183,7 @@ func (self *AgentProxy) recv() (bool, *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.rcv:
-        self.log.Println("recv :", &msg)
+        self.log.Printf("recv(%v) : %v", self.state.id, msg)
         return true, &msg
     case <-timeout.C:
         timeout.Stop()
@@ -180,7 +198,7 @@ func (self *AgentProxy) send(msg *link.Message) bool {
     case m := <-self.rcv:
         self.log.Println("recv unresolved message", m)
     case self.snd <- *msg:
-        self.log.Println("sent :", msg)
+        self.log.Printf("sent(%v) : %v", self.state.id, msg)
         return true
     case <-timeout.C:
         timeout.Stop()

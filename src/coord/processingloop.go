@@ -2,7 +2,7 @@ package coord
 
 import game "coord/game"
 import geo "coord/geometry"
-import cagent "coord/agent"
+// import cagent "coord/agent"
 
 import (
     "rand"
@@ -54,22 +54,4 @@ func (self *Coordinator) peerDataForTurn(turn int) []*game.GameStateResponse {
         <- responsesReceived
     }
     return responses
-}
-
-func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateResponse) []cagent.Transform {
-    self.log.Printf("From my neighbors, I see:")
-    for _, s := range peerData {
-        self.log.Printf("%v", *s)
-    }
-    agents := self.availableGameState.Agents
-    transforms := make([]cagent.Transform, len(agents))
-
-    for ix, agent := range(agents) {
-        _ = agent.Turn()
-        state := agent.State()
-        t := transformFromState(state)
-        t.turn = self.availableGameState.Turn+1
-        transforms[ix] = t
-    }
-    return transforms;
 }

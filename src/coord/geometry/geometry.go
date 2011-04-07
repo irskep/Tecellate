@@ -3,6 +3,7 @@ package geometry
 import (
     "fmt"
     "math"
+    "fmt"
 )
 
 type Point struct {
@@ -24,5 +25,5 @@ func (self *Point) String() string {
     if self == nil {
         return "<nil>"
     }
-    return fmt.Sprintf("(%d, %d)", self.X, self.Y)
+    return fmt.Sprintf("<Point (%d, %d)>", self.X, self.Y)
 }

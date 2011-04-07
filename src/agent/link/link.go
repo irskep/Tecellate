@@ -19,7 +19,7 @@ func init() {
     Commands = make(map[string]Command)
     cmdsr = []string{
         "Ack", "Nak", "Move", "Look", "Collect", "Listen", "Broadcast",
-        "Complete", "Start", "Exit", "PrevResult",
+        "Complete", "Start", "Exit", "PrevResult", "Id",
     }
     for i, cmd := range cmdsr {
         Commands[cmd] = Command(i)
@@ -44,7 +44,7 @@ func (self Arguments) String() string {
     args := make([]string, 0, len(self))
     s = append(s, "[")
     for _, arg := range self {
-        args = append(args, fmt.Sprintf("{%s}", arg))
+        args = append(args, fmt.Sprintf("{%v}", arg))
     }
     s = append(s, strings.Join(args, ", "))
     s = append(s, "]")
