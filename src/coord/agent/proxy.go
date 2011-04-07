@@ -8,7 +8,7 @@ import (
 )
 import (
     "agent/link"
-    geo "coord/geometry"
+//     geo "coord/geometry"
 )
 
 type AgentProxy struct {
@@ -20,11 +20,15 @@ type AgentProxy struct {
 
 func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
     self := new(AgentProxy)
-    self.state = NewAgentState(0, geo.NewPoint(0, 0), 0)
+//     self.state = NewAgentState(0, geo.NewPoint(0, 0), 0)
     self.snd = send
     self.rcv = recv
     self.log = log.New(os.Stdout, "AgentProxy : ", 0)
     return self
+}
+
+func (self *AgentProxy) SetState(state *AgentState) {
+    self.state = state
 }
 
 func (self *AgentProxy) State() *AgentState {

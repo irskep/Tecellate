@@ -33,7 +33,9 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
 
         self.availableGameState.Advance()
         //  i, agent
-        for _, _ = range(self.availableGameState.Agents) {
+        self.log.Println(self.availableGameState.Agents)
+        for _, prox := range(self.availableGameState.Agents) {
+            self.log.Println(prox)
             // agent.Apply(transforms[i])
         }
     }

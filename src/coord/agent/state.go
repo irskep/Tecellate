@@ -20,14 +20,6 @@ type Move struct {
     setmv bool
 }
 
-type Transform interface {
-    Turn() uint64
-    Position() *geo.Point
-    Energy() Energy
-    Alive() bool
-    Wait() uint16
-}
-
 type Message struct {
     Msg []byte
     Frequency uint8

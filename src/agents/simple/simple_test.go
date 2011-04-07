@@ -14,43 +14,89 @@ import (
     geo "coord/geometry"
 )
 
-func TestSimple(t *testing.T) {
-    fmt.Println("\n\nTesting Simple Turn Rollover")
+// func TestSimple(t *testing.T) {
+//     fmt.Println("\n\nTesting Simple Turn Rollover")
+//     agnt := make(chan link.Message, 10)
+//     prox := make(chan link.Message, 10)
+//     simple := NewSimple(1)
+//     proxy := cagent.NewAgentProxy(prox, agnt)
+//     go func() {
+//         agent.Run(simple, agnt, prox)
+//     }()
+//     if !proxy.Turn() {
+//         t.Error("Turn did not complete.")
+//     }
+// }
+//
+// func TestWithCoord(t *testing.T) {
+//     fmt.Println("\n\nTesting With Coord")
+//     agnt := make(chan link.Message, 10)
+//     prox := make(chan link.Message, 10)
+//     simple := NewSimple(1)
+//     proxy := cagent.NewAgentProxy(prox, agnt)
+//     go func() {
+//         agent.Run(simple, agnt, prox)
+//     }()
+//
+//     co := coord.NewCoordinator()
+//     co.Configure(
+//         config.NewConfig(
+//             0,
+//             []cagent.Agent{
+//                 proxy,
+//             },
+//             "noise",
+//             true,
+//             true,
+//             geo.NewPoint(0,0),
+//             geo.NewPoint(10,10),
+//         ),
+//     )
+//     co.Run()
+// }
+
+func makeAgent(id uint) *cagent.AgentProxy {
     agnt := make(chan link.Message, 10)
     prox := make(chan link.Message, 10)
-    simple := NewSimple(1)
+    simple := NewSimple(id)
     proxy := cagent.NewAgentProxy(prox, agnt)
+    proxy.SetState(cagent.NewAgentState(0, geo.NewPoint(0, 0), 0))
     go func() {
         agent.Run(simple, agnt, prox)
     }()
-    if !proxy.Turn() {
-        t.Error("Turn did not complete.")
-    }
+    return proxy
 }
 
-func TestWithCoord(t *testing.T) {
-    fmt.Println("\n\nTesting With Coord")
-    agnt := make(chan link.Message, 10)
-    prox := make(chan link.Message, 10)
-    simple := NewSimple(1)
-    proxy := cagent.NewAgentProxy(prox, agnt)
-    go func() {
-        agent.Run(simple, agnt, prox)
-    }()
-
+func makeCoord(id int, tl, br *geo.Point, proxies []cagent.Agent) *coord.Coordinator {
     co := coord.NewCoordinator()
     co.Configure(
         config.NewConfig(
-            0,
-            []cagent.Agent{
-                proxy,
-            },
+            id,
+            proxies,
             "noise",
             true,
             true,
-            geo.NewPoint(0,0),
-            geo.NewPoint(10,10),
+            tl,
+            br,
         ),
     )
-    co.Run()
+    return co
+}
+
+func TestWith2Coord_2Agents(t *testing.T) {
+    fmt.Println("\n\nTesting With 2 Coord and 2 Agents")
+    proxies1 := make([]cagent.Agent, 0, 10)
+    proxies2 := make([]cagent.Agent, 0, 10)
+    proxies1 = append(proxies1, makeAgent(1))
+    proxies2 = append(proxies2, makeAgent(2))
+
+//     fmt.Println(proxies)
+//     for _, prox := range proxies {
+//         fmt.Println(prox)
+//     }
+    coords := make(coord.CoordinatorSlice, 0, 10)
+    coords = append(coords, makeCoord(1, geo.NewPoint(0,0),geo.NewPoint(9,9), proxies1))
+    coords = append(coords, makeCoord(2, geo.NewPoint(0,0),geo.NewPoint(9,9), proxies2))
+    coord.ConnectInChain(coords)
+    coords.Run()
 }
