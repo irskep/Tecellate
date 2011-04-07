@@ -9,7 +9,7 @@ import cagent "coord/agent"
 //     Alive() bool
 //     Wait() uint16
 
-type Transform struct {
+type StateTransform struct {
     turn uint64
     pos *geo.Point
     energy cagent.Energy
@@ -21,8 +21,8 @@ func newTransform(turn uint64,
                   pos *geo.Point,
                   energy cagent.Energy,
                   alive bool,
-                  wait uint16) *Transform {
-    self := new(Transform)
+                  wait uint16) *StateTransform {
+    self := new(StateTransform)
     self.turn = turn
     self.pos = pos
     self.energy = energy
@@ -31,8 +31,8 @@ func newTransform(turn uint64,
     return self
 }
 
-func (self *Transform) Turn() uint64 { return self.turn }
-func (self *Transform) Position() *geo.Point { return self.pos }
-func (self *Transform) Energy() cagent.Energy { return self.energy }
-func (self *Transform) Alive() bool { return self.alive }
-func (self *Transform) Wait() uint16 { return self.wait }
+func (self *StateTransform) Turn() uint64 { return self.turn }
+func (self *StateTransform) Position() *geo.Point { return self.pos }
+func (self *StateTransform) Energy() cagent.Energy { return self.energy }
+func (self *StateTransform) Alive() bool { return self.alive }
+func (self *StateTransform) Wait() uint16 { return self.wait }
