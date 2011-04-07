@@ -126,6 +126,7 @@ func (self *AgentProxy) Turn() bool {
 
     complete := make(chan bool)
     self.state.NewMove()
+    self.log.Println("Starting Turn", self.state.Turn)
     if !self.start_turn() {
         return false
     }
@@ -144,6 +145,7 @@ func (self *AgentProxy) Turn() bool {
         return
     }(complete)
     c := <-complete
+    self.log.Println("Ending Turn", self.state.Turn)
     return c
 }
 
