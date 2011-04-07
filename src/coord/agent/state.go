@@ -6,6 +6,7 @@ import geo "coord/geometry"
 type Energy uint8
 
 type AgentState struct {
+    id int
     Turn uint64
     Live bool
     Position *geo.Point
@@ -33,6 +34,7 @@ type Inventory struct {
 
 func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
     self := &AgentState{
+        id:-1,
         Turn:turn,
         Live:true,
         Position:pos,
@@ -98,6 +100,10 @@ func (self *AgentState) PrevResult() bool {
 
 func (self *AgentState) Inventory() *Inventory {
     return self.inventory
+}
+
+func (self *AgentState) ToString() string {
+    return fmt.Sprintf("<AgentState id:%v pos:%v>", self.id, self.Position.ToString())
 }
 
 func (self *Move) ToString() string {

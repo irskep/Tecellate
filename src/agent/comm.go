@@ -37,6 +37,10 @@ func (self *comm) ack_start() {
     self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Start"]))
 }
 
+func (self *comm) id(id uint) {
+    self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Id"], id))
+}
+
 func (self *comm) complete() bool {
 //     fmt.Println("started complete")
     return self.acked_send(link.NewMessage(link.Commands["Complete"]))

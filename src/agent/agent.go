@@ -31,11 +31,16 @@ func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
             agent.Turn(comm)
             comm.complete()
         }
+        id := func() {
+            comm.id(agent.Id())
+        }
 
         for {
             switch msg := comm.recv_forever(); {
             case msg.Cmd == link.Commands["Start"]:
                 start()
+            case msg.Cmd == link.Commands["Id"]:
+                id()
             case msg.Cmd == link.Commands["Exit"]:
                 break
             default:
