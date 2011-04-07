@@ -86,9 +86,10 @@ func makeCoord(id int, tl, br *geo.Point, proxies []cagent.Agent) *coord.Coordin
 func TestWith2Coord_2Agents(t *testing.T) {
     fmt.Println("\n\nTesting With 2 Coord and 2 Agents")
     proxies1 := make([]cagent.Agent, 0, 10)
-    proxies2 := make([]cagent.Agent, 0, 10)
+//     proxies2 := make([]cagent.Agent, 0, 10)
     proxies1 = append(proxies1, makeAgent(1))
-    proxies2 = append(proxies2, makeAgent(2))
+    proxies1 = append(proxies1, makeAgent(2))
+//     proxies2 = append(proxies2, makeAgent(2))
 
 //     fmt.Println(proxies)
 //     for _, prox := range proxies {
@@ -96,7 +97,7 @@ func TestWith2Coord_2Agents(t *testing.T) {
 //     }
     coords := make(coord.CoordinatorSlice, 0, 10)
     coords = append(coords, makeCoord(1, geo.NewPoint(0,0),geo.NewPoint(9,9), proxies1))
-    coords = append(coords, makeCoord(2, geo.NewPoint(0,0),geo.NewPoint(9,9), proxies2))
+//     coords = append(coords, makeCoord(2, geo.NewPoint(0,0),geo.NewPoint(9,9), proxies2))
     coord.ConnectInChain(coords)
     coords.Run()
 }

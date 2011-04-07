@@ -1,5 +1,6 @@
 package agent
 
+import "fmt"
 import geo "coord/geometry"
 
 type Energy uint8
@@ -97,4 +98,8 @@ func (self *AgentState) PrevResult() bool {
 
 func (self *AgentState) Inventory() *Inventory {
     return self.inventory
+}
+
+func (self *Move) ToString() string {
+    return fmt.Sprintf("<Move %s %s>", self.Position.ToString(), self.Messages)
 }
