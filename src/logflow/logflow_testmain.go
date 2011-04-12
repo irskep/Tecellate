@@ -9,8 +9,10 @@ import (
 )
 
 var test_logflow = []testing.InternalTest {
-	testing.InternalTest{ "logflow.TestInstantiate", logflow.TestInstantiate },
-	testing.InternalTest{ "logflow.TestNothing", logflow.TestNothing },
+	testing.InternalTest{ "logflow.TestSourceInstantiate", logflow.TestSourceInstantiate },
+	testing.InternalTest{ "logflow.TestSinkInstantiate", logflow.TestSinkInstantiate },
+	testing.InternalTest{ "logflow.TestHookup", logflow.TestHookup },
+	testing.InternalTest{ "logflow.TestTestWriter", logflow.TestTestWriter },
 }
 
 
