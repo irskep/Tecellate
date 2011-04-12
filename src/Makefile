@@ -2,7 +2,7 @@ build: clean
 	gobuild -a -ignore="logflow/logflow_testmain.go"
 
 test: build 
-	gobuild -t -run -ignore="logflow/logflow_testmain.go"
+	-gobuild -t -run -ignore="logflow/logflow_testmain.go"
 	rm _testmain _testmain.6 _testmain.go
 
 test_log: 
