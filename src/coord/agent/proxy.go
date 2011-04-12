@@ -127,6 +127,7 @@ func (self *AgentProxy) Turn() bool {
     complete := make(chan bool)
     self.state.NewMove()
     self.getid()
+    if !self.state.Alive { return false }
     self.log.Println("Starting Turn", self.state.Turn)
     self.log.Println(self.state)
     if !self.start_turn() {

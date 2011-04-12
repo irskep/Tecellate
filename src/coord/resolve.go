@@ -33,6 +33,11 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
         <-waiting
     }
 
+    // ---------------------------------------------------------------------
+    //TODO:
+    //  Iterate over peer data to resolve peer turns.
+    // ---------------------------------------------------------------------
+
     // for each agent
     //     construct a StateTransform
     fmt.Println("\n\n---------- Starting Resolve -----------\n")
@@ -78,8 +83,9 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
     for _, transform := range(transforms) {
         fmt.Println(transform)
     }
+    fmt.Println(messages)
 
 
     fmt.Println("\n---------- Ending Resolve -----------\n\n")
-    return transforms, nil;
+    return transforms, messages;
 }

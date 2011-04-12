@@ -50,7 +50,8 @@ func (self *AgentState) Listen(freq uint8) []byte {
 }
 
 func (self *AgentState) Broadcast(freq uint8, msg []byte) bool {
-    return false
+    ok, _ := self.NewMessage(freq, msg)
+    return ok
 }
 
 func (self *AgentState) PrevResult() bool {
