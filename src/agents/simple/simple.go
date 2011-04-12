@@ -19,7 +19,15 @@ func NewSimple(id uint) *Simple {
 }
 
 func (self *Simple) Turn(comm agent.Comm) {
-    if !comm.Move(1, 0) {
+    var x, y int
+    if self.Id()%2 == 0 {
+        x = 1
+        y = 0
+    } else {
+        x = 1
+        y = 1
+    }
+    if !comm.Move(x, y) {
         fmt.Println("Move Failed!")
     }
     if !comm.Move(1, 0) {
