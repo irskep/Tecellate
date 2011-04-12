@@ -152,7 +152,7 @@ func (self *AgentProxy) Turn() bool {
 }
 
 func (self *AgentProxy) getid() {
-    if self.state.id == -1 {
+    if self.state.Id == -1 {
         self.send(link.NewMessage(link.Commands["Id"]))
         if ok, msg := self.recv(); ok {
             if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 2 {
@@ -160,7 +160,7 @@ func (self *AgentProxy) getid() {
                 if cmd == link.Commands["Id"] {
                     id := msg.Args[1].(uint)
                     self.log.Println("My id is:", id)
-                    self.state.id = int(id)
+                    self.state.Id = int(id)
                 }
             }
         }
@@ -183,7 +183,7 @@ func (self *AgentProxy) recv() (bool, *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.rcv:
-        self.log.Printf("recv(%v) : %v", self.state.id, msg)
+        self.log.Printf("recv(%v) : %v", self.state.Id, msg)
         return true, &msg
     case <-timeout.C:
         timeout.Stop()
@@ -198,7 +198,7 @@ func (self *AgentProxy) send(msg *link.Message) bool {
     case m := <-self.rcv:
         self.log.Println("recv unresolved message", m)
     case self.snd <- *msg:
-        self.log.Printf("sent(%v) : %v", self.state.id, msg)
+        self.log.Printf("sent(%v) : %v", self.state.Id, msg)
         return true
     case <-timeout.C:
         timeout.Stop()

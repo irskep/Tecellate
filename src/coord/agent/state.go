@@ -3,14 +3,10 @@ package agent
 import "fmt"
 import geo "coord/geometry"
 
-import (
-    "fmt"
-)
-
 type Energy uint8
 
 type AgentState struct {
-    id int
+    Id int
     Turn uint64
     Alive bool
     Position *geo.Point
@@ -38,7 +34,7 @@ type Inventory struct {
 
 func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
     self := &AgentState{
-        id:-1,
+        Id:-1,
         Turn:turn,
         Alive:true,
         Position:pos,
@@ -65,17 +61,12 @@ func (self *AgentState) NewMessage(freq uint8, msg []byte) *Message {
     return m
 }
 
-func (self *AgentState) String() string {
-    return fmt.Sprintf("AgentState(turn=%u, live=%t, position=%v, inventory=%v, wait=%u, move=%v)",
-                       self.Turn, self.Live, self.Position.String(), self.Inventory, self.Wait, self.Move.String())
-}
-
 func (self *AgentState) transform(trans Transform) {
     self.Turn = trans.Turn()
     if trans.Position() != nil {
         self.Position = trans.Position()
     }
-    self.inventory.Energy = trans.Energy()
+    self.Inventory.Energy = trans.Energy()
     self.Alive = trans.Alive()
     self.Wait = trans.Wait()
 }
@@ -97,10 +88,7 @@ func (self *Move) String() string {
     if self == nil {
         return "<nil>"
     }
-    return fmt.Sprintf("Move(position=%v, %d messages, collect=%t", 
-                       self.Position.String(),
-                       len(self.Messages),
-                       self.Collect)
+    return fmt.Sprintf("<Move %s %s>", self.Position.String(), self.Messages)
 }
 
 func (self *AgentState) Collect() bool {
@@ -124,9 +112,5 @@ func (self *AgentState) GetInventory() *Inventory {
 }
 
 func (self *AgentState) String() string {
-    return fmt.Sprintf("<AgentState id:%v pos:%v>", self.id, self.Position.String())
-}
-
-func (self *Move) String() string {
-    return fmt.Sprintf("<Move %s %s>", self.Position.String(), self.Messages)
+    return fmt.Sprintf("<AgentState id:%v pos:%v>", self.Id, self.Position.String())
 }

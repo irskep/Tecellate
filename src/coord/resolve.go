@@ -2,9 +2,10 @@ package coord
 
 import "fmt"
 import cagent "coord/agent"
+import game "coord/game"
 // import geo "coord/geometry"
 
-func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) []cagent.Transform {
+func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateResponse) []cagent.Transform {
     agents := self.availableGameState.Agents
     transforms := make([]cagent.Transform, len(agents))
     
@@ -46,8 +47,8 @@ func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) []
             t.wait = 0
         }
 
-        if state.Inventory().Energy > 0 {
-            t.energy = state.Inventory().Energy - 1
+        if state.Inventory.Energy > 0 {
+            t.energy = state.Inventory.Energy - 1
             t.alive = true
         } else {
             t.energy = 0

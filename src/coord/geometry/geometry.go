@@ -3,7 +3,6 @@ package geometry
 import (
     "fmt"
     "math"
-    "fmt"
 )
 
 type Point struct {
