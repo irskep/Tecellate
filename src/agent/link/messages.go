@@ -13,11 +13,6 @@ type GameObject interface{}
 type GameItem   interface{}
 type GameAgent  interface{}
 
-type InventoryItem struct {
-    Item GameItem
-    Amt  uint8
-}
-
 type Vision interface {
     Objects() <-chan GameObject // all objects (agents and items) in vision
     Agents() <-chan GameAgent   // all agents in vision
@@ -42,8 +37,4 @@ type Audio interface {
 
 type Broadcast interface {
     Message() (uint8, []byte)
-}
-
-type Inventory interface {
-    Items() <-chan InventoryItem
 }

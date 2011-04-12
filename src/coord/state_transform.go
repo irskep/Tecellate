@@ -23,7 +23,7 @@ func transformFromState(state *cagent.AgentState) *StateTransform {
     self := new(StateTransform)
     self.turn = state.Turn
     self.pos = state.Position
-    self.energy = state.Inventory.Energy
+    self.energy = state.Energy
     self.alive = state.Alive
     self.wait = state.Wait
     self.state = state

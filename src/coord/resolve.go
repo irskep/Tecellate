@@ -48,8 +48,8 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
             t.wait = 0
         }
 
-        if state.Inventory.Energy > 0 {
-            t.energy = state.Inventory.Energy - 1
+        if state.Energy > 0 {
+            t.energy = state.Energy - 1
             t.alive = true
         } else {
             t.energy = 0
