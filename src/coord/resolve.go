@@ -34,20 +34,41 @@ func (self *Coordinator) transformsForNextTurn(peerData []*GameStateResponse) []
         state := agent.State()
         t := transformFromState(state)
         t.turn = self.availableGameState.Turn+1
-        if state.Move != nil {
-            self.log.Println(state.Move)
-            t.pos = state.Move.Position.Add(state.Position)
-            if _, has := moves[t.pos.Complex()]; !has {
-                moves[t.pos.Complex()] = t
-            } else {
-                moves[t.pos.Complex()].pos = nil
-                t.pos = nil
-            }
+
+        if state.Wait > 0 {
+            t.wait = state.Wait - 1
+        } else {
+            t.wait = 0
         }
+
+        if state.Inventory().Energy > 0 {
+            t.energy = state.Inventory().Energy - 1
+            t.alive = true
+        } else {
+            t.energy = 0
+            t.alive = false
+        }
+
+        if state.Alive && state.Move != nil {
+            t.pos = state.Move.Position.Add(state.Position)
+        } else {
+            t.pos = state.Position
+        }
+
+        if _, has := moves[t.pos.Complex()]; !has {
+            moves[t.pos.Complex()] = t
+        } else {
+            moves[t.pos.Complex()].pos = moves[t.pos.Complex()].state.Position
+            t.pos = t.state.Position
+        }
+
         transforms[i] = t
     }
 
-    // validate the tranforms are non-conflicting
+    for _, transform := range(transforms) {
+        fmt.Println(transform)
+    }
+
 
     fmt.Println("\n---------- Ending Resolve -----------\n\n")
     return transforms;

@@ -55,12 +55,12 @@ import (
 //     co.Run()
 // }
 
-func makeAgent(id uint, pos *geo.Point) *cagent.AgentProxy {
+func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *cagent.AgentProxy {
     agnt := make(chan link.Message, 10)
     prox := make(chan link.Message, 10)
     simple := NewSimple(id)
     proxy := cagent.NewAgentProxy(prox, agnt)
-    proxy.SetState(cagent.NewAgentState(0, pos, 0))
+    proxy.SetState(cagent.NewAgentState(0, pos, energy))
     go func() {
         agent.Run(simple, agnt, prox)
     }()
@@ -87,8 +87,11 @@ func TestWith2Coord_2Agents(t *testing.T) {
     fmt.Println("\n\nTesting With 2 Coord and 2 Agents")
     proxies1 := make([]cagent.Agent, 0, 10)
 //     proxies2 := make([]cagent.Agent, 0, 10)
-    proxies1 = append(proxies1, makeAgent(1, geo.NewPoint(0, 0)))
-    proxies1 = append(proxies1, makeAgent(2, geo.NewPoint(0, 1)))
+    proxies1 = append(proxies1, makeAgent(1, geo.NewPoint(0, 0), 1))
+    proxies1 = append(proxies1, makeAgent(2, geo.NewPoint(0, 1), 1))
+    proxies1 = append(proxies1, makeAgent(3, geo.NewPoint(1, 1), 0))
+    proxies1 = append(proxies1, makeAgent(4, geo.NewPoint(2, 1), 1))
+    proxies1 = append(proxies1, makeAgent(5, geo.NewPoint(3, 1), 2))
 //     proxies2 = append(proxies2, makeAgent(2))
 
 //     fmt.Println(proxies)
