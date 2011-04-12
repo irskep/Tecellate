@@ -15,13 +15,17 @@ type GameState struct {
     Energy *Map
     conf *config.Config
     statesToServe []cagent.AgentState
+    messages Messages
 }
 
 func NewGameState() *GameState {
-    return &GameState{0, make([]cagent.Agent, 0), nil, nil, nil, nil}
+    return &GameState{
+        Turn:0,
+        Agents:make([]cagent.Agent, 0),
+    }
 }
 
-func (self *GameState) Advance(transforms []cagent.Transform) {
+func (self *GameState) Advance(transforms []cagent.Transform, messagse Messages) {
     self.Turn += 1
     self.statesToServe = nil
     for i, agent := range(self.Agents) {
@@ -60,6 +64,6 @@ func (self GameStateResponse) CopyToHeap() *GameStateResponse {
 }
 
 func (self GameStateResponse) String() string {
-    
+
     return fmt.Sprintf("Turn %d: %v", self.Turn, self.AgentStates)
 }

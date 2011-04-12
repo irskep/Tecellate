@@ -15,19 +15,6 @@ type AgentState struct {
     Move *Move
 }
 
-type Move struct {
-    Position *geo.Point
-    Messages []*Message
-    Collect bool
-    setmv bool
-}
-
-type Message struct {
-    Msg []byte
-    Frequency uint8
-    Source *geo.Point
-}
-
 type Inventory struct {
     Energy Energy
 }
@@ -50,17 +37,6 @@ func NewInventory(energy Energy) *Inventory {
     }
 }
 
-func (self *AgentState) NewMove() *Move {
-    self.Move = &Move{setmv:false}
-    return self.Move
-}
-
-func (self *AgentState) NewMessage(freq uint8, msg []byte) *Message {
-    m := &Message{Frequency:freq, Msg:msg, Source:self.Position}
-    self.Move.Messages = append(self.Move.Messages, m)
-    return m
-}
-
 func (self *AgentState) transform(trans Transform) {
     self.Turn = trans.Turn()
     if trans.Position() != nil {
@@ -73,22 +49,6 @@ func (self *AgentState) transform(trans Transform) {
 
 func (self *AgentState) Mv(pos *geo.Point) bool {
     return self.Move.mv(pos)
-}
-
-func (self *Move) mv(pos *geo.Point) bool {
-    if !self.setmv {
-        self.Position = pos
-        self.setmv = true
-        return true
-    }
-    return false
-}
-
-func (self *Move) String() string {
-    if self == nil {
-        return "<nil>"
-    }
-    return fmt.Sprintf("<Move %s %s>", self.Position.String(), self.Messages)
 }
 
 func (self *AgentState) Collect() bool {

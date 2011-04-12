@@ -5,10 +5,11 @@ import cagent "coord/agent"
 import game "coord/game"
 // import geo "coord/geometry"
 
-func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateResponse) []cagent.Transform {
+func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateResponse) ([]cagent.Transform, game.Messages) {
     agents := self.availableGameState.Agents
     transforms := make([]cagent.Transform, len(agents))
-    
+    messages := make(game.Messages)
+
     self.log.Printf("From my neighbors, I see:")
     for _, s := range peerData {
         self.log.Printf("%v", *s)
@@ -57,6 +58,9 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
 
         if state.Alive && state.Move != nil {
             t.pos = state.Move.Position.Add(state.Position)
+            for _, msg := range state.Move.Messages {
+                messages.Add(msg)
+            }
         } else {
             t.pos = state.Position
         }
@@ -77,5 +81,5 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
 
 
     fmt.Println("\n---------- Ending Resolve -----------\n\n")
-    return transforms;
+    return transforms, nil;
 }
