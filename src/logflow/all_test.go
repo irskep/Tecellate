@@ -2,6 +2,7 @@ package logflow
 
 import (
     "bytes"
+    "os"
     "testing"
 )
 
@@ -19,8 +20,9 @@ func NewTestWriter() *TestWriter {
     }
 }
 
-func (self *TestWriter) Write(p []byte) {
+func (self *TestWriter) Write(p []byte) (n int, err os.Error) {
     self.Contents = bytes.Join([][]byte{self.Contents, p}, []byte{})
+    return len(p), nil
 }
 
 func (self *TestWriter) String() string {
@@ -52,12 +54,13 @@ func TestSourceInstantiate(t *testing.T) {
 }
 
 func TestSinkInstantiate(t *testing.T) {
-    sink, err := NewSink("test/info", "test/debug")
+    sink, err := NewSink(nil, "test/info", "test/debug")
     t.Log(sink, err)
 }
 
 func TestHookup(t *testing.T) {
-    sink, err := NewSink("test/info")
+    w := NewTestWriter()
+    sink, err := NewSink(w, "test/info")
     t.Log(sink, err)
     src := NewSource("test/info")
     src.Println("Hello!")
