@@ -63,7 +63,9 @@ func (self *AgentState) NewMessage(freq uint8, msg []byte) *Message {
 
 func (self *AgentState) transform(trans Transform) {
     self.Turn = trans.Turn()
-    self.Position = trans.Position()
+    if trans.Position() != nil {
+        self.Position = trans.Position()
+    }
     self.inventory.Energy = trans.Energy()
     self.Live = trans.Alive()
     self.Wait = trans.Wait()
