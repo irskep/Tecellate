@@ -1,10 +1,16 @@
-
 build: clean
-	gobuild -a
+	gobuild -a -ignore="logflow/logflow_testmain.go"
 
 test: build 
-	gobuild -t -run
+	gobuild -t -run -ignore="logflow/logflow_testmain.go"
 	rm _testmain _testmain.6 _testmain.go
+
+test_log: 
+	6g -I . -o logflow.6 logflow/sink.go logflow/source.go logflow/source_test.go
+	6g -I . -o logflow_testmain.6 logflow/logflow_testmain.go
+	6l -o logflow_testmain -L . logflow_testmain.6
+	./logflow_testmain
+	rm logflow_testmain logflow.6 logflow_testmain.6
 
 .PHONY : clean
 clean :
