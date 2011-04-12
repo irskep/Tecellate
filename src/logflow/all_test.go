@@ -60,8 +60,13 @@ func TestSinkInstantiate(t *testing.T) {
 
 func TestHookup(t *testing.T) {
     w := NewTestWriter()
-    sink, err := NewSink(w, "test/info")
-    t.Log(sink, err)
+    NewSink(w, "test")
     src := NewSource("test/info")
-    src.Println("Hello!")
+    
+    testString := "Hello!"
+    src.Println(testString)
+    if !bytes.Equal([]byte(testString), w.Contents) {
+        t.Fatalf("Basic mismatch (%v, %v)", testString, string(w.Contents))
+    }
+    
 }
