@@ -8,9 +8,8 @@ File: agent/agent.go
 package agent
 
 import (
-    "os"
     "fmt"
-    "log"
+    "logflow"
 )
 import (
     "agent/link"
@@ -22,7 +21,7 @@ type Agent interface {
 }
 
 func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
-    logger := log.New(os.Stdout, fmt.Sprintf("Agent(%d) : ", agent.Id()), 0)
+    logger := logflow.NewSource(fmt.Sprintf("agent/%d", agent.Id()))
     comm := StartComm(send, recv, logger)
     complete := make(chan bool)
     go func(send link.SendLink, recv link.RecvLink, done chan<- bool) {

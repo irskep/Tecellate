@@ -12,6 +12,7 @@ import (
     "coord/config"
     cagent "coord/agent"
     geo "coord/geometry"
+    "logflow"
 )
 
 // func TestSimple(t *testing.T) {
@@ -55,6 +56,11 @@ import (
 //     co.Run()
 // }
 
+func initLogs(t *testing.T) {
+    logflow.NewSink(logflow.NewTestWriter(t), ".*")
+    logflow.FileSink("logs/agents", "agent/.*")
+}
+
 func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *cagent.AgentProxy {
     agnt := make(chan link.Message, 10)
     prox := make(chan link.Message, 10)
@@ -85,6 +91,9 @@ func makeCoord(id int, tl, br *geo.Point, proxies []cagent.Agent) *coord.Coordin
 
 func TestWith2Coord_2Agents(t *testing.T) {
     fmt.Println("\n\nTesting With 2 Coord and 2 Agents")
+    
+    initLogs(t)
+    
     proxies1 := make([]cagent.Agent, 0, 10)
 //     proxies2 := make([]cagent.Agent, 0, 10)
     proxies1 = append(proxies1, makeAgent(1, geo.NewPoint(0, 0), 1))
@@ -103,4 +112,6 @@ func TestWith2Coord_2Agents(t *testing.T) {
 //     coords = append(coords, makeCoord(2, geo.NewPoint(0,0),geo.NewPoint(9,9), proxies2))
     coord.ConnectInChain(coords)
     coords.Run()
+    
+    logflow.RemoveAllSinks()
 }

@@ -3,7 +3,7 @@ package agent
 import (
     "fmt"
     "time"
-    "log"
+    "logflow"
 )
 import (
     "agent/link"
@@ -24,10 +24,10 @@ type Comm interface {
 type comm struct {
     snd link.SendLink
     rcv link.RecvLink
-    log *log.Logger
+    log logflow.Logger
 }
 
-func StartComm(send link.SendLink, recv link.RecvLink, log *log.Logger) *comm {
+func StartComm(send link.SendLink, recv link.RecvLink, log logflow.Logger) *comm {
     self := new(comm)
     self.snd = send
     self.rcv = recv
