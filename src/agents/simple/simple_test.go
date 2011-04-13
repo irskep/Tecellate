@@ -58,17 +58,20 @@ import (
 
 func initLogs(t *testing.T) {
     logflow.NewSink(logflow.NewTestWriter(t), ".*")
-    
+
     // Proxies don't use numbers in their keypaths so don't show the prefixes
     // because they will all be identical
-    ap, _ := logflow.FileSink("logs/TestWith2Coord_2Agents_agentproxies", "agentproxy/.*")
-    ap.SetWritesPrefix(false)
-    
+    if ap, err := logflow.FileSink("logs/TestWith2Coord_2Agents_agentproxies", "agentproxy/.*"); err != nil {
+        panic("couldn't make file (do you have a logs/ directory?)")
+    } else {
+        ap.SetWritesPrefix(false)
+    }
+
     logflow.FileSink("logs/TestWith2Coord_2Agents_agents", "agent/.*")
     logflow.FileSink("logs/TestWith2Coord_2Agents_coords", "coord/.*")
     logflow.FileSink("logs/TestWith2Coord_2Agents_coordproxies", "coordproxy/.*")
     logflow.FileSink("logs/TestWith2Coord_2Agents_info", ".*info")
-    
+
     logflow.StdoutSink(".*")
 }
 
@@ -102,9 +105,9 @@ func makeCoord(id int, tl, br *geo.Point, proxies []cagent.Agent) *coord.Coordin
 
 func TestWith2Coord_2Agents(t *testing.T) {
     fmt.Println("\n\nTesting With 2 Coord and 2 Agents")
-    
+
     initLogs(t)
-    
+
     proxies1 := make([]cagent.Agent, 0, 10)
 //     proxies2 := make([]cagent.Agent, 0, 10)
     proxies1 = append(proxies1, makeAgent(1, geo.NewPoint(0, 0), 1))
@@ -123,6 +126,6 @@ func TestWith2Coord_2Agents(t *testing.T) {
 //     coords = append(coords, makeCoord(2, geo.NewPoint(0,0),geo.NewPoint(9,9), proxies2))
     coord.ConnectInChain(coords)
     coords.Run()
-    
+
     logflow.RemoveAllSinks()
 }
