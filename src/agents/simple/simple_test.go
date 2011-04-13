@@ -67,7 +67,7 @@ func initLogs(t *testing.T) {
     
     logflow.FileSink("logs/TestWith2Coord_2Agents_coords", "coord/.*")
     
-    logflow.FileSink("logs/TestWith2Coord_2Agents_coords", ".*/info")
+    logflow.FileSink("logs/TestWith2Coord_2Agents_info", ".*info")
 }
 
 func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *cagent.AgentProxy {

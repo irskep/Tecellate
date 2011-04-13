@@ -37,7 +37,6 @@ func NewSink(w ClosingWriter, matches ...string) (*sink, os.Error) {
         theSink = &sink{keypathRegexp: re, writer: w, writesPrefix: true}
         sinks = append(sinks, theSink)
     }
-    fmt.Println(sinks)
     return theSink, err
 }
 
