@@ -26,7 +26,7 @@ func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
 //     self.state = NewAgentState(0, geo.NewPoint(0, 0), 0)
     self.snd = send
     self.rcv = recv
-    self.log = logflow.NewSource("agentproxy")
+    self.log = logflow.NewSource("agentproxy/?")
     return self
 }
 
@@ -169,9 +169,11 @@ func (self *AgentProxy) getid() {
                 cmd := msg.Args[0].(link.Command)
                 if cmd == link.Commands["Id"] {
                     id := msg.Args[1].(uint)
-                    self.log = logflow.NewSource(fmt.Sprintf("agentproxy/%v", id))
-                    self.state.Id = int(id)
-                    self.log.Println("My id is:", id)
+                    if int(id) != self.state.Id {
+                        self.log = logflow.NewSource(fmt.Sprintf("agentproxy/%v", id))
+                        self.state.Id = int(id)
+                        self.log.Println("My id is:", id)
+                    }
                 }
             }
         }
