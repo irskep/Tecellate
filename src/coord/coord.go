@@ -107,6 +107,11 @@ func (self *Coordinator) Run() {
 
 // LOCAL/TESTING
 
+
+func (self *Coordinator) GetGameState() *game.GameState {
+    return self.availableGameState
+}
+
 // Set up a connection with another coordinator in the same process.
 func (self *Coordinator) ConnectToLocal(other *Coordinator) {
     // We communicate over this channel instead of a netchan

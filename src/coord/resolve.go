@@ -5,14 +5,14 @@ import aproxy "coord/agent/proxy"
 import game "coord/game"
 // import geo "coord/geometry"
 
-func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateResponse) ([]cagent.Transform, *game.Messages) {
+func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) ([]cagent.Transform, *game.Messages) {
     agents := self.availableGameState.Agents
     transforms := make([]cagent.Transform, len(agents))
-    messages := game.NewMessages()
+    messages := game.NewMessages(peers)
 
-    self.log.Printf("From my neighbors, I see:")
-    for _, s := range peerData {
-        self.log.Printf("%v", *s)
+    self.log.Println("From my neighbors, I see:", peers)
+    for _, s := range peers {
+        self.log.Printf("    %vln", *s)
     }
 
     exec_turn := func(agent cagent.Agent, done chan<- bool) {

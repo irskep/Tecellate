@@ -15,19 +15,19 @@ import (
     "logflow"
 )
 
-// func TestSimple(t *testing.T) {
-//     fmt.Println("\n\nTesting Simple Turn Rollover")
-//     agnt := make(chan link.Message, 10)
-//     prox := make(chan link.Message, 10)
-//     simple := NewSimple(1)
-//     proxy := cagent.NewAgentProxy(prox, agnt)
-//     go func() {
-//         agent.Run(simple, agnt, prox)
-//     }()
-//     if !proxy.Turn() {
-//         t.Error("Turn did not complete.")
-//     }
-// }
+func TestSimple(t *testing.T) {
+    initLogs(t)
+    defer logflow.RemoveAllSinks()
+    logflow.Println("test", "\n\nTesting Simple Turn Rollover")
+    proxy := makeAgent(1, geo.NewPoint(0, 0), 1)
+    gameconf := coord.NewGameConfig(3, "noise", true, false, 50, 50)
+    gameconf.AddAgent(proxy)
+    coord := gameconf.InitWithSingleLocalCoordinator()
+    proxy.SetGameState(coord.GetGameState())
+    if !proxy.Turn() {
+        t.Error("Turn did not complete.")
+    }
+}
 //
 // func TestWithCoord(t *testing.T) {
 //     fmt.Println("\n\nTesting With Coord")
@@ -65,14 +65,15 @@ func initLogs(t *testing.T) {
         panic("Directory logs/ could not be created.")
     }
 
-    logflow.FileSink("logs/SimpleTest_agents", "agent/.*")
-    logflow.FileSink("logs/SimpleTest_agentproxies", "agentproxy/.*")
-    logflow.FileSink("logs/SimpleTest_coords", "coord/.*")
-    logflow.FileSink("logs/SimpleTest_coordproxies", "coordproxy/.*")
-    logflow.FileSink("logs/SimpleTest_info", ".*/info")
+//     logflow.FileSink("logs/SimpleTest_agents", "agent/.*")
+//     logflow.FileSink("logs/SimpleTest_agentproxies", "agentproxy/.*")
+//     logflow.FileSink("logs/SimpleTest_coords", "coord/.*")
+//     logflow.FileSink("logs/SimpleTest_coordproxies", "coordproxy/.*")
+    logflow.FileSink("logs/SimpleTest", ".*")
 
     // Or show all output anyway I guess...
-    logflow.StdoutSink(".*/info")
+//     logflow.StdoutSink(".*/info")
+//     logflow.StdoutSink(".*")
 }
 
 func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy {
@@ -87,20 +88,20 @@ func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy
     return proxy
 }
 
-func TestWith2Coord_2Agents(t *testing.T) {
-    initLogs(t)
-
-    logflow.Println("test", "\n\nTesting With 2 Coord and 2 Agents")
-
-    gameconf := coord.NewGameConfig(3, "noise", true, true, 50, 50)
-    gameconf.AddAgent(makeAgent(1, geo.NewPoint(0, 0), 1))
-//     gameconf.AddAgent(makeAgent(2, geo.NewPoint(10, 1), 1))
-//     gameconf.AddAgent(makeAgent(3, geo.NewPoint(20, 1), 0))
-//     gameconf.AddAgent(makeAgent(4, geo.NewPoint(25, 1), 1))
-    gameconf.AddAgent(makeAgent(5, geo.NewPoint(30, 1), 2))
-
-    coords := gameconf.InitWithChainedLocalCoordinators(1, 50)
-    coords.Run()
-
-    logflow.RemoveAllSinks()
-}
+// func TestWith2Coord_2Agents(t *testing.T) {
+//     initLogs(t)
+//
+//     logflow.Println("test", "\n\nTesting With 2 Coord and 2 Agents")
+//
+//     gameconf := coord.NewGameConfig(3, "noise", true, false, 50, 50)
+//     gameconf.AddAgent(makeAgent(1, geo.NewPoint(0, 0), 1))
+// //     gameconf.AddAgent(makeAgent(2, geo.NewPoint(10, 1), 1))
+// //     gameconf.AddAgent(makeAgent(3, geo.NewPoint(20, 1), 0))
+// //     gameconf.AddAgent(makeAgent(4, geo.NewPoint(25, 1), 1))
+//     gameconf.AddAgent(makeAgent(5, geo.NewPoint(30, 1), 2))
+//
+//     coords := gameconf.InitWithChainedLocalCoordinators(1, 50)
+//     coords.Run()
+//
+//     logflow.RemoveAllSinks()
+// }

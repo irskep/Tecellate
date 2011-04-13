@@ -25,7 +25,7 @@ func NewGameState() *GameState {
     return &GameState{
         Turn:0,
         Agents:make([]cagent.Agent, 0),
-        messages:NewMessages(),
+        messages:NewMessages(nil),
     }
 }
 
