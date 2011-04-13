@@ -10,7 +10,7 @@ import (
 )
 
 func (self *Coordinator) ProcessTurns(complete chan bool) {
-    for i := 0; i <3 /* <3 <3 <3 */; i++ {  // TODO: THREE TIMES IS ARBITRARY AND FOR TESTING
+    for i := 0; i < self.conf.MaxTurns; i++ {
 
         self.log.Printf("Making turn %d available", i)
         for pi, _ := range(self.peers) {
