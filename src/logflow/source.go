@@ -47,6 +47,22 @@ type source struct {
 }
 
 /*
+    Convenience
+*/
+
+func Print(keypath string, v ...interface{}) {
+    WriteToSinksMatchingKeypath(keypath, fmt.Sprint(v...))
+}
+
+func Printf(keypath string, format string, v ...interface{}) {
+    WriteToSinksMatchingKeypath(keypath, fmt.Sprintf(format, v...))
+}
+
+func Println(keypath string, v ...interface{}) {
+    WriteToSinksMatchingKeypath(keypath, fmt.Sprintln(v...))
+}
+
+/*
     Things that make me a special snowflake
 */
 
