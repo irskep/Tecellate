@@ -70,9 +70,9 @@ func initLogs(t *testing.T) {
     logflow.FileSink("logs/SimpleTest_coords", "coord/.*")
     logflow.FileSink("logs/SimpleTest_coordproxies", "coordproxy/.*")
     logflow.FileSink("logs/SimpleTest_info", ".*/info")
-    
+
     // Or show all output anyway I guess...
-    //logflow.StdoutSink(".*/info")
+    logflow.StdoutSink(".*/info")
 }
 
 func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy {
@@ -94,12 +94,12 @@ func TestWith2Coord_2Agents(t *testing.T) {
 
     gameconf := coord.NewGameConfig(3, "noise", true, true, 50, 50)
     gameconf.AddAgent(makeAgent(1, geo.NewPoint(0, 0), 1))
-    gameconf.AddAgent(makeAgent(2, geo.NewPoint(10, 1), 1))
-    gameconf.AddAgent(makeAgent(3, geo.NewPoint(20, 1), 0))
-    gameconf.AddAgent(makeAgent(4, geo.NewPoint(25, 1), 1))
+//     gameconf.AddAgent(makeAgent(2, geo.NewPoint(10, 1), 1))
+//     gameconf.AddAgent(makeAgent(3, geo.NewPoint(20, 1), 0))
+//     gameconf.AddAgent(makeAgent(4, geo.NewPoint(25, 1), 1))
     gameconf.AddAgent(makeAgent(5, geo.NewPoint(30, 1), 2))
 
-    coords := gameconf.InitWithChainedLocalCoordinators(2, 25)
+    coords := gameconf.InitWithChainedLocalCoordinators(1, 50)
     coords.Run()
 
     logflow.RemoveAllSinks()

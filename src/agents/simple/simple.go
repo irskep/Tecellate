@@ -38,6 +38,8 @@ func (self *Simple) Turn(comm agent.Comm) {
 //     comm.Collect()
 //     fmt.Println(comm.Look())
     comm.Log("listening", string(comm.Listen(23)))
+    comm.Log("listening", string(comm.Listen(23)))
+    comm.Log("listening", string(comm.Listen(23)))
 //     fmt.Println(comm.PrevResult())
     comm.Log("my energy", comm.Energy())
     return

@@ -18,18 +18,18 @@ type GameState struct {
     Energy *Map
     conf *config.Config
     statesToServe []cagent.AgentState
-    messages Messages
+    messages *Messages
 }
 
 func NewGameState() *GameState {
     return &GameState{
         Turn:0,
         Agents:make([]cagent.Agent, 0),
-        messages:make(Messages),
+        messages:NewMessages(),
     }
 }
 
-func (self *GameState) Advance(transforms []cagent.Transform, messages Messages) {
+func (self *GameState) Advance(transforms []cagent.Transform, messages *Messages) {
     self.Turn += 1
     self.statesToServe = nil
     for i, agent := range(self.Agents) {
