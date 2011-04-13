@@ -23,12 +23,13 @@ func TestHookup(t *testing.T) {
     if !bytes.Equal([]byte(shouldBe), w1.Bytes()) {
         t.Fatalf("%v mismatch:\n%v%v)", snk1, shouldBe, w1.String())
     }
-    if !bytes.Equal([]byte(shouldBe), w3.Bytes()) {
-        t.Fatalf("%v mismatch:\n%v%v)", snk3, shouldBe, w3.String())
-    }
     shouldBe = ""
     if !bytes.Equal([]byte(shouldBe), w2.Bytes()) {
         t.Fatalf("%v mismatch:\n%v%v)", snk2, shouldBe, w2.String())
+    }
+    shouldBe = "test1/info: ABC\n"
+    if !bytes.Equal([]byte(shouldBe), w3.Bytes()) {
+        t.Fatalf("%v mismatch:\n%v%v)", snk3, shouldBe, w3.String())
     }
     
     src2.Println("DEF")
