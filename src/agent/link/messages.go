@@ -31,10 +31,6 @@ type Listen interface {
     Listen() uint8
 }
 
-type Audio interface {
-    Hear() []byte
-}
-
 type Broadcast interface {
     Message() (uint8, []byte)
 }

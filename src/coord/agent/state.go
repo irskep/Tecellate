@@ -27,7 +27,7 @@ func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
     return self
 }
 
-func (self *AgentState) transform(trans Transform) {
+func (self *AgentState) Transform(trans Transform) {
     self.Turn = trans.Turn()
     if trans.Position() != nil {
         self.Position = trans.Position()

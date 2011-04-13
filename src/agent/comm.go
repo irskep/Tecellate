@@ -13,7 +13,7 @@ import (
 type Comm interface {
     Log(...interface{})
     Look() link.Vision
-    Listen(uint8) link.Audio
+    Listen(uint8) []byte
     Broadcast(uint8, []byte) bool
     Energy() cagent.Energy
     Move(x, y int) bool
@@ -131,8 +131,17 @@ func (self *comm) Look() link.Vision {
     return nil
 }
 
-func (self *comm) Listen(freq uint8) link.Audio {
-    self.send(link.NewMessage(link.Commands["Listen"], newListen(freq)))
+func (self *comm) Listen(freq uint8) []byte {
+    m := link.NewMessage(link.Commands["Listen"], newListen(freq))
+    if ok, args := self.acked_send(m); ok {
+        if len(args) == 2 {
+            switch msg := args[1].(type) {
+            case []byte:
+                return msg
+            }
+        }
+    }
+    panic("didn't get an energy")
     self.recv()
     return nil
 }

@@ -11,6 +11,7 @@ import (
     "coord"
     "coord/config"
     cagent "coord/agent"
+    aproxy "coord/agent/proxy"
     geo "coord/geometry"
     "logflow"
 )
@@ -75,11 +76,11 @@ func initLogs(t *testing.T) {
     logflow.StdoutSink(".*")
 }
 
-func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *cagent.AgentProxy {
+func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy {
     agnt := make(chan link.Message, 10)
     prox := make(chan link.Message, 10)
     simple := NewSimple(id)
-    proxy := cagent.NewAgentProxy(prox, agnt)
+    proxy := aproxy.NewAgentProxy(prox, agnt)
     proxy.SetState(cagent.NewAgentState(0, pos, energy))
     go func() {
         agent.Run(simple, agnt, prox)

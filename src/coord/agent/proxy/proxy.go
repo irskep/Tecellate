@@ -11,6 +11,8 @@ import (
 //     geo "coord/geometry"
 )
 
+import . "coord/agent"
+
 type AgentProxy struct {
     state *AgentState
     snd link.SendLink
@@ -37,7 +39,7 @@ func (self *AgentProxy) State() *AgentState {
 }
 
 func (self *AgentProxy) Apply(trans Transform) {
-    self.state.transform(trans)
+    self.state.Transform(trans)
 }
 
 func (self *AgentProxy) SetGameState(g *game.GameState) {
@@ -88,7 +90,7 @@ func (self *AgentProxy) Turn() bool {
         link.Commands["Listen"]:
             argnum(1, func(msg *link.Message) bool {
                 freq := msg.Args[0].(link.Listen).Listen()
-                heard := self.game.Listen(freq)
+                heard := self.game.Listen(self.state.Position, freq)
                 self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, heard))
                 return false
             }),
@@ -131,6 +133,7 @@ func (self *AgentProxy) Turn() bool {
     }
 
     complete := make(chan bool)
+    if self.game == nil {panic("(agentproxy) self.game == nil")}
     self.state.NewMove()
     self.getid()
     if !self.state.Alive { return false }

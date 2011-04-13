@@ -1,11 +1,13 @@
 package game
 
+import "fmt"
 import pseudo_rand "rand"
 import crypto_rand "crypto/rand"
 import "sort"
 import geo "coord/geometry"
+import "logflow"
 
-const MessageLength = 256
+const MessageLength = 5
 const perfectHear = 5.0
 
 type Message interface {
@@ -13,6 +15,8 @@ type Message interface {
     Message() []byte
     Frequency() uint8
 }
+
+var log logflow.Logger = logflow.NewSource(fmt.Sprint("message"))
 
 type sortableMessages struct {
     msgs []Message
@@ -54,7 +58,9 @@ func corrupt(msg []byte, dist float64) (corrupted []byte) {
     for i := 0; i < MessageLength; i++ {
         var cur byte
         if i < len(msg) { cur = msg[i] } else { cur = randbyte() }
-        if dist > perfectHear && pseudo_rand.Float64() > 10.0/dist {
+        randfloat := pseudo_rand.Float64()
+//         log.Logln(logflow.DEBUG, cur, dist > perfectHear, randfloat < perfectHear/dist, randfloat, perfectHear/dist)
+        if dist > perfectHear && randfloat < perfectHear/dist {
             corrupted[i] = cur ^ randbyte()
         } else {
             corrupted[i] = cur
@@ -75,6 +81,7 @@ func (self Messages) Add(msg Message) {
 func (self Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
     msg = make([]byte, MessageLength)
     if messages, has := self[freq]; has {
+        log.Logln(logflow.DEBUG, "have a message on freq ", freq)
         msgs := newSortableMessages(len(messages), loc)
         for _, msg := range messages {
             msgs.add(msg)
@@ -82,19 +89,26 @@ func (self Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
         msgs.sort()
         for i, M := range msgs.msgs {
             dist := M.Source().Distance(loc)
+            log.Logln(logflow.DEBUG, "message", i, "dist to targ", dist)
             m := corrupt(M.Message(), dist)
+            log.Logln(logflow.DEBUG, "message", i, "corrupted", string(m))
             if i == 0 {
                 msg = m
             } else {
                 for j, byt := range m {
-                    if pseudo_rand.Float64() > 10.0/dist {
-                        msg[j] = msg[j] ^ byt
+                    randfloat := pseudo_rand.Float64()
+//                     log.Logln(logflow.DEBUG, msg[j], byt, randfloat < perfectHear/dist, randfloat, perfectHear/dist)
+                    if randfloat > perfectHear/dist {
+                        log.Logln(logflow.DEBUG, j, msg[j], byt, "corrupting")
+                        msg[j] = msg[j] & byt
                     }
                 }
             }
+            log.Logln(logflow.DEBUG, "message", i, "acc", string(msg))
         }
         return
     }
+    log.Logln(logflow.DEBUG, "don't have a message on freq ", freq)
     return randbytes(MessageLength)
 }
 

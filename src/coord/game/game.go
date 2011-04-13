@@ -1,12 +1,15 @@
 package game
 
-import cagent "coord/agent"
-
-import "coord/config"
-
 import (
     "fmt"
 )
+
+import (
+    geo "coord/geometry"
+    cagent "coord/agent"
+    "coord/config"
+)
+
 
 type GameState struct {
     Turn uint64
@@ -22,15 +25,17 @@ func NewGameState() *GameState {
     return &GameState{
         Turn:0,
         Agents:make([]cagent.Agent, 0),
+        messages:make(Messages),
     }
 }
 
-func (self *GameState) Advance(transforms []cagent.Transform, messagse Messages) {
+func (self *GameState) Advance(transforms []cagent.Transform, messages Messages) {
     self.Turn += 1
     self.statesToServe = nil
     for i, agent := range(self.Agents) {
         agent.Apply(transforms[i])
     }
+    self.messages = messages
 }
 
 func (self *GameState) Configure(conf *config.Config) {
@@ -50,6 +55,10 @@ func (self *GameState) AgentStates() []cagent.AgentState {
 
 func (self *GameState) MakeRPCResponse() GameStateResponse {
     return GameStateResponse{self.Turn, self.AgentStates()}
+}
+
+func (self *GameState) Listen(loc *geo.Point, freq uint8) []byte {
+    return self.messages.Hear(loc, freq)
 }
 
 // RPC response

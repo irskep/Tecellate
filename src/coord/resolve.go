@@ -1,6 +1,7 @@
 package coord
 
 import cagent "coord/agent"
+import aproxy "coord/agent/proxy"
 import game "coord/game"
 // import geo "coord/geometry"
 
@@ -15,6 +16,7 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
     }
 
     exec_turn := func(agent cagent.Agent, done chan<- bool) {
+        agent.(*aproxy.AgentProxy).SetGameState(self.availableGameState)
         agent.Turn()
         done <- true
     }
