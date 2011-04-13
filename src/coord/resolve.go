@@ -1,6 +1,5 @@
 package coord
 
-import "fmt"
 import cagent "coord/agent"
 import game "coord/game"
 // import geo "coord/geometry"
@@ -40,7 +39,7 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
 
     // for each agent
     //     construct a StateTransform
-    fmt.Println("\n\n---------- Starting Resolve -----------\n")
+    self.log.Println("\n\n---------- Starting Resolve -----------\n")
     moves := make(map[complex128]*StateTransform, len(agents))
     for i, agent := range(agents) {
         state := agent.State()
@@ -81,11 +80,11 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
     }
 
     for _, transform := range(transforms) {
-        fmt.Println(transform)
+        self.log.Println(transform)
     }
-    fmt.Println(messages)
+    self.log.Println(messages)
 
 
-    fmt.Println("\n---------- Ending Resolve -----------\n\n")
+    self.log.Println("\n---------- Ending Resolve -----------\n\n")
     return transforms, messages;
 }
