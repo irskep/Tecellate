@@ -2,71 +2,46 @@ package logflow
 
 import (
     "bytes"
-    "os"
     "testing"
 )
 
-/*
-    Helpers
-*/
-
-type TestWriter struct {
-    Contents []byte
-}
-
-func NewTestWriter() *TestWriter {
-    return &TestWriter{
-        Contents: make([]byte, 0),
-    }
-}
-
-func (self *TestWriter) Write(p []byte) (n int, err os.Error) {
-    self.Contents = bytes.Join([][]byte{self.Contents, p}, []byte{})
-    return len(p), nil
-}
-
-func (self *TestWriter) String() string {
-    return string(self.Contents)
-}
-
-/*
-    Tests
-*/
-
-func TestTestWriter(t *testing.T) {
-    w := NewTestWriter()
-    testString := []byte("ABC\n")
-    w.Write(testString)
-    if !bytes.Equal(testString, w.Contents) {
-        t.Fatalf("Strings don't match! (%v, %v)", testString, w.Contents)
-    }
-    testString2 := []byte("DEF\n")
-    w.Write(testString2)
-    concattedTestString := []byte("ABC\nDEF\n")
-    if !bytes.Equal(concattedTestString, w.Contents) {
-        t.Fatalf("Strings don't match! (%v, %v)", testString, w.Contents)
-    }
-}
-
-func TestSourceInstantiate(t *testing.T) {
-    src := NewSource("test.info")
-    t.Log(src)
-}
-
-func TestSinkInstantiate(t *testing.T) {
-    sink, err := NewSink(nil, "test/info", "test/debug")
-    t.Log(sink, err)
-}
-
 func TestHookup(t *testing.T) {
-    w := NewTestWriter()
-    NewSink(w, "test")
-    src := NewSource("test/info")
+    w1 := new(bytes.Buffer)
+    w2 := new(bytes.Buffer)
+    w3 := new(bytes.Buffer)
+    snk1, _ := NewSink(w1, "test1")
+    snk2, _ := NewSink(w2, "test2")
+    snk3, _ := NewSink(w3, "test1", "test2")
+    src1 := NewSource("test1")
+    src2 := NewSource("test2")
     
-    testString := "Hello!"
-    src.Println(testString)
-    if !bytes.Equal([]byte(testString), w.Contents) {
-        t.Fatalf("Basic mismatch (%v, %v)", testString, string(w.Contents))
+    var shouldBe string
+    
+    src1.Println("ABC")
+    
+    shouldBe = "test1/info: ABC\n"
+    if !bytes.Equal([]byte(shouldBe), w1.Bytes()) {
+        t.Fatalf("%v mismatch:\n%v%v)", snk1, shouldBe, w1.String())
+    }
+    if !bytes.Equal([]byte(shouldBe), w3.Bytes()) {
+        t.Fatalf("%v mismatch:\n%v%v)", snk3, shouldBe, w3.String())
+    }
+    shouldBe = ""
+    if !bytes.Equal([]byte(shouldBe), w2.Bytes()) {
+        t.Fatalf("%v mismatch:\n%v%v)", snk2, shouldBe, w2.String())
     }
     
+    src2.Println("DEF")
+    shouldBe = "test1/info: ABC\n"
+    if !bytes.Equal([]byte(shouldBe), w1.Bytes()) {
+        t.Fatalf("%v mismatch:\n%v%v)", snk1, shouldBe, w1.String())
+    }
+    shouldBe = "test2/info: DEF\n"
+    if !bytes.Equal([]byte(shouldBe), w2.Bytes()) {
+        t.Fatalf("%v mismatch:\n%v%v)", snk2, shouldBe, w2.String())
+    }
+    shouldBe = "test1/info: ABC\ntest2/info: DEF\n"
+    if !bytes.Equal([]byte(shouldBe), w3.Bytes()) {
+        t.Fatalf("%v mismatch:\n%v%v)", snk3, shouldBe, w3.String())
+    }
 }

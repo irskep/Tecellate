@@ -1,8 +1,8 @@
 package logflow
 
 import (
+    "bytes"
     "fmt"
-    // "log"
     "os"
 )
 
@@ -36,13 +36,23 @@ type source struct {
 */
 
 func NewSource(keypath string) *source {
-    return &source{
-        keypath: keypath,
-        sinks: nil,
-    }
+    theSource := &source{keypath: keypath, sinks: SinksMatchingKeypath(keypath)}
+    return theSource
 }
 
-func (self *source) LOutput(level LogLevel, calldepth int, s string) os.Error {
+func (self *source) LOutput(level LogLevel, s string) os.Error {
+    buf := new(bytes.Buffer)
+    buf.WriteString(self.keypath)
+    buf.WriteByte('/')
+    buf.WriteString(string(level))
+    buf.WriteString(": ")
+    buf.WriteString(s)
+    if len(s) > 0 && s[len(s)-1] != '\n' {
+        buf.WriteByte('\n')
+    }
+    for _, snk := range self.sinks {
+        snk.Write(buf.Bytes())
+    }
     return nil
 }
 
@@ -55,62 +65,63 @@ func (self *source) String() string {
 */
 
 func (self *source) Fatal(v ...interface{}) {
-    self.LOutput(FATAL, 2, fmt.Sprint(v...))
+    self.LOutput(FATAL, fmt.Sprint(v...))
     os.Exit(1)
 }
 
 func (self *source) Fatalf(format string, v ...interface{}) {
-    self.LOutput(FATAL, 2, fmt.Sprintf(format, v...))
+    self.LOutput(FATAL, fmt.Sprintf(format, v...))
     os.Exit(1)
 }
 
 func (self *source) Fatalln(v ...interface{}) {
-    self.LOutput(FATAL, 2, fmt.Sprintln(v...))
+    self.LOutput(FATAL, fmt.Sprintln(v...))
     os.Exit(1)
 }
 
 func (self *source) Output(calldepth int, s string) os.Error {
-    return self.LOutput(INFO, calldepth, s)
+    // Discard calldepth
+    return self.LOutput(INFO, s)
 }
 
 func (self *source) Panic(v ...interface{}) {
     s := fmt.Sprint(v...)
-    self.LOutput(ERROR, 2, s)
+    self.LOutput(ERROR, s)
     panic(s)
 }
 
 func (self *source) Panicf(format string, v ...interface{}) {
     s := fmt.Sprintf(format, v...)
-    self.LOutput(ERROR, 2, s)
+    self.LOutput(ERROR, s)
     panic(s)
 }
 
 func (self *source) Panicln(v ...interface{}) {
     s := fmt.Sprintln(v...)
-    self.LOutput(ERROR, 2, s)
+    self.LOutput(ERROR, s)
     panic(s)
 }
 
 func (self *source) Print(v ...interface{}) {
-    self.LOutput(INFO, 2, fmt.Sprint(v...))
+    self.LOutput(INFO, fmt.Sprint(v...))
 }
 
 func (self *source) Printf(format string, v ...interface{}) {
-    self.LOutput(INFO, 2, fmt.Sprintf(format, v...))
+    self.LOutput(INFO, fmt.Sprintf(format, v...))
 }
 
 func (self *source) Println(v ...interface{}) {
-    self.LOutput(INFO, 2, fmt.Sprintln(v...))
+    self.LOutput(INFO, fmt.Sprintln(v...))
 }
 
 func (self *source) Log(level LogLevel, v ...interface{}) {
-    self.LOutput(level, 2, fmt.Sprint(v...))
+    self.LOutput(level, fmt.Sprint(v...))
 }
 
 func (self *source) Logf(level LogLevel, format string, v ...interface{}) {
-    self.LOutput(level, 2, fmt.Sprintf(format, v...))
+    self.LOutput(level, fmt.Sprintf(format, v...))
 }
 
 func (self *source) Logln(level LogLevel, v ...interface{}) {
-    self.LOutput(level, 2, fmt.Sprintln(v...))
+    self.LOutput(level, fmt.Sprintln(v...))
 }
