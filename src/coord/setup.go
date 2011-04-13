@@ -2,11 +2,11 @@
 
 package coord
 
+import "coord/config"
 import geo "coord/geometry"
 
 import (
-    "coord/config"
-    "log"
+    "logflow"
 )
 
 /* Stick together building blocks */
@@ -33,11 +33,11 @@ func CoordinatorList(k int, configTemplate *config.Config) CoordinatorSlice {
 func ConnectInChain(coords CoordinatorSlice) {
     for i, c := range(coords) {
         if i < len(coords)-1 {
-            log.Printf("main: Connect %d to %d", i, i+1)
+            logflow.Printf("main", "Connect %d to %d", i, i+1)
             c.ConnectToLocal(coords[i+1])
         }
         if i > 0 {
-            log.Printf("main: Connect %d to %d", i, i-1)
+            logflow.Printf("main", "Connect %d to %d", i, i-1)
             c.ConnectToLocal(coords[i-1])
         }
     }
