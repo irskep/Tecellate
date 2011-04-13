@@ -7,8 +7,9 @@ import "sort"
 import geo "coord/geometry"
 import "logflow"
 
-const MessageLength = 5
+const MessageLength = 11
 const perfectHear = 5.0
+const scale = 1.137
 
 type Message interface {
     Source() *geo.Point
@@ -59,9 +60,13 @@ func corrupt(msg []byte, dist float64) (corrupted []byte) {
         var cur byte
         if i < len(msg) { cur = msg[i] } else { cur = randbyte() }
         randfloat := pseudo_rand.Float64()
-//         log.Logln(logflow.DEBUG, cur, dist > perfectHear, randfloat < perfectHear/dist, randfloat, perfectHear/dist)
-        if dist > perfectHear && randfloat < perfectHear/dist {
+        prob := 1.0/(dist/(perfectHear*scale))
+        log.Logln(logflow.DEBUG, cur,
+            dist > perfectHear && randfloat > prob,
+            randfloat, prob)
+        if dist > perfectHear && randfloat > prob {
             corrupted[i] = cur ^ randbyte()
+            log.Logln(logflow.DEBUG, "corrupted byte ", cur, corrupted[i])
         } else {
             corrupted[i] = cur
         }
@@ -91,20 +96,22 @@ func (self Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
             dist := M.Source().Distance(loc)
             log.Logln(logflow.DEBUG, "message", i, "dist to targ", dist)
             m := corrupt(M.Message(), dist)
-            log.Logln(logflow.DEBUG, "message", i, "corrupted", string(m))
+            log.Logln(logflow.DEBUG, "message", i, "corrupted", string(m), m)
             if i == 0 {
                 msg = m
             } else {
-                for j, byt := range m {
-                    randfloat := pseudo_rand.Float64()
-//                     log.Logln(logflow.DEBUG, msg[j], byt, randfloat < perfectHear/dist, randfloat, perfectHear/dist)
-                    if randfloat > perfectHear/dist {
-                        log.Logln(logflow.DEBUG, j, msg[j], byt, "corrupting")
-                        msg[j] = msg[j] & byt
-                    }
-                }
+//                 for j, byt := range m {
+//                     randfloat := pseudo_rand.Float64()
+//                     log.Logln(logflow.DEBUG, msg[j], byt,
+//                         !(dist > perfectHear && randfloat >= 1.0/(dist/perfectHear)),
+//                         randfloat, 1.0/(dist/perfectHear))
+// //                     if !(dist > perfectHear && randfloat >= 1.0/(dist/perfectHear)) {
+// //                         log.Logln(logflow.DEBUG, j, msg[j], byt, "corrupting")
+// //                         msg[j] = msg[j] ^ (^byt)
+// //                     }
+//                 }
             }
-            log.Logln(logflow.DEBUG, "message", i, "acc", string(msg))
+            log.Logln(logflow.DEBUG, "message", i, "acc", string(msg), msg)
         }
         return
     }

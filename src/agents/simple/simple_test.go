@@ -112,10 +112,10 @@ func TestWith2Coord_2Agents(t *testing.T) {
     proxies1 := make([]cagent.Agent, 0, 10)
 //     proxies2 := make([]cagent.Agent, 0, 10)
     proxies1 = append(proxies1, makeAgent(1, geo.NewPoint(0, 0), 1))
-    proxies1 = append(proxies1, makeAgent(2, geo.NewPoint(0, 1), 1))
-    proxies1 = append(proxies1, makeAgent(3, geo.NewPoint(1, 1), 0))
-    proxies1 = append(proxies1, makeAgent(4, geo.NewPoint(2, 1), 1))
-    proxies1 = append(proxies1, makeAgent(5, geo.NewPoint(3, 1), 2))
+    proxies1 = append(proxies1, makeAgent(2, geo.NewPoint(10, 1), 1))
+    proxies1 = append(proxies1, makeAgent(3, geo.NewPoint(20, 1), 0))
+    proxies1 = append(proxies1, makeAgent(4, geo.NewPoint(25, 1), 1))
+    proxies1 = append(proxies1, makeAgent(5, geo.NewPoint(30, 3), 2))
 //     proxies2 = append(proxies2, makeAgent(2))
 
 //     fmt.Println(proxies)
@@ -123,7 +123,7 @@ func TestWith2Coord_2Agents(t *testing.T) {
 //         fmt.Println(prox)
 //     }
     coords := make(coord.CoordinatorSlice, 0, 10)
-    coords = append(coords, makeCoord(1, geo.NewPoint(0,0),geo.NewPoint(9,9), proxies1))
+    coords = append(coords, makeCoord(1, geo.NewPoint(0,0),geo.NewPoint(49,49), proxies1))
 //     coords = append(coords, makeCoord(2, geo.NewPoint(0,0),geo.NewPoint(9,9), proxies2))
     coord.ConnectInChain(coords)
     coords.Run()

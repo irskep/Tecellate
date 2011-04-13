@@ -36,7 +36,7 @@ func (self *Simple) Turn(comm agent.Comm) {
 //     comm.Collect()
 //     fmt.Println(comm.Look())
     comm.Log("listening", string(comm.Listen(23)[:5]))
-    comm.Log("broadcast success", comm.Broadcast(23, []byte("hello")))
+    comm.Log("broadcast success", comm.Broadcast(23, []byte("hello_world")))
 //     fmt.Println(comm.PrevResult())
     comm.Log("my energy", comm.Energy())
     return
