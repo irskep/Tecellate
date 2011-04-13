@@ -20,7 +20,7 @@ type sink struct {
 }
 
 func NewSink(w io.Writer, matches ...string) (*sink, os.Error) {
-    re, err := regexp.Compile(strings.Join(matches, "|"))
+    re, err := regexp.Compile(strings.Join([]string{"^", strings.Join(matches, "|"), "$"}, ""))
     var theSink *sink = nil
     if err == nil {
         theSink = &sink{keypathRegexp: re, writer: w}
@@ -37,6 +37,14 @@ func SinksMatchingKeypath(keypath string) []Sink {
         }
     }
     return matches
+}
+
+func WriteToSinksMatchingKeypath(keypath string, s []byte) {
+    for _, snk := range sinks {
+        if snk.MatchesKeypath(keypath) {
+            snk.Write(s)
+        }
+    }
 }
 
 func RemoveAllSinks() {

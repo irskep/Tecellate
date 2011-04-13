@@ -50,9 +50,7 @@ func (self *source) LOutput(level LogLevel, s string) os.Error {
     if len(s) > 0 && s[len(s)-1] != '\n' {
         buf.WriteByte('\n')
     }
-    for _, snk := range self.sinks {
-        snk.Write(buf.Bytes())
-    }
+    WriteToSinksMatchingKeypath(fmt.Sprintf("%v/%v", self.keypath, level), buf.Bytes())
     return nil
 }
 
