@@ -10,7 +10,9 @@ import "logflow"
 const MessageLength = 11
 const hearing_range = 10.0
 const corrupt_scale = 1.137
-const combine_scale = corrupt_scale*2
+const combine_scale = corrupt_scale*3
+
+var log logflow.Logger = logflow.NewSource(fmt.Sprint("message"))
 
 type Message interface {
     Source() *geo.Point
@@ -18,14 +20,14 @@ type Message interface {
     Frequency() uint8
 }
 
-var log logflow.Logger = logflow.NewSource(fmt.Sprint("message"))
-
 type sortableMessages struct {
     msgs []Message
     targ *geo.Point
 }
-
-type Messages map[uint8][]Message
+type Messages struct {
+    Msgs map[uint8][]Message
+    Cache map[complex128](map[uint8][]byte)
+}
 
 // initializer for random number generator -------------------------------------
 func init() {
@@ -76,17 +78,31 @@ func corrupt(msg []byte, dist float64) (corrupted []byte) {
 }
 
 // Messages Methods -----------------------------------------------------------
-func (self Messages) Add(msg Message) {
-    f := msg.Frequency()
-    if _, has := self[f]; !has {
-        self[f] = make([]Message, 0, 10)
-    }
-    self[f] = append(self[f], msg)
+func NewMessages() *Messages {
+    self := new(Messages)
+    self.Msgs = make(map[uint8][]Message)
+    self.Cache = make(map[complex128](map[uint8][]byte))
+    return self
 }
 
-func (self Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
+func (self *Messages) Add(msg Message) {
+    f := msg.Frequency()
+    if _, has := self.Msgs[f]; !has {
+        self.Msgs[f] = make([]Message, 0, 10)
+    }
+    self.Msgs[f] = append(self.Msgs[f], msg)
+}
+
+func (self *Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
+    if freqs, has := self.Cache[loc.Complex()]; has {
+        if m, has := freqs[freq]; has{
+            log.Println("Cached!")
+            return m
+        }
+    }
+
     msg = make([]byte, MessageLength)
-    if messages, has := self[freq]; has {
+    if messages, has := self.Msgs[freq]; has {
         log.Logln(logflow.DEBUG, "have a message on freq ", freq)
         msgs := newSortableMessages(len(messages), loc)
         for _, msg := range messages {
@@ -118,10 +134,18 @@ func (self Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
             }
             log.Logln(logflow.DEBUG, "message", i, "acc", string(msg), msg)
         }
-        return
+    } else {
+        log.Logln(logflow.DEBUG, "don't have a message on freq ", freq)
+        msg = randbytes(MessageLength)
     }
-    log.Logln(logflow.DEBUG, "don't have a message on freq ", freq)
-    return randbytes(MessageLength)
+
+
+    if _, has := self.Cache[loc.Complex()]; !has {
+        self.Cache[loc.Complex()] = make(map[uint8][]byte)
+    }
+    self.Cache[loc.Complex()][freq] = msg
+
+    return
 }
 
 // messageSlice Methods --------------------------------------------------------
