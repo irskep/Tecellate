@@ -13,7 +13,7 @@ import (
     "testing"
 )
 
-func initLogs(t *testing.T) {
+func initLogs(t *testing.T, withStdout bool, initMsg string) {
     // Show all output if test fails
     logflow.NewSink(logflow.NewTestWriter(t), ".*")
     
@@ -28,7 +28,17 @@ func initLogs(t *testing.T) {
     logflow.FileSink("logs/NeighborTest_coordproxies", "coordproxy/.*")
     logflow.FileSink("logs/NeighborTest_info", ".*/info")
 
-    logflow.StdoutSink(".*")
+    if withStdout {
+        logflow.StdoutSink(".*/info")
+    }
+    
+    if len(initMsg) > 0 {
+        logflow.Printf("main/info", initMsg)
+        logflow.Printf("agent/all", initMsg)
+        logflow.Printf("agentproxy/all", initMsg)
+        logflow.Printf("coord/all", initMsg)
+        logflow.Printf("coordproxy/all", initMsg)
+    }
 }
 
 func makeAgent(id uint, x int, y int) *aproxy.AgentProxy {
@@ -44,21 +54,27 @@ func makeAgent(id uint, x int, y int) *aproxy.AgentProxy {
     return proxy
 }
 
-func TestInfoPass(t *testing.T) {
-    initLogs(t)
-    
-    logflow.Println("test", "\n\nTesting With 2 Coord and 2 Agents")
-    logflow.Printf("main/info", "===New run: test info passing===")
-    logflow.Printf("agent/all", "===New run: test info passing===")
-    logflow.Printf("agentproxy/all", "===New run: test info passing===")
-    logflow.Printf("coord/all", "===New run: test info passing===")
-    logflow.Printf("coordproxy/all", "===New run: test info passing===")
+func TestLocalInfoPass(t *testing.T) {
+    initLogs(t, false, "===New run: test local info passing===")
     
     gameconf := NewGameConfig(11, "noise", false, true, 20, 10)
     gameconf.AddAgent(makeAgent(1, 0, 0))
     
     coords := gameconf.InitWithChainedLocalCoordinators(2, 10)
     coords.Run()
+    
+    logflow.RemoveAllSinks()
+}
+
+func TestTCPInfoPass(t *testing.T) {
+    initLogs(t, true, "===New run: test TCP info passing===")
+    
+    logflow.RemoveAllSinks()
+    gameconf := NewGameConfig(2, "noise", false, true, 20, 10)
+    gameconf.AddAgent(makeAgent(1, 0, 0))
+    
+    gameconf.InitWithTCPChainedLocalCoordinators(2, 10)
+    //coords.Run()
     
     logflow.RemoveAllSinks()
 }

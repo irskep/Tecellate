@@ -72,7 +72,7 @@ func initLogs(t *testing.T) {
     logflow.FileSink("logs/SimpleTest_info", ".*/info")
     
     // Or show all output anyway I guess...
-    logflow.StdoutSink(".*/info")
+    //logflow.StdoutSink(".*/info")
 }
 
 func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy {

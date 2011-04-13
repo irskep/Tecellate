@@ -61,6 +61,12 @@ func (self *GameConfig) InitWithChainedLocalCoordinators(k int, w int) Coordinat
     return coords
 }
 
+func (self *GameConfig) InitWithTCPChainedLocalCoordinators(k int, w int) CoordinatorSlice {
+    coords := self.SideBySideCoordinators(k, w, self.Size.Y)
+    coords.ChainTCP()
+    return coords
+}
+
 func (self *GameConfig) SideBySideCoordinators(k, w, h int) CoordinatorSlice {
     coords := make(CoordinatorSlice, k)
     for i := 0; i < k; i++ {

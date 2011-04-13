@@ -47,6 +47,10 @@ func (self CoordinatorSlice) Chain() {
     }
 }
 
+func (self CoordinatorSlice) ChainTCP() {
+    // UH OH!
+}
+
 /* Coordinator type */
 
 type Coordinator struct {
