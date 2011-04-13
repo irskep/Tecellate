@@ -5,6 +5,7 @@ import "coord/agent"
 
 type Config struct {
     Identifier int
+    MaxTurns int
     Agents []agent.Agent
     MessageStyle string     // boolean|noise|none
     UseFood bool
@@ -14,24 +15,14 @@ type Config struct {
     TopRight *geo.Point
 }
 
-func NewConfig(id int, agents []agent.Agent, style string, food bool, delay bool, bl, tr *geo.Point) *Config {
+func NewConfig(id int, maxTurns int, agents []agent.Agent, style string, food bool, delay bool, bl, tr *geo.Point) *Config {
     return &Config{Identifier: id,
+                   MaxTurns: maxTurns,
                    Agents: agents,
                    MessageStyle: style,
                    UseFood: food,
                    RandomlyDelayProcessing: delay,
                    BottomLeft: bl,
                    TopRight: tr,
-    }
-}
-
-func (self *Config) Duplicate(identifier int, bottomLeft, topRight *geo.Point) *Config {
-    return &Config{Identifier: identifier,
-                   Agents: self.Agents,
-                   MessageStyle: self.MessageStyle,
-                   UseFood: self.UseFood,
-                   RandomlyDelayProcessing: self.RandomlyDelayProcessing,
-                   BottomLeft: bottomLeft,
-                   TopRight: topRight,
     }
 }

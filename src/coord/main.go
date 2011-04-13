@@ -16,7 +16,7 @@ import (
 
 func main() {
     // Initialize
-    gameconf := coord.NewGameConfig("none", false, true, 60, 20)
+    gameconf := coord.NewGameConfig(3, "none", false, true, 60, 20)
     coords := gameconf.InitWithChainedLocalCoordinators(3, 20)
     coords.Run()
     

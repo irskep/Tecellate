@@ -90,7 +90,7 @@ func TestWith2Coord_2Agents(t *testing.T) {
 
     logflow.Println("test", "\n\nTesting With 2 Coord and 2 Agents")
 
-    gameconf := coord.NewGameConfig("noise", true, true, 50, 50)
+    gameconf := coord.NewGameConfig(3, "noise", true, true, 50, 50)
     gameconf.AddAgent(makeAgent(1, geo.NewPoint(0, 0), 1))
     gameconf.AddAgent(makeAgent(2, geo.NewPoint(10, 1), 1))
     gameconf.AddAgent(makeAgent(3, geo.NewPoint(20, 1), 0))

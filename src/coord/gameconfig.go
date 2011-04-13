@@ -7,6 +7,7 @@ import "coord/config"
 import geo "coord/geometry"
 
 type GameConfig struct {
+    MaxTurns int
     MessageStyle string
     UseFood bool
     RandomlyDelayProcessing bool
@@ -14,8 +15,9 @@ type GameConfig struct {
     Agents []agent.Agent
 }
 
-func NewGameConfig(msgStyle string, food bool, delay bool, w, h int) *GameConfig {
-    return &GameConfig{MessageStyle: msgStyle,
+func NewGameConfig(maxTurns int, msgStyle string, food bool, delay bool, w, h int) *GameConfig {
+    return &GameConfig{MaxTurns: maxTurns,
+                       MessageStyle: msgStyle,
                        UseFood: food,
                        RandomlyDelayProcessing: delay,
                        Size: *geo.NewPoint(w, h),
@@ -38,6 +40,7 @@ func (self *GameConfig) CoordConfig(id int, bl *geo.Point, tr *geo.Point) *confi
     }
     
     return config.NewConfig(id, 
+                            self.MaxTurns,
                             thisCoordsAgents, 
                             self.MessageStyle, 
                             self.UseFood, 
