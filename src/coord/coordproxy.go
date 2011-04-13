@@ -5,8 +5,7 @@ import game "coord/game"
 
 import (
     "fmt"
-    "log"
-    "os"
+    "logflow"
     "time"
 )
 
@@ -24,7 +23,7 @@ type CoordinatorProxy struct {
     parentIdentifier int
     sendChannel chan interface{}
     recvChannel chan interface{}
-    log *log.Logger
+    log logflow.Logger
 }
 
 func NewCoordProxy(identifier int, parentIdentifier int, sendChan chan interface{}, recvChan chan interface{}) *CoordinatorProxy {
@@ -32,9 +31,7 @@ func NewCoordProxy(identifier int, parentIdentifier int, sendChan chan interface
                              parentIdentifier, 
                              sendChan, 
                              recvChan, 
-                             log.New(os.Stdout, 
-                                     fmt.Sprintf("%d-%d: ", parentIdentifier, identifier),
-                                     0)}
+                             logflow.NewSource(fmt.Sprintf("coordproxy/%d/%d: ", parentIdentifier, identifier))}
 }
 
 func (self *CoordinatorProxy) request(request interface{}) interface{} {

@@ -1,7 +1,6 @@
 package logflow
 
 import (
-    "bytes"
     "fmt"
     "os"
 )
@@ -57,16 +56,7 @@ func NewSource(keypath string) *source {
 }
 
 func (self *source) LOutput(level LogLevel, s string) os.Error {
-    buf := new(bytes.Buffer)
-    // buf.WriteString(self.keypath)
-    // buf.WriteByte('/')
-    // buf.WriteString(string(level))
-    // buf.WriteString(": ")
-    buf.WriteString(s)
-    if len(s) > 0 && s[len(s)-1] != '\n' {
-        buf.WriteByte('\n')
-    }
-    WriteToSinksMatchingKeypath(fmt.Sprintf("%v/%v", self.keypath, level), buf.Bytes())
+    WriteToSinksMatchingKeypath(fmt.Sprintf("%v/%v", self.keypath, level), s)
     return nil
 }
 

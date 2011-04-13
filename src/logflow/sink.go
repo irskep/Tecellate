@@ -1,11 +1,13 @@
 package logflow
 
 import (
+    "bytes"
     "fmt"
     "io"
     "os"
     "regexp"
     "strings"
+    "sync"
 )
 
 type ClosingWriter interface {
@@ -15,7 +17,7 @@ type ClosingWriter interface {
 
 type Sink interface {
     MatchesKeypath(string) bool
-    Write(string, []byte)
+    Write(string, string)
     SetWritesPrefix(bool)
 }
 
@@ -25,6 +27,7 @@ type sink struct {
     keypathRegexp *regexp.Regexp
     writer ClosingWriter
     writesPrefix bool
+    mu sync.Mutex
 }
 
 func NewSink(w ClosingWriter, matches ...string) (*sink, os.Error) {
@@ -50,7 +53,7 @@ func FileSink(path string, matches ...string) (*sink, os.Error) {
     if err != nil {
         return nil, err
     }
-    return NewSink(f, "agent/.*")
+    return NewSink(f, matches...)
 }
 
 func SinksMatchingKeypath(keypath string) []Sink {
@@ -63,7 +66,7 @@ func SinksMatchingKeypath(keypath string) []Sink {
     return matches
 }
 
-func WriteToSinksMatchingKeypath(keypath string, s []byte) {
+func WriteToSinksMatchingKeypath(keypath string, s string) {
     for _, snk := range sinks {
         if snk.MatchesKeypath(keypath) {
             snk.Write(keypath, s)
@@ -79,20 +82,26 @@ func RemoveAllSinks() {
 }
 
 func (self *sink) String() string {
-    return self.keypathRegexp.String()
+    return fmt.Sprintf("%v", self.keypathRegexp.String())
 }
 
 func (self *sink) MatchesKeypath(keypath string) bool {
     return self.keypathRegexp.MatchString(keypath)
 }
 
-func (self *sink) Write(prefix string, s []byte) {
-    fmt.Println(self, prefix, string(s))
+func (self *sink) Write(prefix string, s string) {
+    buf := new(bytes.Buffer)
     if self.writesPrefix {
-        self.writer.Write([]byte(prefix))
-        self.writer.Write([]byte(": "))
+        buf.WriteString(prefix)
+        buf.WriteString(": ")
     }
-    self.writer.Write(s)
+    buf.WriteString(s)
+    if len(s) > 0 && s[len(s)-1] != '\n' {
+        buf.WriteByte('\n')
+    }
+    self.mu.Lock()
+    defer self.mu.Unlock()
+    self.writer.Write(buf.Bytes())
 }
 
 func (self *sink) SetWritesPrefix(pfx bool) {

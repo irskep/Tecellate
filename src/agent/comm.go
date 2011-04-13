@@ -46,7 +46,6 @@ func (self *comm) id(id uint) {
 }
 
 func (self *comm) complete() bool {
-//     fmt.Println("started complete")
     r, _ := self.acked_send(link.NewMessage(link.Commands["Complete"]))
     return r
 }
@@ -157,7 +156,6 @@ func (self *comm) Energy() cagent.Energy {
 
 func (self *comm) Move(x,y int) bool {
     c, _ := self.acked_send(link.NewMessage(link.Commands["Move"], newMove(x, y)))
-//     fmt.Println("completed move")
     return c
 }
 
