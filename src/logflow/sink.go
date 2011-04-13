@@ -7,6 +7,7 @@ import (
     "os"
     "regexp"
     "strings"
+    "sync"
 )
 
 type ClosingWriter interface {
@@ -26,6 +27,7 @@ type sink struct {
     keypathRegexp *regexp.Regexp
     writer ClosingWriter
     writesPrefix bool
+    mu sync.Mutex
 }
 
 func NewSink(w ClosingWriter, matches ...string) (*sink, os.Error) {
@@ -94,9 +96,12 @@ func (self *sink) Write(prefix string, s string) {
         buf.WriteString(prefix)
         buf.WriteString(": ")
     }
+    buf.WriteString(s)
     if len(s) > 0 && s[len(s)-1] != '\n' {
         buf.WriteByte('\n')
     }
+    self.mu.Lock()
+    defer self.mu.Unlock()
     self.writer.Write(buf.Bytes())
 }
 
