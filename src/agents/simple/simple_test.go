@@ -4,6 +4,7 @@ import "testing"
 
 import (
     "fmt"
+    "os"
 )
 import (
     "agent"
@@ -59,16 +60,14 @@ import (
 
 func initLogs(t *testing.T) {
     logflow.NewSink(logflow.NewTestWriter(t), ".*")
-
-    // Proxies don't use numbers in their keypaths so don't show the prefixes
-    // because they will all be identical
-    if ap, err := logflow.FileSink("logs/TestWith2Coord_2Agents_agentproxies", "agentproxy/.*"); err != nil {
-        panic("couldn't make file (do you have a logs/ directory?)")
-    } else {
-        ap.SetWritesPrefix(true)
+    
+    err := os.MkdirAll("logs", 0776)
+    if err != nil {
+        panic("Directory logs/ could not be created.")
     }
-
+    
     logflow.FileSink("logs/TestWith2Coord_2Agents_agents", "agent/.*")
+    logflow.FileSink("logs/TestWith2Coord_2Agents_agentproxies", "agentproxy/.*")
     logflow.FileSink("logs/TestWith2Coord_2Agents_coords", "coord/.*")
     logflow.FileSink("logs/TestWith2Coord_2Agents_coordproxies", "coordproxy/.*")
     logflow.FileSink("logs/TestWith2Coord_2Agents_info", ".*info")
