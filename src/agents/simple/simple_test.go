@@ -9,7 +9,6 @@ import (
     "agent"
     "agent/link"
     "coord"
-    "coord/config"
     cagent "coord/agent"
     aproxy "coord/agent/proxy"
     geo "coord/geometry"
@@ -84,22 +83,6 @@ func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy
         agent.Run(simple, agnt, prox)
     }()
     return proxy
-}
-
-func makeCoord(id int, tl, br *geo.Point, proxies []cagent.Agent) *coord.Coordinator {
-    co := coord.NewCoordinator()
-    co.Configure(
-        config.NewConfig(
-            id,
-            proxies,
-            "noise",
-            true,
-            true,
-            tl,
-            br,
-        ),
-    )
-    return co
 }
 
 func TestWith2Coord_2Agents(t *testing.T) {
