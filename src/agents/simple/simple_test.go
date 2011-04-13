@@ -59,8 +59,15 @@ import (
 func initLogs(t *testing.T) {
     logflow.NewSink(logflow.NewTestWriter(t), ".*")
     logflow.FileSink("logs/TestWith2Coord_2Agents_agents", "agent/.*")
+    
+    // Proxies don't use numbers in their keypaths so don't show the prefixes
+    // because they will all be identical
     ap, _ := logflow.FileSink("logs/TestWith2Coord_2Agents_agentproxies", "agentproxy/.*")
     ap.SetWritesPrefix(false)
+    
+    logflow.FileSink("logs/TestWith2Coord_2Agents_coords", "coord/.*")
+    
+    logflow.FileSink("logs/TestWith2Coord_2Agents_coords", ".*/info")
 }
 
 func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *cagent.AgentProxy {

@@ -11,8 +11,7 @@ import (
     "coord/game"
     "coord/config"
     "fmt"
-    "log"
-    "os"
+    "logflow"
 )
 
 /* Coordinator bucket and convenience methods */
@@ -57,7 +56,7 @@ type Coordinator struct {
     // the old data by mistake.
     nextTurnAvailableSignals []chan int
 
-    log *log.Logger
+    log logflow.Logger
 }
 
 /* Initialization */
@@ -77,7 +76,7 @@ func NewCoordinator() *Coordinator {
 func (self *Coordinator) Configure(conf *config.Config) {
     self.conf = conf
     self.availableGameState.Configure(conf)
-    self.log = log.New(os.Stdout, fmt.Sprintf("%d: ", conf.Identifier), 0)
+    self.log = logflow.NewSource(fmt.Sprintf("coord/%d", conf.Identifier))
     self.log.Printf("Configured")
 }
 

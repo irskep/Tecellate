@@ -1,7 +1,6 @@
 package logflow
 
 import (
-    "fmt"
     "io"
     "os"
     "regexp"
@@ -87,7 +86,6 @@ func (self *sink) MatchesKeypath(keypath string) bool {
 }
 
 func (self *sink) Write(prefix string, s []byte) {
-    fmt.Println(self, prefix, string(s))
     if self.writesPrefix {
         self.writer.Write([]byte(prefix))
         self.writer.Write([]byte(": "))
