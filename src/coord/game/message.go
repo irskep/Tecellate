@@ -42,13 +42,25 @@ func init() {
 func randbyte() byte {
     return randbytes(1)[0]
 }
-
 func randbytes(k int) []byte {
     bytes := make([]byte, k)
     if n, err := crypto_rand.Read(bytes); n == k && err == nil {
         return bytes
     }
     panic("Can't get random byte.")
+}
+func corrupt(msg []byte, dist float64) (corrupted []byte) {
+    corrupted = make([]byte, MessageLength)
+    for i := 0; i < MessageLength; i++ {
+        var cur byte
+        if i < len(msg) { cur = msg[i] } else { cur = randbyte() }
+        if dist > perfectHear && pseudo_rand.Float64() > 10.0/dist {
+            corrupted[i] = cur ^ randbyte()
+        } else {
+            corrupted[i] = cur
+        }
+    }
+    return
 }
 
 // Messages Methods -----------------------------------------------------------
@@ -68,7 +80,19 @@ func (self Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
             msgs.add(msg)
         }
         msgs.sort()
-
+        for i, M := range msgs.msgs {
+            dist := M.Source().Distance(loc)
+            m := corrupt(M.Message(), dist)
+            if i == 0 {
+                msg = m
+            } else {
+                for j, byt := range m {
+                    if pseudo_rand.Float64() > 10.0/dist {
+                        msg[j] = msg[j] ^ byt
+                    }
+                }
+            }
+        }
         return
     }
     return randbytes(MessageLength)
@@ -77,7 +101,7 @@ func (self Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
 // messageSlice Methods --------------------------------------------------------
 func newSortableMessages(size int, loc *geo.Point) *sortableMessages {
     return &sortableMessages{
-            msgs:make([]Message, size),
+            msgs:make([]Message, 0, size),
             targ:loc,
     }
 }

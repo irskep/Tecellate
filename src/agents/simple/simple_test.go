@@ -64,7 +64,7 @@ func initLogs(t *testing.T) {
     if ap, err := logflow.FileSink("logs/TestWith2Coord_2Agents_agentproxies", "agentproxy/.*"); err != nil {
         panic("couldn't make file (do you have a logs/ directory?)")
     } else {
-        ap.SetWritesPrefix(false)
+        ap.SetWritesPrefix(true)
     }
 
     logflow.FileSink("logs/TestWith2Coord_2Agents_agents", "agent/.*")

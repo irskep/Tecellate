@@ -1,4 +1,4 @@
-package agent
+package proxy
 
 import (
     "fmt"
@@ -7,6 +7,7 @@ import (
 )
 import (
     "agent/link"
+    "coord/game"
 //     geo "coord/geometry"
 )
 
@@ -15,6 +16,7 @@ type AgentProxy struct {
     snd link.SendLink
     rcv link.RecvLink
     log logflow.Logger
+    game *game.GameState
 }
 
 func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
@@ -36,6 +38,10 @@ func (self *AgentProxy) State() *AgentState {
 
 func (self *AgentProxy) Apply(trans Transform) {
     self.state.transform(trans)
+}
+
+func (self *AgentProxy) SetGameState(g *game.GameState) {
+    self.game = g
 }
 
 func (self *AgentProxy) Turn() bool {
@@ -82,7 +88,8 @@ func (self *AgentProxy) Turn() bool {
         link.Commands["Listen"]:
             argnum(1, func(msg *link.Message) bool {
                 freq := msg.Args[0].(link.Listen).Listen()
-                self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, freq))
+                heard := self.game.Listen(freq)
+                self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, heard))
                 return false
             }),
         link.Commands["Broadcast"]:
