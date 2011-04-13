@@ -11,19 +11,22 @@ import (
 
 /* Stick together building blocks */
 
-func ChainedLocalCoordinators(k int, configTemplate *config.Config) CoordinatorSlice {
-    coords := CoordinatorList(3, configTemplate)
+func ChainedLocalCoordinators(k int, configTemplate *config.Config, w int, h int) CoordinatorSlice {
+    coords := CoordinatorList(k, configTemplate, geo.NewPoint(w, h))
     ConnectInChain(coords)
     return coords
 }
 
 /* Building blocks for making coordinators */
 
-func CoordinatorList(k int, configTemplate *config.Config) CoordinatorSlice {
+func CoordinatorList(k int, configTemplate *config.Config, size *geo.Point) CoordinatorSlice {
     coords := make(CoordinatorSlice, k)
+    w := size.X/k
+    h := size.Y
     for i := 0; i < k; i++ {
+        newConf := configTemplate.Duplicate(i, geo.NewPoint(w*i, 0), geo.NewPoint(w*(i+1), h))
         coords[i] = NewCoordinator()
-        coords[i].Configure(configTemplate.Duplicate(i, geo.NewPoint(0, 0), geo.NewPoint(0, 0)))
+        coords[i].Configure(newConf)
     }
     return coords
 }
