@@ -159,8 +159,9 @@ func (self *AgentProxy) getid() {
                 cmd := msg.Args[0].(link.Command)
                 if cmd == link.Commands["Id"] {
                     id := msg.Args[1].(uint)
-                    self.log.Println("My id is:", id)
+                    self.log = logflow.NewSource(fmt.Sprintf("agentproxy/%v", id))
                     self.state.Id = int(id)
+                    self.log.Println("My id is:", id)
                 }
             }
         }
@@ -183,7 +184,7 @@ func (self *AgentProxy) recv() (bool, *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.rcv:
-        self.log.Printf("recv(%v) : %v", self.state.Id, msg)
+        self.log.Printf("recv : %v", msg)
         return true, &msg
     case <-timeout.C:
         timeout.Stop()
@@ -198,7 +199,7 @@ func (self *AgentProxy) send(msg *link.Message) bool {
     case m := <-self.rcv:
         self.log.Println("recv unresolved message", m)
     case self.snd <- *msg:
-        self.log.Printf("sent(%v) : %v", self.state.Id, msg)
+        self.log.Printf("sent : %v", msg)
         return true
     case <-timeout.C:
         timeout.Stop()
