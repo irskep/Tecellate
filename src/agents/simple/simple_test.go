@@ -97,7 +97,7 @@ func TestWith2Coord_2Agents(t *testing.T) {
     gameconf.AddAgent(makeAgent(4, geo.NewPoint(25, 1), 1))
     gameconf.AddAgent(makeAgent(5, geo.NewPoint(30, 1), 2))
 
-    coords := gameconf.InitWithChainedLocalCoordinators(1, 10)
+    coords := gameconf.InitWithChainedLocalCoordinators(2, 25)
     coords.Run()
 
     logflow.RemoveAllSinks()
