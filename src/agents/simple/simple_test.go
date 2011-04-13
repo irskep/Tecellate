@@ -57,6 +57,7 @@ import (
 // }
 
 func initLogs(t *testing.T) {
+    // Show all output if test fails
     logflow.NewSink(logflow.NewTestWriter(t), ".*")
 
     err := os.MkdirAll("logs", 0776)
@@ -64,13 +65,14 @@ func initLogs(t *testing.T) {
         panic("Directory logs/ could not be created.")
     }
 
-    logflow.FileSink("logs/TestWith2Coord_2Agents_agents", "agent/.*")
-    logflow.FileSink("logs/TestWith2Coord_2Agents_agentproxies", "agentproxy/.*")
-    logflow.FileSink("logs/TestWith2Coord_2Agents_coords", "coord/.*")
-    logflow.FileSink("logs/TestWith2Coord_2Agents_coordproxies", "coordproxy/.*")
-    logflow.FileSink("logs/TestWith2Coord_2Agents_info", ".*info")
+    logflow.FileSink("logs/SimpleTest_agents", "agent/.*")
+    logflow.FileSink("logs/SimpleTest_agentproxies", "agentproxy/.*")
+    logflow.FileSink("logs/SimpleTest_coords", "coord/.*")
+    logflow.FileSink("logs/SimpleTest_coordproxies", "coordproxy/.*")
+    logflow.FileSink("logs/SimpleTest_info", ".*/info")
     
-    logflow.StdoutSink(".*info")
+    // Or show all output anyway I guess...
+    logflow.StdoutSink(".*/info")
 }
 
 func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy {
