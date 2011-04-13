@@ -1,11 +1,13 @@
 package main
 
-import "fmt"
-// import "agents/configurable"
+import "logflow"
+import "agents/configurable"
 // import "agent"
 
 func main() {
-    fmt.Println("agents/simple/main.go")
-    // fmt.Println(simple.NewSimple(0))
-//     agent.Run(simple.NewSimple())
+    logflow.StdoutSink(".*")
+    logflow.Println("main", "agents/simple/main.go")
+    cf := configurable.New(0)
+    logflow.Println("main", cf)
+    // agent.Run(cf)
 }
