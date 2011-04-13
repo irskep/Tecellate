@@ -25,14 +25,6 @@ func NewConfig(id int, agents []agent.Agent, style string, food bool, delay bool
     }
 }
 
-func BasicTestConfig() *Config {
-    return &Config{Identifier: 0,
-                   MessageStyle: "none",
-                   UseFood: false,
-                   RandomlyDelayProcessing: true,
-    }
-}
-
 func (self *Config) Duplicate(identifier int, bottomLeft, topRight *geo.Point) *Config {
     return &Config{Identifier: identifier,
                    Agents: self.Agents,

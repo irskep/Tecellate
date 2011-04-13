@@ -34,6 +34,19 @@ func (self CoordinatorSlice) Run() {
     }
 }
 
+func (self CoordinatorSlice) Chain() {
+    for i, c := range(self) {
+        if i < len(self)-1 {
+            logflow.Printf("main", "Connect %d to %d", i, i+1)
+            c.ConnectToLocal(self[i+1])
+        }
+        if i > 0 {
+            logflow.Printf("main", "Connect %d to %d", i, i-1)
+            c.ConnectToLocal(self[i-1])
+        }
+    }
+}
+
 /* Coordinator type */
 
 type Coordinator struct {
@@ -70,7 +83,7 @@ func NewCoordinator() *Coordinator {
                         conf: nil,
                         rpcRequestsReceivedConfirmation: make(chan int),
                         nextTurnAvailableSignals: make([]chan int, 0),
-                        log: nil}
+                        log: logflow.NewSource("coord/?")}
 }
 
 func (self *Coordinator) Configure(conf *config.Config) {

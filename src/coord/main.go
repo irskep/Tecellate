@@ -10,19 +10,16 @@ COORD MAIN
 package main
 
 import (
-    "coord/config"
-    "fmt"
     "coord"
-    "log"
+    "logflow"
 )
 
 func main() {
-    fmt.Println("coord/main.go")
-    
     // Initialize
-    coords := coord.ChainedLocalCoordinators(3, config.BasicTestConfig())
+    gameconf := coord.NewGameConfig("none", false, true, 60, 20)
+    coords := gameconf.InitWithChainedLocalCoordinators(3, 20)
     coords.Run()
     
     // Yo ho, me hearties, yo ho!
-    log.Println("Done")
+    logflow.Println("main", "Done")
 }
