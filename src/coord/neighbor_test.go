@@ -73,7 +73,7 @@ func TestTCPInfoPass(t *testing.T) {
     gameconf := NewGameConfig(2, "noise", false, true, 20, 10)
     gameconf.AddAgent(makeAgent(1, 0, 0))
     
-    gameconf.InitWithTCPChainedLocalCoordinators(2, 10)
+    //gameconf.InitWithTCPChainedLocalCoordinators(2, 10)
     //coords.Run()
     
     logflow.RemoveAllSinks()

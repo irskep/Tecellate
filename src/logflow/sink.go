@@ -10,11 +10,6 @@ import (
     "sync"
 )
 
-type ClosingWriter interface {
-    io.Writer
-    io.Closer
-}
-
 type Sink interface {
     MatchesKeypath(string) bool
     Write(string, string)
@@ -25,27 +20,38 @@ var sinks []*sink = make([]*sink, 0)
 
 type sink struct {
     keypathRegexp *regexp.Regexp
-    writer ClosingWriter
+    writer io.WriteCloser
     writesPrefix bool
+    needsClose bool
     mu sync.Mutex
 }
 
-func NewSink(w ClosingWriter, matches ...string) (*sink, os.Error) {
+func NewSink(w io.WriteCloser, matches ...string) (*sink, os.Error) {
     re, err := regexp.Compile(strings.Join([]string{"^", strings.Join(matches, "|"), "$"}, ""))
     var theSink *sink = nil
     if err == nil {
-        theSink = &sink{keypathRegexp: re, writer: w, writesPrefix: true}
+        theSink = &sink{keypathRegexp: re, writer: w, writesPrefix: true, needsClose: true}
         sinks = append(sinks, theSink)
     }
     return theSink, err
 }
 
 func StdoutSink(matches ...string) (*sink, os.Error) {
-    return NewSink(os.Stdout, matches...)
+    newSink, err := NewSink(os.Stdout, matches...)
+    if newSink == nil {
+        return nil, err
+    }
+    newSink.needsClose = false
+    return newSink, err
 }
 
 func StderrSink(matches ...string) (*sink, os.Error) {
-    return NewSink(os.Stderr, matches...)
+    newSink, err := NewSink(os.Stderr, matches...)
+    if newSink == nil {
+        return nil, err
+    }
+    newSink.needsClose = false
+    return newSink, err
 }
 
 func FileSink(path string, matches ...string) (*sink, os.Error) {
@@ -53,7 +59,12 @@ func FileSink(path string, matches ...string) (*sink, os.Error) {
     if err != nil {
         return nil, err
     }
-    return NewSink(f, matches...)
+    newSink, err := NewSink(f, matches...)
+    if newSink == nil {
+        return nil, err
+    }
+    newSink.needsClose = true
+    return newSink, err
 }
 
 func SinksMatchingKeypath(keypath string) []Sink {
@@ -76,7 +87,9 @@ func WriteToSinksMatchingKeypath(keypath string, s string) {
 
 func RemoveAllSinks() {
     for _, snk := range sinks {
-        snk.writer.Close()
+        if snk.needsClose {
+            snk.writer.Close()
+        }
     }
     sinks = make([]*sink, 0)
 }
