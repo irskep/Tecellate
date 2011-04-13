@@ -1,6 +1,7 @@
 package logflow
 
 import (
+    "fmt"
     "io"
     "os"
     "regexp"
@@ -14,7 +15,8 @@ type ClosingWriter interface {
 
 type Sink interface {
     MatchesKeypath(string) bool
-    Write([]byte)
+    Write(string, []byte)
+    SetWritesPrefix(bool)
 }
 
 var sinks []*sink = make([]*sink, 0)
@@ -22,13 +24,14 @@ var sinks []*sink = make([]*sink, 0)
 type sink struct {
     keypathRegexp *regexp.Regexp
     writer ClosingWriter
+    writesPrefix bool
 }
 
 func NewSink(w ClosingWriter, matches ...string) (*sink, os.Error) {
     re, err := regexp.Compile(strings.Join([]string{"^", strings.Join(matches, "|"), "$"}, ""))
     var theSink *sink = nil
     if err == nil {
-        theSink = &sink{keypathRegexp: re, writer: w}
+        theSink = &sink{keypathRegexp: re, writer: w, writesPrefix: true}
         sinks = append(sinks, theSink)
     }
     return theSink, err
@@ -43,7 +46,7 @@ func StderrSink(matches ...string) (*sink, os.Error) {
 }
 
 func FileSink(path string, matches ...string) (*sink, os.Error) {
-    f, err := os.Open("logs/agents", os.O_RDWR|os.O_CREAT, 0664)
+    f, err := os.Open(path, os.O_RDWR|os.O_CREAT, 0664)
     if err != nil {
         return nil, err
     }
@@ -63,7 +66,7 @@ func SinksMatchingKeypath(keypath string) []Sink {
 func WriteToSinksMatchingKeypath(keypath string, s []byte) {
     for _, snk := range sinks {
         if snk.MatchesKeypath(keypath) {
-            snk.Write(s)
+            snk.Write(keypath, s)
         }
     }
 }
@@ -83,6 +86,15 @@ func (self *sink) MatchesKeypath(keypath string) bool {
     return self.keypathRegexp.MatchString(keypath)
 }
 
-func (self *sink) Write(s []byte) {
+func (self *sink) Write(prefix string, s []byte) {
+    fmt.Println(self, prefix, string(s))
+    if self.writesPrefix {
+        self.writer.Write([]byte(prefix))
+        self.writer.Write([]byte(": "))
+    }
     self.writer.Write(s)
+}
+
+func (self *sink) SetWritesPrefix(pfx bool) {
+    self.writesPrefix = pfx
 }

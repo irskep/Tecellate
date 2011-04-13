@@ -58,10 +58,10 @@ func NewSource(keypath string) *source {
 
 func (self *source) LOutput(level LogLevel, s string) os.Error {
     buf := new(bytes.Buffer)
-    buf.WriteString(self.keypath)
-    buf.WriteByte('/')
-    buf.WriteString(string(level))
-    buf.WriteString(": ")
+    // buf.WriteString(self.keypath)
+    // buf.WriteByte('/')
+    // buf.WriteString(string(level))
+    // buf.WriteString(": ")
     buf.WriteString(s)
     if len(s) > 0 && s[len(s)-1] != '\n' {
         buf.WriteByte('\n')
