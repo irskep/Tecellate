@@ -3,8 +3,7 @@ package agent
 import (
     "fmt"
     "time"
-    "log"
-    "os"
+    "logflow"
 )
 import (
     "agent/link"
@@ -15,7 +14,7 @@ type AgentProxy struct {
     state *AgentState
     snd link.SendLink
     rcv link.RecvLink
-    log *log.Logger
+    log logflow.Logger
 }
 
 func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
@@ -23,7 +22,7 @@ func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
 //     self.state = NewAgentState(0, geo.NewPoint(0, 0), 0)
     self.snd = send
     self.rcv = recv
-    self.log = log.New(os.Stdout, "AgentProxy : ", 0)
+    self.log = logflow.NewSource("agentproxy")
     return self
 }
 

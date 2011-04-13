@@ -58,7 +58,9 @@ import (
 
 func initLogs(t *testing.T) {
     logflow.NewSink(logflow.NewTestWriter(t), ".*")
-    logflow.FileSink("logs/agents", "agent/.*")
+    logflow.FileSink("logs/TestWith2Coord_2Agents_agents", "agent/.*")
+    ap, _ := logflow.FileSink("logs/TestWith2Coord_2Agents_agentproxies", "agentproxy/.*")
+    ap.SetWritesPrefix(false)
 }
 
 func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *cagent.AgentProxy {
