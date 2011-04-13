@@ -23,7 +23,9 @@ func (self *Simple) Turn(comm agent.Comm) {
     if self.Id()%2 == 0 {
         x = 1
         y = 0
+        comm.Log("broadcast success", comm.Broadcast(23, []byte("hello_world")))
     } else {
+        comm.Log("broadcast success", comm.Broadcast(23, []byte("hello_world")))
         x = 1
         y = 1
     }
@@ -35,8 +37,7 @@ func (self *Simple) Turn(comm agent.Comm) {
 //     }
 //     comm.Collect()
 //     fmt.Println(comm.Look())
-    comm.Log("listening", string(comm.Listen(23)[:5]))
-    comm.Log("broadcast success", comm.Broadcast(23, []byte("hello")))
+    comm.Log("listening", string(comm.Listen(23)))
 //     fmt.Println(comm.PrevResult())
     comm.Log("my energy", comm.Energy())
     return
