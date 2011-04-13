@@ -75,7 +75,7 @@ func (self *AgentProxy) Turn() bool {
         link.Commands["Move"]:
             argnum(1, func(msg *link.Message) bool {
                 mv := msg.Args[0].(link.Move).Move()
-                if self.state.Mv(&mv) {
+                if self.state.Mv(mv) {
                     self.ack_cmd(msg.Cmd)
                 } else {
                     self.nak_cmd(msg.Cmd)

@@ -54,7 +54,7 @@ func (self *GameState) AgentStates() []cagent.AgentState {
 }
 
 func (self *GameState) MakeRPCResponse() GameStateResponse {
-    return GameStateResponse{self.Turn, self.AgentStates()}
+    return GameStateResponse{self.Turn, self.AgentStates(), self.messages.Msgs}
 }
 
 func (self *GameState) Listen(loc *geo.Point, freq uint8) []byte {
@@ -66,13 +66,13 @@ func (self *GameState) Listen(loc *geo.Point, freq uint8) []byte {
 type GameStateResponse struct {
     Turn uint64
     AgentStates []cagent.AgentState
+    Messages map[uint8][]cagent.Message
 }
 
 func (self GameStateResponse) CopyToHeap() *GameStateResponse {
-    return &GameStateResponse{self.Turn, self.AgentStates}
+    return &GameStateResponse{self.Turn, self.AgentStates, self.Messages}
 }
 
 func (self GameStateResponse) String() string {
-
-    return fmt.Sprintf("Turn %d: %v", self.Turn, self.AgentStates)
+    return fmt.Sprintf("Turn %d: %v (%d messages)", self.Turn, self.AgentStates, len(self.Messages))
 }

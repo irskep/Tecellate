@@ -5,6 +5,7 @@ import pseudo_rand "rand"
 import crypto_rand "crypto/rand"
 import "sort"
 import geo "coord/geometry"
+import cagent "coord/agent"
 import "logflow"
 
 const MessageLength = 11
@@ -14,18 +15,12 @@ const combine_scale = corrupt_scale*3
 
 var log logflow.Logger = logflow.NewSource(fmt.Sprint("message"))
 
-type Message interface {
-    Source() *geo.Point
-    Message() []byte
-    Frequency() uint8
-}
-
 type sortableMessages struct {
-    msgs []Message
+    msgs []cagent.Message
     targ *geo.Point
 }
 type Messages struct {
-    Msgs map[uint8][]Message
+    Msgs map[uint8][]cagent.Message
     Cache map[complex128](map[uint8][]byte)
 }
 
@@ -80,15 +75,15 @@ func corrupt(msg []byte, dist float64) (corrupted []byte) {
 // Messages Methods -----------------------------------------------------------
 func NewMessages() *Messages {
     self := new(Messages)
-    self.Msgs = make(map[uint8][]Message)
+    self.Msgs = make(map[uint8][]cagent.Message)
     self.Cache = make(map[complex128](map[uint8][]byte))
     return self
 }
 
-func (self *Messages) Add(msg Message) {
-    f := msg.Frequency()
+func (self *Messages) Add(msg cagent.Message) {
+    f := msg.Frequency
     if _, has := self.Msgs[f]; !has {
-        self.Msgs[f] = make([]Message, 0, 10)
+        self.Msgs[f] = make([]cagent.Message, 0, 10)
     }
     self.Msgs[f] = append(self.Msgs[f], msg)
 }
@@ -110,9 +105,9 @@ func (self *Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
         }
         msgs.sort()
         for i, M := range msgs.msgs {
-            dist := M.Source().Distance(loc)
+            dist := M.Source.Distance(loc)
             log.Logln(logflow.DEBUG, "message", i, "dist to targ", dist)
-            m := corrupt(M.Message(), dist)
+            m := corrupt(M.Msg, dist)
             log.Logln(logflow.DEBUG, "message", i, "corrupted", string(m), m)
             if i == 0 {
                 msg = m
@@ -151,11 +146,11 @@ func (self *Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
 // messageSlice Methods --------------------------------------------------------
 func newSortableMessages(size int, loc *geo.Point) *sortableMessages {
     return &sortableMessages{
-            msgs:make([]Message, 0, size),
+            msgs:make([]cagent.Message, 0, size),
             targ:loc,
     }
 }
-func (self *sortableMessages) add(msg Message) {
+func (self *sortableMessages) add(msg cagent.Message) {
     self.msgs = append(self.msgs, msg)
 }
 func (self *sortableMessages) sort() *sortableMessages {
@@ -169,7 +164,7 @@ func (self *sortableMessages) Swap(i, j int) {
     self.msgs[i], self.msgs[j] = self.msgs[j], self.msgs[i]
 }
 func (self *sortableMessages) Less(i, j int) bool {
-    a := self.msgs[i].Source().DistanceSquare(self.targ)
-    b := self.msgs[j].Source().DistanceSquare(self.targ)
+    a := self.msgs[i].Source.DistanceSquare(self.targ)
+    b := self.msgs[j].Source.DistanceSquare(self.targ)
     return a < b
 }

@@ -4,8 +4,8 @@ import "fmt"
 import geo "coord/geometry"
 
 type Move struct {
-    Position *geo.Point
-    Messages []*Message
+    Position geo.Point
+    Messages []Message
     Collect bool
     setmv bool
 }
@@ -15,7 +15,7 @@ func (self *AgentState) NewMove() *Move {
     return self.Move
 }
 
-func (self *Move) mv(pos *geo.Point) bool {
+func (self *Move) mv(pos geo.Point) bool {
     if !self.setmv {
         self.Position = pos
         self.setmv = true

@@ -37,7 +37,7 @@ func (self *AgentState) Transform(trans Transform) {
     self.Wait = trans.Wait()
 }
 
-func (self *AgentState) Mv(pos *geo.Point) bool {
+func (self *AgentState) Mv(pos geo.Point) bool {
     return self.Move.mv(pos)
 }
 
