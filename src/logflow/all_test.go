@@ -31,3 +31,10 @@ func TestHookup(t *testing.T) {
     checkLog(t, snk2, "test2/info: DEF\n", w2)
     checkLog(t, snk3, "test1/info: ABC\ntest2/info: DEF\n", w3)
 }
+
+func TestTestWriter(t *testing.T) {
+    NewSink(NewTestWriter(t), ".*")
+    src1 := NewSource("testwriterTest")
+    src1.Println("This test fails on purpose.")
+    t.Fatal("On purpose, I say!")
+}

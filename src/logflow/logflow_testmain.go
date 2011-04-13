@@ -10,6 +10,7 @@ import (
 
 var test_logflow = []testing.InternalTest {
     testing.InternalTest{ "logflow.TestHookup", logflow.TestHookup },
+    testing.InternalTest{ "logflow.TestTestWriter", logflow.TestTestWriter },
 }
 
 
