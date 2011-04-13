@@ -29,6 +29,14 @@ func NewSink(w io.Writer, matches ...string) (*sink, os.Error) {
     return theSink, err
 }
 
+func StdoutSink(matches ...string) (*sink, os.Error) {
+    return NewSink(os.Stdout, matches...)
+}
+
+func StderrSink(matches ...string) (*sink, os.Error) {
+    return NewSink(os.Stderr, matches...)
+}
+
 func SinksMatchingKeypath(keypath string) []Sink {
     matches := make([]Sink, 0)
     for _, snk := range sinks {
