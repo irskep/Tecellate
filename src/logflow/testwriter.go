@@ -17,3 +17,7 @@ func (self *TestWriter) Write(p []byte) (int, os.Error) {
     self.t.Log(string(p[:len(p)-1]))
     return len(p), nil
 }
+
+func (self *TestWriter) Close() os.Error {
+    return nil
+}

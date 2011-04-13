@@ -7,19 +7,24 @@ import (
     "strings"
 )
 
+type ClosingWriter interface {
+    io.Writer
+    io.Closer
+}
+
 type Sink interface {
     MatchesKeypath(string) bool
     Write([]byte)
 }
 
-var sinks []Sink = make([]Sink, 0)
+var sinks []*sink = make([]*sink, 0)
 
 type sink struct {
     keypathRegexp *regexp.Regexp
-    writer io.Writer
+    writer ClosingWriter
 }
 
-func NewSink(w io.Writer, matches ...string) (*sink, os.Error) {
+func NewSink(w ClosingWriter, matches ...string) (*sink, os.Error) {
     re, err := regexp.Compile(strings.Join([]string{"^", strings.Join(matches, "|"), "$"}, ""))
     var theSink *sink = nil
     if err == nil {
@@ -35,6 +40,14 @@ func StdoutSink(matches ...string) (*sink, os.Error) {
 
 func StderrSink(matches ...string) (*sink, os.Error) {
     return NewSink(os.Stderr, matches...)
+}
+
+func FileSink(path string, matches ...string) (*sink, os.Error) {
+    f, err := os.Open("logs/agents", os.O_RDWR|os.O_CREAT, 0664)
+    if err != nil {
+        return nil, err
+    }
+    return NewSink(f, "agent/.*")
 }
 
 func SinksMatchingKeypath(keypath string) []Sink {
@@ -56,7 +69,10 @@ func WriteToSinksMatchingKeypath(keypath string, s []byte) {
 }
 
 func RemoveAllSinks() {
-    sinks = make([]Sink, 0)
+    for _, snk := range sinks {
+        snk.writer.Close()
+    }
+    sinks = make([]*sink, 0)
 }
 
 func (self *sink) String() string {

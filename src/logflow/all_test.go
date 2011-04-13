@@ -2,19 +2,44 @@ package logflow
 
 import (
     "bytes"
+    "os"
     "testing"
 )
 
-func checkLog(t *testing.T, snk Sink, target string, actual *bytes.Buffer) {
+type ClosableBuffer struct {
+    buf *bytes.Buffer
+}
+
+func NewClosableBuffer() *ClosableBuffer {
+    return &ClosableBuffer{new(bytes.Buffer)}
+}
+
+func (self *ClosableBuffer) Write(p []byte) (int, os.Error) {
+    return self.buf.Write(p)
+}
+
+func (self *ClosableBuffer) Close() os.Error {
+    return nil
+}
+
+func (self *ClosableBuffer) String() string {
+    return self.buf.String()
+}
+
+func (self *ClosableBuffer) Bytes() []byte {
+    return self.buf.Bytes()
+}
+
+func checkLog(t *testing.T, snk Sink, target string, actual *ClosableBuffer) {
     if !bytes.Equal([]byte(target), actual.Bytes()) {
         t.Errorf("%v mismatch:\n%v%v)", snk, target, actual.String())
     }
 }
 
 func TestHookup(t *testing.T) {
-    w1 := new(bytes.Buffer)
-    w2 := new(bytes.Buffer)
-    w3 := new(bytes.Buffer)
+    w1 := NewClosableBuffer()
+    w2 := NewClosableBuffer()
+    w3 := NewClosableBuffer()
     snk1, _ := NewSink(w1, "test1/.*")
     snk2, _ := NewSink(w2, "test2/.*")
     snk3, _ := NewSink(w3, "test1/.*", "test2/.*")

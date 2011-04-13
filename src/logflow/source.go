@@ -26,6 +26,22 @@ type Source interface {
     LOutput(LogLevel, int, string) os.Error
 }
 
+type Logger interface {
+    Fatal(...interface{})
+    Fatalf(string, ...interface{})
+    Fatalln(...interface{})
+    Output(int, string) os.Error
+    Panic(...interface{})
+    Panicf(string, ...interface{})
+    Panicln(...interface{})
+    Print(...interface{})
+    Printf(string, ...interface{})
+    Println(...interface{})
+    Log(LogLevel, ...interface{})
+    Logf(LogLevel, string, ...interface{})
+    Logln(LogLevel, ...interface{})
+}
+
 type source struct {
     keypath string
     sinks []Sink
