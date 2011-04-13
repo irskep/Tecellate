@@ -10,26 +10,9 @@ type AgentState struct {
     Turn uint64
     Alive bool
     Position *geo.Point
-    Inventory *Inventory
+    Energy Energy
     Wait uint16  // the number of turns till the next movment
     Move *Move
-}
-
-type Move struct {
-    Position *geo.Point
-    Messages []*Message
-    Collect bool
-    setmv bool
-}
-
-type Message struct {
-    Msg []byte
-    Frequency uint8
-    Source *geo.Point
-}
-
-type Inventory struct {
-    Energy Energy
 }
 
 func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
@@ -39,26 +22,9 @@ func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
         Alive:true,
         Position:pos,
         Wait:0,
-        Inventory:NewInventory(energy),
-    }
-    return self
-}
-
-func NewInventory(energy Energy) *Inventory {
-    return &Inventory{
         Energy:energy,
     }
-}
-
-func (self *AgentState) NewMove() *Move {
-    self.Move = &Move{setmv:false}
-    return self.Move
-}
-
-func (self *AgentState) NewMessage(freq uint8, msg []byte) *Message {
-    m := &Message{Frequency:freq, Msg:msg, Source:self.Position}
-    self.Move.Messages = append(self.Move.Messages, m)
-    return m
+    return self
 }
 
 func (self *AgentState) transform(trans Transform) {
@@ -66,29 +32,13 @@ func (self *AgentState) transform(trans Transform) {
     if trans.Position() != nil {
         self.Position = trans.Position()
     }
-    self.Inventory.Energy = trans.Energy()
+    self.Energy = trans.Energy()
     self.Alive = trans.Alive()
     self.Wait = trans.Wait()
 }
 
 func (self *AgentState) Mv(pos *geo.Point) bool {
     return self.Move.mv(pos)
-}
-
-func (self *Move) mv(pos *geo.Point) bool {
-    if !self.setmv {
-        self.Position = pos
-        self.setmv = true
-        return true
-    }
-    return false
-}
-
-func (self *Move) String() string {
-    if self == nil {
-        return "<nil>"
-    }
-    return fmt.Sprintf("<Move %s %s>", self.Position.String(), self.Messages)
 }
 
 func (self *AgentState) Collect() bool {
@@ -100,15 +50,12 @@ func (self *AgentState) Listen(freq uint8) []byte {
 }
 
 func (self *AgentState) Broadcast(freq uint8, msg []byte) bool {
-    return false
+    ok, _ := self.NewMessage(freq, msg)
+    return ok
 }
 
 func (self *AgentState) PrevResult() bool {
     return false
-}
-
-func (self *AgentState) GetInventory() *Inventory {
-    return self.Inventory
 }
 
 func (self *AgentState) String() string {

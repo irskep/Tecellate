@@ -7,13 +7,15 @@ import (
 )
 import (
     "agent/link"
+    cagent "coord/agent"
 )
 
 type Comm interface {
+    Log(...interface{})
     Look() link.Vision
     Listen(uint8) link.Audio
     Broadcast(uint8, []byte) bool
-    GetInventory() link.Inventory
+    Energy() cagent.Energy
     Move(x, y int) bool
     PrevResult() bool
     Collect() bool
@@ -33,6 +35,8 @@ func StartComm(send link.SendLink, recv link.RecvLink, log *log.Logger) *comm {
     return self
 }
 
+func (self *comm) Log(v ...interface{}) { self.log.Println(v...) }
+
 func (self *comm) ack_start() {
     self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Start"]))
 }
@@ -43,17 +47,22 @@ func (self *comm) id(id uint) {
 
 func (self *comm) complete() bool {
 //     fmt.Println("started complete")
-    return self.acked_send(link.NewMessage(link.Commands["Complete"]))
+    r, _ := self.acked_send(link.NewMessage(link.Commands["Complete"]))
+    return r
 }
 
-func (self *comm) await_cmd_ack(cmd link.Command) bool {
+func (self *comm) await_cmd_ack(cmd link.Command) (bool, link.Arguments) {
     msg := self.recv()
 
-    proc := func(ack bool) bool {
+    proc := func(ack bool) (bool, link.Arguments) {
         switch acked := msg.Args[0].(type) {
         case link.Command:
             if acked == cmd {
-                return ack
+                if ack == true {
+                    return ack, msg.Args
+                } else {
+                    return ack, nil
+                }
             }
         default:
             var s string
@@ -67,7 +76,7 @@ func (self *comm) await_cmd_ack(cmd link.Command) bool {
         panic("unreachable")
     }
 
-    if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
+    if msg.Cmd == link.Commands["Ack"] && len(msg.Args) >= 1 {
         return proc(true)
     } else if msg.Cmd == link.Commands["Nak"] && len(msg.Args) == 1 {
         return proc(false)
@@ -112,7 +121,7 @@ func (self *comm) send(msg *link.Message) {
     }
 }
 
-func (self *comm) acked_send(msg *link.Message) bool {
+func (self *comm) acked_send(msg *link.Message) (bool, link.Arguments) {
     self.send(msg)
     return self.await_cmd_ack(msg.Cmd)
 }
@@ -130,17 +139,24 @@ func (self *comm) Listen(freq uint8) link.Audio {
 }
 
 func (self *comm) Broadcast(freq uint8, msg []byte) bool {
-    return self.acked_send(link.NewMessage(link.Commands["Broadcast"], newBroadcast(freq, msg)))
+    r, _ := self.acked_send(link.NewMessage(link.Commands["Broadcast"], newBroadcast(freq, msg)))
+    return r
 }
 
-func (self *comm) GetInventory() link.Inventory {
-    self.send(link.NewMessage(link.Commands["Inventory"]))
-    self.recv()
-    return nil
+func (self *comm) Energy() cagent.Energy {
+    if ok, args := self.acked_send(link.NewMessage(link.Commands["Energy"])); ok {
+        if len(args) == 2 {
+            switch energy := args[1].(type) {
+            case cagent.Energy:
+                return energy
+            }
+        }
+    }
+    panic("didn't get an energy")
 }
 
 func (self *comm) Move(x,y int) bool {
-    c := self.acked_send(link.NewMessage(link.Commands["Move"], newMove(x, y)))
+    c, _ := self.acked_send(link.NewMessage(link.Commands["Move"], newMove(x, y)))
 //     fmt.Println("completed move")
     return c
 }
@@ -152,5 +168,6 @@ func (self *comm) PrevResult() bool {
 }
 
 func (self *comm) Collect() bool {
-    return self.acked_send(link.NewMessage(link.Commands["Collect"]))
+    r, _ := self.acked_send(link.NewMessage(link.Commands["Collect"]))
+    return r
 }

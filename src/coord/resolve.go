@@ -5,10 +5,11 @@ import cagent "coord/agent"
 import game "coord/game"
 // import geo "coord/geometry"
 
-func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateResponse) []cagent.Transform {
+func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateResponse) ([]cagent.Transform, game.Messages) {
     agents := self.availableGameState.Agents
     transforms := make([]cagent.Transform, len(agents))
-    
+    messages := make(game.Messages)
+
     self.log.Printf("From my neighbors, I see:")
     for _, s := range peerData {
         self.log.Printf("%v", *s)
@@ -32,6 +33,11 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
         <-waiting
     }
 
+    // ---------------------------------------------------------------------
+    //TODO:
+    //  Iterate over peer data to resolve peer turns.
+    // ---------------------------------------------------------------------
+
     // for each agent
     //     construct a StateTransform
     fmt.Println("\n\n---------- Starting Resolve -----------\n")
@@ -47,8 +53,8 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
             t.wait = 0
         }
 
-        if state.Inventory.Energy > 0 {
-            t.energy = state.Inventory.Energy - 1
+        if state.Energy > 0 {
+            t.energy = state.Energy - 1
             t.alive = true
         } else {
             t.energy = 0
@@ -57,6 +63,9 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
 
         if state.Alive && state.Move != nil {
             t.pos = state.Move.Position.Add(state.Position)
+            for _, msg := range state.Move.Messages {
+                messages.Add(msg)
+            }
         } else {
             t.pos = state.Position
         }
@@ -74,8 +83,9 @@ func (self *Coordinator) transformsForNextTurn(peerData []*game.GameStateRespons
     for _, transform := range(transforms) {
         fmt.Println(transform)
     }
+    fmt.Println(messages)
 
 
     fmt.Println("\n---------- Ending Resolve -----------\n\n")
-    return transforms;
+    return transforms, messages;
 }

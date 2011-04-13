@@ -105,9 +105,9 @@ func (self *AgentProxy) Turn() bool {
                 }
                 return false
             }),
-        link.Commands["Inventory"]:
+        link.Commands["Energy"]:
             argnum(0, func(msg *link.Message) bool {
-                self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, self.state.GetInventory()))
+                self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, self.state.Energy))
                 return false
             }),
         link.Commands["PrevResult"]:
@@ -127,6 +127,7 @@ func (self *AgentProxy) Turn() bool {
     complete := make(chan bool)
     self.state.NewMove()
     self.getid()
+    if !self.state.Alive { return false }
     self.log.Println("Starting Turn", self.state.Turn)
     self.log.Println(self.state)
     if !self.start_turn() {
