@@ -70,7 +70,7 @@ func NewCoordinator() *Coordinator {
                         conf: nil,
                         rpcRequestsReceivedConfirmation: make(chan int),
                         nextTurnAvailableSignals: make([]chan int, 0),
-                        log: nil}
+                        log: logflow.NewSource("coord/?")}
 }
 
 func (self *Coordinator) Configure(conf *config.Config) {
