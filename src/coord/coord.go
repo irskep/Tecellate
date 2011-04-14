@@ -50,8 +50,8 @@ func (self CoordinatorSlice) Chain() {
 }
 
 func (self CoordinatorSlice) ChainTCP() {
-    fmt.Println("Exporting channels")
     logflow.Println("main", "Exporting channels")
+    ready := make(chan bool)
     for i, c := range(self) {
         c.InitTCP()
         if i < len(self)-1 {
@@ -60,28 +60,22 @@ func (self CoordinatorSlice) ChainTCP() {
         if i > 0 {
             c.ExportRemote(i-1)
         }
-        c.ListenForRPCConnections()
+        c.ListenForRPCConnections(ready)
     }
-    // fmt.Println("Connecting coordinators")
+    for _, _ = range(self) {
+        <- ready
+    }
     logflow.Println("main", "Connecting coordinators")
     for i, c := range(self) {
         if i < len(self)-1 {
-            // fmt.Printf("Connect %d to %d over TCP\n", i, i+1)
             logflow.Printf("main", "Connect %d to %d over TCP", i, i+1)
             c.ConnectToRPCServer(i+1)
         }
         if i > 0 {
-            // fmt.Printf("Connect %d to %d over TCP\n", i, i-1)
             logflow.Printf("main", "Connect %d to %d over TCP", i, i-1)
             c.ConnectToRPCServer(i-1)
         }
     }
-    // fmt.Println("Closing listeners")
-    logflow.Println("main", "Closing listeners")
-    for _, c := range(self) {
-        c.listener.Close()
-    }
-    // fmt.Println("All done?")
 }
 
 /* Coordinator type */
@@ -92,7 +86,6 @@ type Coordinator struct {
     rpcSendChannels []chan game.GameStateResponse
     rpcRecvChannels []chan GameStateRequest
     conf *config.Config
-    listener net.Listener
     exporter *netchan.Exporter
 
     // RPC server threads send an ints down this channel representing
@@ -174,14 +167,6 @@ func (self *Coordinator) AddRPCChannel(newSendChannel chan game.GameStateRespons
 // REMOTE/PRODUCTION
 
 func (self *Coordinator) InitTCP() {
-    addr_string := fmt.Sprintf("127.0.0.1:%d", 8000+self.conf.Identifier)
-    self.log.Println("Listening at", addr_string)
-    addr, _ := net.ResolveTCPAddr(addr_string)
-    lstn, err := net.ListenTCP(addr.Network(), addr)
-    self.listener = lstn
-    if err != nil {
-        self.log.Fatal(err)
-    }
     self.exporter = netchan.NewExporter()
 }
 
@@ -202,8 +187,24 @@ func (self *Coordinator) ExportRemote(otherID int) {
 	self.AddRPCChannel(ch_send, ch_recv)
 }
 
-func (self *Coordinator) ListenForRPCConnections() {
-    go self.exporter.Serve(self.listener)
+func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
+    go func() {
+        addr_string := fmt.Sprintf("127.0.0.1:%d", 8000+self.conf.Identifier)
+        self.log.Println("Listening at", addr_string)
+        addr, _ := net.ResolveTCPAddr(addr_string)
+        lstn, err := net.ListenTCP(addr.Network(), addr)
+        if err != nil {
+            self.log.Fatal(err)
+        }
+        for i := 0; i < len(self.rpcSendChannels)*2; i++ {
+            ready <- true
+        	conn, err := lstn.Accept()
+        	if err != nil {
+        		self.log.Fatal("listen:", err)
+        	}
+        	go self.exporter.ServeConn(conn)
+        }
+    }()
 }
 
 func (self *Coordinator) ConnectToRPCServer(otherID int) {
