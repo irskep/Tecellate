@@ -30,18 +30,8 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
     agents := self.availableGameState.Agents
     transforms := make([]cagent.Transform, len(agents))
     messages := game.NewMessages(peers)
-
-    self.log.Println("From my neighbors, I see:", peers)
-    for _, s := range peers {
-        self.log.Printf("    %vln", *s)
-    }
     
     self.doTurns(agents)
-
-    // ---------------------------------------------------------------------
-    //TODO:
-    //  Iterate over peer data to resolve peer turns.
-    // ---------------------------------------------------------------------
 
     // for each agent
     //     construct a StateTransform
@@ -50,12 +40,17 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
     moves := make(map[complex128]int, len(agents))
     for _, peerGameState := range(peers) {
         for _, st := range peerGameState.AgentStates {
+            self.log.Print("Marking ", st.Position, " as taken by neighbor")
             moves[st.Position.Complex()] = 1
-            moves[st.Move.Position.Complex()] = 1
+            if st.Move.Valid {
+                self.log.Print("Marking ", st.Position, " as taken by neighbor's transform")
+                moves[st.Move.Position.Complex()] = 1
+            }
         }
     }
     
     for _, agent := range(agents) {
+        self.log.Print("Marking ", agent.State().Position, " as taken by one of my agents")
         moves[agent.State().Position.Complex()] = 1
     }
     
@@ -78,7 +73,7 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
             t.alive = false
         }
 
-        if state.Alive && state.Move != nil {
+        if state.Alive && state.Move.Valid {
             t.pos = *state.Move.Position.Add(state.Position)
             for _, msg := range state.Move.Messages {
                 messages.Add(msg)
@@ -88,18 +83,15 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
         }
         
         if _, has := moves[t.pos.Complex()]; has {
+            self.log.Print("Agent ", state.Id, " bounces from ", t.pos, " to ", state.Position)
             t.pos = state.Position
         } else {
+            self.log.Print("Agent ", state.Id, " moves to ", t.pos)
             moves[t.pos.Complex()] = 1
         }
 
         transforms[i] = t
     }
-
-    for _, transform := range(transforms) {
-        self.log.Println(transform)
-    }
-    self.log.Println(messages)
 
 
     self.log.Println("\n---------- Ending Resolve -----------\n\n")

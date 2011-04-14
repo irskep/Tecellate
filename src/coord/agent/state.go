@@ -12,7 +12,7 @@ type AgentState struct {
     Position geo.Point
     Energy Energy
     Wait uint16  // the number of turns till the next movment
-    Move *Move
+    Move Move
 }
 
 func NewAgentState(turn uint64, pos geo.Point, energy Energy) *AgentState {

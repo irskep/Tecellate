@@ -16,7 +16,7 @@ type Configurable struct {
 }
 
 func New(id uint) *Configurable {
-    return &Configurable{id, 0, 0, false, false, true, false, false, false, false}
+    return &Configurable{id, 0, 0, false, false, false, false, false, false, false}
 }
 
 func (self *Configurable) Turn(comm agent.Comm) {
@@ -24,9 +24,9 @@ func (self *Configurable) Turn(comm agent.Comm) {
     if (self.LogBroadcast) {
         comm.Log("Broadcast success:", broadcasted)
     }
-    success := comm.Move(self.XVelocity, self.YVelocity)
+    comm.Move(self.XVelocity, self.YVelocity)
     if self.LogMove {
-        comm.Logf("Pos: %d, %d (%t)", self.XVelocity, self.YVelocity, success)
+        // comm.Logf("Pos: %v (%t)", self.Position(), success)
     }
     if (self.LogListen) {
         comm.Log("Heard:", string(comm.Listen(23)))

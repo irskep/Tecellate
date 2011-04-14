@@ -42,11 +42,13 @@ func initLogs(name string, t *testing.T) func() {
     }
 }
 
-func makeAgent(id uint, x int, y int) *aproxy.AgentProxy {
+func makeAgent(id uint, x, y, xVelocity, yVelocity int) *aproxy.AgentProxy {
     p2a := make(chan link.Message, 10)
     a2p := make(chan link.Message, 10)
     a := configurable.New(id)
-    a.XVelocity = 1
+    a.XVelocity = xVelocity
+    a.YVelocity = yVelocity
+    a.LogMove = true
     proxy := aproxy.NewAgentProxy(p2a, a2p)
     proxy.SetState(cagent.NewAgentState(0, *geo.NewPoint(x, y), 0))
     go func() {
@@ -70,8 +72,11 @@ func TestLocalInfoPass(t *testing.T) {
 func TestTCPInfoPass(t *testing.T) {
     defer initLogs("TCP info", t)()
     
-    gameconf := NewGameConfig(2, "noise", false, true, 20, 10)
-    gameconf.AddAgent(makeAgent(1, 0, 0))
+    logflow.FileSink("logs/neighbor_test/agents", true, "test|agent/.*")
+    
+    gameconf := NewGameConfig(3, "noise", false, true, 20, 10)
+    gameconf.AddAgent(makeAgent(1, 0, 0, 1, 0))
+    gameconf.AddAgent(makeAgent(2, 4, 0, -1, 0))
     
     coords := gameconf.InitWithTCPChainedLocalCoordinators(2, 10)
     coords.Run()
