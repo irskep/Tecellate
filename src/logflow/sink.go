@@ -54,8 +54,14 @@ func StderrSink(matches ...string) (*sink, os.Error) {
     return newSink, err
 }
 
-func FileSink(path string, matches ...string) (*sink, os.Error) {
-    f, err := os.Open(path, os.O_RDWR|os.O_CREAT, 0664)
+func FileSink(path string, appnd bool, matches ...string) (*sink, os.Error) {
+    var mode int
+    if appnd {
+        mode = os.O_APPEND|os.O_WRONLY|os.O_CREAT
+    } else {
+        mode = os.O_WRONLY|os.O_CREAT
+    }
+    f, err := os.Open(path, mode, 0664)
     if err != nil {
         return nil, err
     }

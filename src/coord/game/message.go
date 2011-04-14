@@ -73,10 +73,16 @@ func corrupt(msg []byte, dist float64) (corrupted []byte) {
 }
 
 // Messages Methods -----------------------------------------------------------
-func NewMessages() *Messages {
+func NewMessages(peers []*GameStateResponse) *Messages {
     self := new(Messages)
     self.Msgs = make(map[uint8][]cagent.Message)
     self.Cache = make(map[complex128](map[uint8][]byte))
+    for _, peer := range peers {
+        for freq, msgs := range peer.Messages {
+            self.Msgs[freq] = make([]cagent.Message, 0, len(msgs)+2)
+            self.Msgs[freq] = append(self.Msgs[freq], msgs...)
+        }
+    }
     return self
 }
 
