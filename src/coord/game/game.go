@@ -57,7 +57,7 @@ func (self *GameState) MakeRPCResponse() GameStateResponse {
     return GameStateResponse{self.Turn, self.AgentStates(), self.messages.Msgs}
 }
 
-func (self *GameState) Listen(loc *geo.Point, freq uint8) []byte {
+func (self *GameState) Listen(loc geo.Point, freq uint8) []byte {
     return self.messages.Hear(loc, freq)
 }
 

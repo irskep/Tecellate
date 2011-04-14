@@ -24,8 +24,9 @@ func (self *Configurable) Turn(comm agent.Comm) {
     if (self.LogBroadcast) {
         comm.Log("Broadcast success:", broadcasted)
     }
-    if !comm.Move(self.XVelocity, self.YVelocity) && self.LogMove {
-        comm.Log("Move failed")
+    success := comm.Move(self.XVelocity, self.YVelocity)
+    if self.LogMove {
+        comm.Logf("Pos: %d, %d (%t)", self.XVelocity, self.YVelocity, success)
     }
     if (self.LogListen) {
         comm.Log("Heard:", string(comm.Listen(23)))

@@ -5,22 +5,13 @@ import aproxy "coord/agent/proxy"
 import game "coord/game"
 // import geo "coord/geometry"
 
-func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) ([]cagent.Transform, *game.Messages) {
-    agents := self.availableGameState.Agents
-    transforms := make([]cagent.Transform, len(agents))
-    messages := game.NewMessages(peers)
-
-    self.log.Println("From my neighbors, I see:", peers)
-    for _, s := range peers {
-        self.log.Printf("    %vln", *s)
-    }
-
+func (self *Coordinator) doTurns(agents []cagent.Agent) {
     exec_turn := func(agent cagent.Agent, done chan<- bool) {
         agent.(*aproxy.AgentProxy).SetGameState(self.availableGameState)
         agent.Turn()
         done <- true
     }
-
+    
     waiting := make(chan bool, len(agents))
     // for each agent
     //     execute the turn
@@ -33,6 +24,19 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
     for _, _ = range(agents) {
         <-waiting
     }
+}
+
+func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) ([]cagent.Transform, *game.Messages) {
+    agents := self.availableGameState.Agents
+    transforms := make([]cagent.Transform, len(agents))
+    messages := game.NewMessages(peers)
+
+    self.log.Println("From my neighbors, I see:", peers)
+    for _, s := range peers {
+        self.log.Printf("    %vln", *s)
+    }
+    
+    self.doTurns(agents)
 
     // ---------------------------------------------------------------------
     //TODO:
@@ -42,7 +46,19 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
     // for each agent
     //     construct a StateTransform
     self.log.Println("\n\n---------- Starting Resolve -----------\n")
-    moves := make(map[complex128]*StateTransform, len(agents))
+    
+    moves := make(map[complex128]int, len(agents))
+    for _, peerGameState := range(peers) {
+        for _, st := range peerGameState.AgentStates {
+            moves[st.Position.Complex()] = 1
+            moves[st.Move.Position.Complex()] = 1
+        }
+    }
+    
+    for _, agent := range(agents) {
+        moves[agent.State().Position.Complex()] = 1
+    }
+    
     for i, agent := range(agents) {
         state := agent.State()
         t := transformFromState(state)
@@ -63,19 +79,18 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
         }
 
         if state.Alive && state.Move != nil {
-            t.pos = state.Move.Position.Add(state.Position)
+            t.pos = *state.Move.Position.Add(state.Position)
             for _, msg := range state.Move.Messages {
                 messages.Add(msg)
             }
         } else {
             t.pos = state.Position
         }
-
-        if _, has := moves[t.pos.Complex()]; !has {
-            moves[t.pos.Complex()] = t
+        
+        if _, has := moves[t.pos.Complex()]; has {
+            t.pos = state.Position
         } else {
-            moves[t.pos.Complex()].pos = moves[t.pos.Complex()].state.Position
-            t.pos = t.state.Position
+            moves[t.pos.Complex()] = 1
         }
 
         transforms[i] = t

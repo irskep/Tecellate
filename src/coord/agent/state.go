@@ -9,13 +9,13 @@ type AgentState struct {
     Id int
     Turn uint64
     Alive bool
-    Position *geo.Point
+    Position geo.Point
     Energy Energy
     Wait uint16  // the number of turns till the next movment
     Move *Move
 }
 
-func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
+func NewAgentState(turn uint64, pos geo.Point, energy Energy) *AgentState {
     self := &AgentState{
         Id:-1,
         Turn:turn,
@@ -29,9 +29,7 @@ func NewAgentState(turn uint64, pos *geo.Point, energy Energy) *AgentState {
 
 func (self *AgentState) Transform(trans Transform) {
     self.Turn = trans.Turn()
-    if trans.Position() != nil {
-        self.Position = trans.Position()
-    }
+    self.Position = trans.Position()
     self.Energy = trans.Energy()
     self.Alive = trans.Alive()
     self.Wait = trans.Wait()

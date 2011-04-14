@@ -48,7 +48,7 @@ func makeAgent(id uint, x int, y int) *aproxy.AgentProxy {
     a := configurable.New(id)
     a.XVelocity = 1
     proxy := aproxy.NewAgentProxy(p2a, a2p)
-    proxy.SetState(cagent.NewAgentState(0, geo.NewPoint(x, y), 0))
+    proxy.SetState(cagent.NewAgentState(0, *geo.NewPoint(x, y), 0))
     go func() {
         agent.Run(a, a2p, p2a)
     }()

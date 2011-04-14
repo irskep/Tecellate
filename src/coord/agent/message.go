@@ -10,7 +10,7 @@ type Message struct {
 }
 
 func (self *AgentState) NewMessage(freq uint8, msg []byte) (bool, Message) {
-    m := Message{Frequency:freq, Msg:msg, Source:*self.Position}
+    m := Message{Frequency:freq, Msg:msg, Source:self.Position}
     self.Move.Messages = append(self.Move.Messages, m)
     return true, m
 }
