@@ -199,7 +199,7 @@ func (self *Coordinator) ExportRemote(otherID int) {
 	    self.log.Fatal(err)
 	}
 	
-    self.peers = append(self.peers, NewCoordProxy(otherID, self.conf.Identifier, ch_recv, ch_send))
+	self.AddRPCChannel(ch_send, ch_recv)
 }
 
 func (self *Coordinator) ListenForRPCConnections() {
@@ -224,6 +224,6 @@ func (self *Coordinator) ConnectToRPCServer(otherID int) {
 	if err != nil {
 	    self.log.Fatal(err)
 	}
-	
-	self.AddRPCChannel(ch_recv, ch_send)
+
+    self.peers = append(self.peers, NewCoordProxy(otherID, self.conf.Identifier, ch_send, ch_recv))
 }

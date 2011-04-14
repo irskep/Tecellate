@@ -56,7 +56,6 @@ func makeAgent(id uint, x int, y int) *aproxy.AgentProxy {
 }
 
 func TestLocalInfoPass(t *testing.T) {
-    return
     // initLogs("Local info", t)
     // 
     // gameconf := NewGameConfig(11, "noise", false, true, 20, 10)
