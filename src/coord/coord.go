@@ -14,6 +14,8 @@ import (
     "logflow"
     "net"
     "netchan"
+    "os"
+    "time"
 )
 
 /* Coordinator bucket and convenience methods */
@@ -198,6 +200,14 @@ func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
         }
         for i := 0; i < len(self.rpcSendChannels)*2; i++ {
             ready <- true
+            // There is a race condition here. There is a very slim chance that the
+            // main thread will unblock (it is waiting for ready) and yet the call to
+            // lstn.Accept() will not have been executed yet, which will cause the
+            // client's netchan import to fail.
+            // However, the chance is extremely slim.
+            self.log.Print("Arbitrarily blocking RPC setups")
+            time.Sleep(1e10)
+            self.log.Print("Now accepting RPC setups")
         	conn, err := lstn.Accept()
         	if err != nil {
         		self.log.Fatal("listen:", err)
@@ -207,16 +217,34 @@ func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
     }()
 }
 
+func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
+    var err os.Error
+    for i := 0; i < 3; i++ {
+        self.log.Print("Making importer")
+        conn, err := net.Dial(network, "", remoteaddr)
+        if err == nil {
+            self.log.Print("It worked!")
+            return netchan.NewImporter(conn)
+        }
+        self.log.Print("It failed.")
+        time.Sleep(1e9/2)
+    }
+    self.log.Print("Big time.")
+    self.log.Fatal(err)
+    return nil
+}
+
 func (self *Coordinator) ConnectToRPCServer(otherID int) {
     ch_send := make(chan GameStateRequest)
     ch_recv := make(chan game.GameStateResponse)
 
-    imp, err := netchan.Import("tcp", fmt.Sprintf("127.0.0.1:%d", 8000+otherID))
-    if err != nil {
-	    self.log.Fatal(err)
-	}
+    imp := self.makeImporterWithRetry("tcp", fmt.Sprintf("127.0.0.1:%d", 8000+otherID))
+    //     imp, err := netchan.Import("tcp", fmt.Sprintf("127.0.0.1:%d", 8000+otherID))
+    //     if err != nil {
+    //     self.log.Fatal(err)
+    // }
 
-	err = imp.Import(fmt.Sprintf("coord_req_%d", self.conf.Identifier), ch_send, netchan.Send, 1)
+	err := imp.Import(fmt.Sprintf("coord_req_%d", self.conf.Identifier), ch_send, netchan.Send, 1)
 	if err != nil {
 	    self.log.Fatal(err)
 	}
