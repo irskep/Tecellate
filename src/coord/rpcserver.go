@@ -23,11 +23,7 @@ func (self *Coordinator) serveRPCRequestsOnChannels(identifier int,
         self.log.Printf("(%d) Now serving a request for turn %d", identifier, i)
         
         // Read a request
-        var request GameStateRequest
-        request = <- requestChannel
-        
-        // Build a response object
-        self.log.Printf("Sender %d asked for %d, sending %d", request.SenderIdentifier, self.availableGameState.Turn, i)
+        request := <- requestChannel
         
         // Send the response
         responseChannel <- self.availableGameState.MakeRPCResponse()

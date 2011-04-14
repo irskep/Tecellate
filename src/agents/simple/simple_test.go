@@ -90,7 +90,7 @@ func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy
     prox := make(chan link.Message, 10)
     simple := NewSimple(id)
     proxy := aproxy.NewAgentProxy(prox, agnt)
-    proxy.SetState(cagent.NewAgentState(0, pos, energy))
+    proxy.SetState(cagent.NewAgentState(0, *pos, energy))
     go func() {
         agent.Run(simple, agnt, prox)
     }()

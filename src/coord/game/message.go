@@ -17,7 +17,7 @@ var log logflow.Logger = logflow.NewSource(fmt.Sprint("message"))
 
 type sortableMessages struct {
     msgs []cagent.Message
-    targ *geo.Point
+    targ geo.Point
 }
 type Messages struct {
     Msgs map[uint8][]cagent.Message
@@ -103,7 +103,7 @@ func (self *Messages) Add(msg cagent.Message) {
     self.Msgs[f] = append(self.Msgs[f], msg)
 }
 
-func (self *Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
+func (self *Messages) Hear(loc geo.Point, freq uint8) (msg []byte) {
     if freqs, has := self.Cache[loc.Complex()]; has {
         if m, has := freqs[freq]; has{
 //             log.Logln(logflow.DEBUG, "Cached!", loc, freq, m)
@@ -159,7 +159,7 @@ func (self *Messages) Hear(loc *geo.Point, freq uint8) (msg []byte) {
 }
 
 // messageSlice Methods --------------------------------------------------------
-func newSortableMessages(size int, loc *geo.Point) *sortableMessages {
+func newSortableMessages(size int, loc geo.Point) *sortableMessages {
     return &sortableMessages{
             msgs:make([]cagent.Message, 0, size),
             targ:loc,

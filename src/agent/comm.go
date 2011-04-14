@@ -12,6 +12,7 @@ import (
 
 type Comm interface {
     Log(...interface{})
+    Logf(string, ...interface{})
     Look() link.Vision
     Listen(uint8) []byte
     Broadcast(uint8, []byte) bool
@@ -36,6 +37,7 @@ func StartComm(send link.SendLink, recv link.RecvLink, log logflow.Logger) *comm
 }
 
 func (self *comm) Log(v ...interface{}) { self.log.Println(v...) }
+func (self *comm) Logf(format string, v ...interface{}) { self.log.Printf(format, v...) }
 
 func (self *comm) ack_start() {
     self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Start"]))

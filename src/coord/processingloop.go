@@ -10,6 +10,7 @@ import geo "coord/geometry"
 // )
 
 func (self *Coordinator) ProcessTurns(complete chan bool) {
+    self.log.Println("My agents:", self.availableGameState.Agents)
     for i := 0; i < self.conf.MaxTurns; i++ {
 
         self.log.Printf("Making turn %d available", i)
