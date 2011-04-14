@@ -8,8 +8,8 @@ import geo "coord/geometry"
 import cagent "coord/agent"
 import "logflow"
 
-const MessageLength = 11
-const hearing_range = 10.0
+const MessageLength = 128
+const HearingRange = 10.0
 const corrupt_scale = 1.137
 const combine_scale = corrupt_scale*3
 
@@ -47,10 +47,19 @@ func randbyte() byte {
 }
 func randbytes(k int) []byte {
     bytes := make([]byte, k)
-    if n, err := crypto_rand.Read(bytes); n == k && err == nil {
-        return bytes
+    cbytes := bytes[:]
+
+    for
+        n, err := crypto_rand.Read(cbytes);
+        n < k;
+        n, err = crypto_rand.Read(cbytes) {
+            if err != nil {
+                panic("Can't get random bytes.")
+            }
+            k = k-n
+            cbytes = cbytes[n:]
     }
-    panic("Can't get random byte.")
+    return bytes
 }
 func corrupt(msg []byte, dist float64) (corrupted []byte) {
     corrupted = make([]byte, MessageLength)
@@ -58,11 +67,11 @@ func corrupt(msg []byte, dist float64) (corrupted []byte) {
         var cur byte
         if i < len(msg) { cur = msg[i] } else { cur = randbyte() }
         randfloat := pseudo_rand.Float64()
-        prob := 1.0/(dist/(hearing_range*corrupt_scale))
-        log.Logln(logflow.DEBUG, cur,
-            dist > hearing_range && randfloat > prob,
-            randfloat, prob)
-        if dist > hearing_range && randfloat > prob {
+        prob := 1.0/(dist/(HearingRange*corrupt_scale))
+//         log.Logln(logflow.DEBUG, cur,
+//             dist > HearingRange && randfloat > prob,
+//             randfloat, prob)
+        if dist > HearingRange && randfloat > prob {
             corrupted[i] = cur ^ randbyte()
 //             log.Logln(logflow.DEBUG, "corrupted byte ", cur, corrupted[i])
         } else {
@@ -97,14 +106,14 @@ func (self *Messages) Add(msg cagent.Message) {
 func (self *Messages) Hear(loc geo.Point, freq uint8) (msg []byte) {
     if freqs, has := self.Cache[loc.Complex()]; has {
         if m, has := freqs[freq]; has{
-            log.Println("Cached!")
+//             log.Logln(logflow.DEBUG, "Cached!", loc, freq, m)
             return m
         }
     }
 
     msg = make([]byte, MessageLength)
     if messages, has := self.Msgs[freq]; has {
-        log.Logln(logflow.DEBUG, "have a message on freq ", freq)
+//         log.Logln(logflow.DEBUG, "have a message on freq ", freq)
         msgs := newSortableMessages(len(messages), loc)
         for _, msg := range messages {
             msgs.add(msg)
@@ -112,31 +121,31 @@ func (self *Messages) Hear(loc geo.Point, freq uint8) (msg []byte) {
         msgs.sort()
         for i, M := range msgs.msgs {
             dist := M.Source.Distance(loc)
-            log.Logln(logflow.DEBUG, "message", i, "dist to targ", dist)
+//             log.Logln(logflow.DEBUG, "message", i, "dist to targ", dist)
             m := corrupt(M.Msg, dist)
-            log.Logln(logflow.DEBUG, "message", i, "corrupted", string(m), m)
+//             log.Logln(logflow.DEBUG, "message", i, "corrupted", string(m), m)
             if i == 0 {
                 msg = m
             } else {
                 for j, byt := range m {
                     randfloat := pseudo_rand.Float64()
-                    prob := 1.0/(dist/(hearing_range/combine_scale))
-                    decision := dist <= hearing_range || randfloat <= prob
-                    log.Logln(logflow.DEBUG, msg[j], byt,
-                        decision,
-                        randfloat, prob)
+                    prob := 1.0/(dist/(HearingRange/combine_scale))
+                    decision := dist <= HearingRange || randfloat <= prob
+//                     log.Logln(logflow.DEBUG, msg[j], byt,
+//                         decision,
+//                         randfloat, prob)
                     if decision {
                         var r byte
                         if msg[j] == byt { r = msg[j] } else { r = msg[j] & (^byt) }
-                        log.Logln(logflow.DEBUG, "combining", j, msg[j], byt, r)
+//                         log.Logln(logflow.DEBUG, "combining", j, msg[j], byt, r)
                         msg[j] = r
                     }
                 }
             }
-            log.Logln(logflow.DEBUG, "message", i, "acc", string(msg), msg)
+//             log.Logln(logflow.DEBUG, "message", i, "acc", string(msg), msg)
         }
     } else {
-        log.Logln(logflow.DEBUG, "don't have a message on freq ", freq)
+//         log.Logln(logflow.DEBUG, "don't have a message on freq ", freq)
         msg = randbytes(MessageLength)
     }
 
