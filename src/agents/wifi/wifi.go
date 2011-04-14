@@ -7,15 +7,39 @@ File: agents/wifi/wifi.go
 
 package wifi
 
-import "agent"
 import "fmt"
+import pseudo_rand "rand"
+import crypto_rand "crypto/rand"
+import "agent"
 import "logflow"
+import . "byteslice"
 
+// initializer for random number generator -------------------------------------
+func randbytes(k int) ByteSlice {
+    bytes := make(ByteSlice, k)
+    cbytes := bytes[:]
+    for
+        n, err := crypto_rand.Read(cbytes);
+        n < k;
+        n, err = crypto_rand.Read(cbytes) {
+            if err != nil {
+                panic("Can't get random bytes.")
+            }
+            k = k-n
+            cbytes = cbytes[n:]
+    }
+    return bytes
+}
+func init() {
+    pseudo_rand.Seed(int64(randbytes(8).Int64()))
+}
+
+// WifiBot ---------------------------------------------------------------------
 type WifiBot struct {
     id uint32
     logger logflow.Logger
-    time uint32
-    state uint32
+    time uint
+    hello *HelloMachine
 }
 
 func NewWifiBot(id uint) *WifiBot {
@@ -23,12 +47,17 @@ func NewWifiBot(id uint) *WifiBot {
         id:uint32(id),
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/%d", id)),
     }
-    logflow.FileSink("logs/wifi/all", true, ".*")
+    self.hello = NewHelloMachine(self)
+//     logflow.FileSink("logs/wifi/all", true, ".*")
     return self
 }
 
 func (self *WifiBot) log(level logflow.LogLevel, v ...interface{}) {
     self.logger.Logln(level, v...)
+}
+
+func (self *WifiBot) Time() uint {
+    return self.time
 }
 
 func (self *WifiBot) Id() uint {
@@ -37,14 +66,6 @@ func (self *WifiBot) Id() uint {
 
 func (self *WifiBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
-    self.hello(comm)
-    pkt_1 := MakePacket(comm.Listen(1))
-    self.log("info", self.time, pkt_1)
-    return
+    self.hello.Run(comm)
 }
 
-func (self *WifiBot) hello(comm agent.Comm) {
-    pkt := NewPacket(Commands["HELLO"])
-    bytes := pkt.Bytes()
-    comm.Broadcast(1, bytes)
-}

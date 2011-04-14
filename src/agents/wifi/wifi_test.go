@@ -56,10 +56,17 @@ func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy
 func TestAnnounce_2Agents(t *testing.T) {
     defer initLogs("TestAnnounce_2Agents", t)()
 
-    gameconf := coord.NewGameConfig(10, "noise", true, false, 50, 50)
-    gameconf.AddAgent(makeAgent(1, geo.NewPoint(1, 1), 10))
-    gameconf.AddAgent(makeAgent(2, geo.NewPoint(3, 3), 10))
-//     gameconf.AddAgent(makeAgent(3, geo.NewPoint(5, 5), 10))
+    var time cagent.Energy = 100
+    gameconf := coord.NewGameConfig(int(time), "noise", true, false, 50, 50)
+    gameconf.AddAgent(makeAgent(1, geo.NewPoint(1, 1), time))
+    gameconf.AddAgent(makeAgent(2, geo.NewPoint(3, 3), time))
+    gameconf.AddAgent(makeAgent(3, geo.NewPoint(5, 5), time))
+    gameconf.AddAgent(makeAgent(4, geo.NewPoint(7, 7), time))
+    gameconf.AddAgent(makeAgent(5, geo.NewPoint(9, 9), time))
+    gameconf.AddAgent(makeAgent(6, geo.NewPoint(11, 11), time))
+    gameconf.AddAgent(makeAgent(7, geo.NewPoint(13, 13), time))
+    gameconf.AddAgent(makeAgent(8, geo.NewPoint(15, 15), time))
+    gameconf.AddAgent(makeAgent(9, geo.NewPoint(17, 17), time))
 
     coords := gameconf.InitWithChainedLocalCoordinators(1, 50)
     coords.Run()

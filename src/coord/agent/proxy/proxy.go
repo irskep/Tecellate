@@ -137,8 +137,8 @@ func (self *AgentProxy) Turn() bool {
     self.state.NewMove()
     self.getid()
     if !self.state.Alive { return false }
-    self.log.Println("Starting Turn", self.state.Turn)
-    self.log.Println(self.state)
+//     self.log.Println("Starting Turn", self.state.Turn)
+//     self.log.Println(self.state)
     if !self.start_turn() {
         return false
     }
@@ -157,7 +157,7 @@ func (self *AgentProxy) Turn() bool {
         return
     }(complete)
     c := <-complete
-    self.log.Println("Ending Turn", self.state.Turn)
+//     self.log.Println("Ending Turn", self.state.Turn)
     return c
 }
 
@@ -196,7 +196,7 @@ func (self *AgentProxy) recv() (bool, *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.rcv:
-        self.log.Logf("proto", "recv : %v", msg)
+//         self.log.Logf("proto", "recv : %v", msg)
         return true, &msg
     case <-timeout.C:
         timeout.Stop()
@@ -211,7 +211,7 @@ func (self *AgentProxy) send(msg *link.Message) bool {
     case m := <-self.rcv:
         self.log.Println("recv unresolved message", m)
     case self.snd <- *msg:
-        self.log.Logf("proto", "sent : %v", msg)
+//         self.log.Logf("proto", "sent : %v", msg)
         return true
     case <-timeout.C:
         timeout.Stop()
