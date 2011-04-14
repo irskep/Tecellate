@@ -1,7 +1,7 @@
 package coord
 
 import geo "coord/geometry"
-import game "coord/game"
+import "coord/game"
 
 import (
     "fmt"
@@ -21,12 +21,12 @@ type GameStateRequest struct {
 type CoordinatorProxy struct {
     Identifier int
     parentIdentifier int
-    sendChannel chan interface{}
-    recvChannel chan interface{}
+    sendChannel chan GameStateRequest
+    recvChannel chan game.GameStateResponse
     log logflow.Logger
 }
 
-func NewCoordProxy(identifier int, parentIdentifier int, sendChan chan interface{}, recvChan chan interface{}) *CoordinatorProxy {
+func NewCoordProxy(identifier int, parentIdentifier int, sendChan chan GameStateRequest, recvChan chan game.GameStateResponse) *CoordinatorProxy {
     return &CoordinatorProxy{identifier, 
                              parentIdentifier, 
                              sendChan, 
@@ -34,7 +34,7 @@ func NewCoordProxy(identifier int, parentIdentifier int, sendChan chan interface
                              logflow.NewSource(fmt.Sprintf("coordproxy/%d/%d: ", parentIdentifier, identifier))}
 }
 
-func (self *CoordinatorProxy) request(request interface{}) interface{} {
+func (self *CoordinatorProxy) request(request GameStateRequest) game.GameStateResponse {
     self.sendChannel <- request
     
     timeout := time.NewTicker(timeout)
@@ -55,7 +55,7 @@ func (self *CoordinatorProxy) RequestStatesInBox(turn int,
     self.log.Printf("req: %v", request)
     response := self.request(request)
     self.log.Printf("rsp: %v", response)
-    return (response.(game.GameStateResponse)).CopyToHeap()
+    return response.CopyToHeap()
 }
 
 func (self *CoordinatorProxy) SendComplete() {

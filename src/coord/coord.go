@@ -50,6 +50,8 @@ func (self CoordinatorSlice) Chain() {
 }
 
 func (self CoordinatorSlice) ChainTCP() {
+    fmt.Println("Exporting channels")
+    logflow.Println("main", "Exporting channels")
     for i, c := range(self) {
         c.InitTCP()
         if i < len(self)-1 {
@@ -60,19 +62,26 @@ func (self CoordinatorSlice) ChainTCP() {
         }
         c.ListenForRPCConnections()
     }
+    // fmt.Println("Connecting coordinators")
+    logflow.Println("main", "Connecting coordinators")
     for i, c := range(self) {
         if i < len(self)-1 {
+            // fmt.Printf("Connect %d to %d over TCP\n", i, i+1)
             logflow.Printf("main", "Connect %d to %d over TCP", i, i+1)
             c.ConnectToRPCServer(i+1)
         }
         if i > 0 {
+            // fmt.Printf("Connect %d to %d over TCP\n", i, i-1)
             logflow.Printf("main", "Connect %d to %d over TCP", i, i-1)
             c.ConnectToRPCServer(i-1)
         }
     }
+    // fmt.Println("Closing listeners")
+    logflow.Println("main", "Closing listeners")
     for _, c := range(self) {
         c.listener.Close()
     }
+    // fmt.Println("All done?")
 }
 
 /* Coordinator type */
@@ -80,8 +89,8 @@ func (self CoordinatorSlice) ChainTCP() {
 type Coordinator struct {
     availableGameState *game.GameState
     peers []*CoordinatorProxy
-    rpcSendChannels []chan interface{}
-    rpcRecvChannels []chan interface{}
+    rpcSendChannels []chan game.GameStateResponse
+    rpcRecvChannels []chan GameStateRequest
     conf *config.Config
     listener net.Listener
     exporter *netchan.Exporter
@@ -108,8 +117,8 @@ type Coordinator struct {
 func NewCoordinator() *Coordinator {
     return &Coordinator{availableGameState: game.NewGameState(),
                         peers: make([]*CoordinatorProxy, 0),
-                        rpcSendChannels: make([]chan interface{}, 0),
-                        rpcRecvChannels: make([]chan interface{}, 0),
+                        rpcSendChannels: make([]chan game.GameStateResponse, 0),
+                        rpcRecvChannels: make([]chan GameStateRequest, 0),
                         rpcRequestsReceivedConfirmation: make(chan int),
                         nextTurnAvailableSignals: make([]chan int, 0),
                         log: logflow.NewSource("coord/?")}
@@ -140,18 +149,18 @@ func (self *Coordinator) GetGameState() *game.GameState {
 // Set up a connection with another coordinator in the same process.
 func (self *Coordinator) ConnectToLocal(other *Coordinator) {
     // We communicate over this channel instead of a netchan
-    newSendChannel := make(chan interface{})
-    newRecvChannel := make(chan interface{})
+    newSendChannel := make(chan game.GameStateResponse)
+    newRecvChannel := make(chan GameStateRequest)
 
     // Add a proxy for new peer
-    self.peers = append(self.peers, NewCoordProxy(other.conf.Identifier, self.conf.Identifier, newSendChannel, newRecvChannel))
+    self.peers = append(self.peers, NewCoordProxy(other.conf.Identifier, self.conf.Identifier, newRecvChannel, newSendChannel))
 
     // Tell peer to listen for RPC requests from me
-    other.AddRPCChannel(newRecvChannel, newSendChannel)
+    other.AddRPCChannel(newSendChannel, newRecvChannel)
 }
 
 // Set up the server end of an RPC relationship
-func (self *Coordinator) AddRPCChannel(newSendChannel chan interface{}, newRecvChannel chan interface{}) {
+func (self *Coordinator) AddRPCChannel(newSendChannel chan game.GameStateResponse, newRecvChannel chan GameStateRequest) {
     // Add the given channel to a list of RPC channels to be read later
     self.rpcSendChannels = append(self.rpcSendChannels, newSendChannel)
     self.rpcRecvChannels = append(self.rpcRecvChannels, newRecvChannel)
@@ -177,8 +186,8 @@ func (self *Coordinator) InitTCP() {
 }
 
 func (self *Coordinator) ExportRemote(otherID int) {
-    ch_recv := make(chan interface{})
-    ch_send := make(chan interface{})
+    ch_recv := make(chan GameStateRequest)
+    ch_send := make(chan game.GameStateResponse)
     
     err := self.exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
     if err != nil {
@@ -190,7 +199,7 @@ func (self *Coordinator) ExportRemote(otherID int) {
 	    self.log.Fatal(err)
 	}
 	
-    self.peers = append(self.peers, NewCoordProxy(otherID, self.conf.Identifier, ch_send, ch_recv))
+    self.peers = append(self.peers, NewCoordProxy(otherID, self.conf.Identifier, ch_recv, ch_send))
 }
 
 func (self *Coordinator) ListenForRPCConnections() {
@@ -198,23 +207,23 @@ func (self *Coordinator) ListenForRPCConnections() {
 }
 
 func (self *Coordinator) ConnectToRPCServer(otherID int) {
-    ch_send := make(chan interface{})
-    ch_recv := make(chan interface{})
+    ch_send := make(chan GameStateRequest)
+    ch_recv := make(chan game.GameStateResponse)
     
     imp, err := netchan.Import("tcp", fmt.Sprintf("127.0.0.1:%d", 8000+otherID))
     if err != nil {
 	    self.log.Fatal(err)
 	}
 	
-	err = imp.Import(fmt.Sprintf("coord_req_%d", otherID), ch_send, netchan.Send, 1)
+	err = imp.Import(fmt.Sprintf("coord_req_%d", self.conf.Identifier), ch_send, netchan.Send, 1)
 	if err != nil {
 	    self.log.Fatal(err)
 	}
 	
-	err = imp.Import(fmt.Sprintf("coord_rsp_%d", otherID), ch_recv, netchan.Recv, 1)
+	err = imp.Import(fmt.Sprintf("coord_rsp_%d", self.conf.Identifier), ch_recv, netchan.Recv, 1)
 	if err != nil {
 	    self.log.Fatal(err)
 	}
 	
-	self.AddRPCChannel(ch_send, ch_recv)
+	self.AddRPCChannel(ch_recv, ch_send)
 }
