@@ -12,6 +12,8 @@ import (
     "coord/config"
     "fmt"
     "logflow"
+    "net"
+    "netchan"
 )
 
 /* Coordinator bucket and convenience methods */
@@ -37,18 +39,40 @@ func (self CoordinatorSlice) Run() {
 func (self CoordinatorSlice) Chain() {
     for i, c := range(self) {
         if i < len(self)-1 {
-            logflow.Printf("main", "Connect %d to %d", i, i+1)
+            logflow.Printf("main", "Connect %d to %d locally", i, i+1)
             c.ConnectToLocal(self[i+1])
         }
         if i > 0 {
-            logflow.Printf("main", "Connect %d to %d", i, i-1)
+            logflow.Printf("main", "Connect %d to %d locally", i, i-1)
             c.ConnectToLocal(self[i-1])
         }
     }
 }
 
 func (self CoordinatorSlice) ChainTCP() {
-    // UH OH!
+    for i, c := range(self) {
+        c.InitTCP()
+        if i < len(self)-1 {
+            c.ExportRemote(i+1)
+        }
+        if i > 0 {
+            c.ExportRemote(i-1)
+        }
+        c.ListenForRPCConnections()
+    }
+    for i, c := range(self) {
+        if i < len(self)-1 {
+            logflow.Printf("main", "Connect %d to %d over TCP", i, i+1)
+            c.ConnectToRPCServer(i+1)
+        }
+        if i > 0 {
+            logflow.Printf("main", "Connect %d to %d over TCP", i, i-1)
+            c.ConnectToRPCServer(i-1)
+        }
+    }
+    for _, c := range(self) {
+        c.listener.Close()
+    }
 }
 
 /* Coordinator type */
@@ -59,7 +83,9 @@ type Coordinator struct {
     rpcSendChannels []chan interface{}
     rpcRecvChannels []chan interface{}
     conf *config.Config
-
+    listener net.Listener
+    exporter *netchan.Exporter
+    
     // RPC server threads send an ints down this channel representing
     // a turn info request served.
     // So when len(peers) ints are received, the processing loop
@@ -84,7 +110,6 @@ func NewCoordinator() *Coordinator {
                         peers: make([]*CoordinatorProxy, 0),
                         rpcSendChannels: make([]chan interface{}, 0),
                         rpcRecvChannels: make([]chan interface{}, 0),
-                        conf: nil,
                         rpcRequestsReceivedConfirmation: make(chan int),
                         nextTurnAvailableSignals: make([]chan int, 0),
                         log: logflow.NewSource("coord/?")}
@@ -132,30 +157,59 @@ func (self *Coordinator) AddRPCChannel(newSendChannel chan interface{}, newRecvC
     self.nextTurnAvailableSignals = append(self.nextTurnAvailableSignals, make(chan int))
 }
 
-// LOCAL THAT MIMICS REMOTE BETTER
-
-type LocalPeeringRequest struct {
-
-}
-
-func (self *Coordinator) ListenLocal(k int) {
-    go func() {
-        for i := 0; i < k; i++ {
-
-        }
-    }()
-}
-
 // REMOTE/PRODUCTION
 
-// TCP-based version of ConnectToLocal.
-func (self *Coordinator) ConnectToRemote(address []byte) {
-
+func (self *Coordinator) InitTCP() {
+    addr_string := fmt.Sprintf("127.0.0.1:%d", 8000+self.conf.Identifier)
+    self.log.Println("Listening at", addr_string)
+    addr, _ := net.ResolveTCPAddr(addr_string)
+    lstn, err := net.ListenTCP(addr.Network(), addr)
+    self.listener = lstn
+    if err != nil {
+        self.log.Fatal(err)
+    }
+    self.exporter = netchan.NewExporter()
 }
 
-// Rather than having ConnectToRemote call some specific function, have it dial a
-// TCP port which we will listen on, accept connections on, and add those connections
-// to self.rpcSendChannels as netchans.
-func (self *Coordinator) ListenForRPCConnectionSetupRequests(address []byte) {
+func (self *Coordinator) ExportRemote(otherID int) {
+    ch_recv := make(chan interface{})
+    ch_send := make(chan interface{})
+    
+    err := self.exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
+    if err != nil {
+	    self.log.Fatal(err)
+	}
+	
+    err = self.exporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
+	if err != nil {
+	    self.log.Fatal(err)
+	}
+	
+    self.peers = append(self.peers, NewCoordProxy(otherID, self.conf.Identifier, ch_send, ch_recv))
+}
 
+func (self *Coordinator) ListenForRPCConnections() {
+    go self.exporter.Serve(self.listener)
+}
+
+func (self *Coordinator) ConnectToRPCServer(otherID int) {
+    ch_send := make(chan interface{})
+    ch_recv := make(chan interface{})
+    
+    imp, err := netchan.Import("tcp", fmt.Sprintf("127.0.0.1:%d", 8000+otherID))
+    if err != nil {
+	    self.log.Fatal(err)
+	}
+	
+	err = imp.Import(fmt.Sprintf("coord_req_%d", otherID), ch_send, netchan.Send, 1)
+	if err != nil {
+	    self.log.Fatal(err)
+	}
+	
+	err = imp.Import(fmt.Sprintf("coord_rsp_%d", otherID), ch_recv, netchan.Recv, 1)
+	if err != nil {
+	    self.log.Fatal(err)
+	}
+	
+	self.AddRPCChannel(ch_send, ch_recv)
 }
