@@ -3,7 +3,7 @@ package link
 import "fmt"
 import "strings"
 
-const Timeout = 1e9
+const Timeout = 10e9
 
 type SendLink chan<- Message
 type RecvLink <-chan Message
