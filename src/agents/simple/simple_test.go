@@ -70,7 +70,7 @@ func initLogs(name string, t *testing.T) func() {
 
     // Or show all output anyway I guess...
 //     logflow.StdoutSink(".*/info")
-//     logflow.StdoutSink(".*")
+//     logflow.StdoutSink(".*/info")
 
     defer logflow.Println("test", fmt.Sprintf(`
 --------------------------------------------------------------------------------
@@ -103,7 +103,7 @@ func TestWithCoord_2Agents(t *testing.T) {
     gameconf := coord.NewGameConfig(3, "noise", true, false, 50, 50)
     gameconf.AddAgent(makeAgent(1, geo.NewPoint(0, 0), 1))
 //     gameconf.AddAgent(makeAgent(2, geo.NewPoint(10, 1), 1))
-//     gameconf.AddAgent(makeAgent(3, geo.NewPoint(20, 1), 0))
+    gameconf.AddAgent(makeAgent(3, geo.NewPoint(20, 1), 1))
 //     gameconf.AddAgent(makeAgent(4, geo.NewPoint(25, 1), 1))
     gameconf.AddAgent(makeAgent(5, geo.NewPoint(30, 1), 2))
 

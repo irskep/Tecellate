@@ -94,7 +94,7 @@ type Coordinator struct {
     conf *config.Config
     listener net.Listener
     exporter *netchan.Exporter
-    
+
     // RPC server threads send an ints down this channel representing
     // a turn info request served.
     // So when len(peers) ints are received, the processing loop
@@ -188,17 +188,17 @@ func (self *Coordinator) InitTCP() {
 func (self *Coordinator) ExportRemote(otherID int) {
     ch_recv := make(chan GameStateRequest)
     ch_send := make(chan game.GameStateResponse)
-    
+
     err := self.exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
     if err != nil {
 	    self.log.Fatal(err)
 	}
-	
+
     err = self.exporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
 	if err != nil {
 	    self.log.Fatal(err)
 	}
-	
+
 	self.AddRPCChannel(ch_send, ch_recv)
 }
 
@@ -209,17 +209,17 @@ func (self *Coordinator) ListenForRPCConnections() {
 func (self *Coordinator) ConnectToRPCServer(otherID int) {
     ch_send := make(chan GameStateRequest)
     ch_recv := make(chan game.GameStateResponse)
-    
+
     imp, err := netchan.Import("tcp", fmt.Sprintf("127.0.0.1:%d", 8000+otherID))
     if err != nil {
 	    self.log.Fatal(err)
 	}
-	
+
 	err = imp.Import(fmt.Sprintf("coord_req_%d", self.conf.Identifier), ch_send, netchan.Send, 1)
 	if err != nil {
 	    self.log.Fatal(err)
 	}
-	
+
 	err = imp.Import(fmt.Sprintf("coord_rsp_%d", self.conf.Identifier), ch_recv, netchan.Recv, 1)
 	if err != nil {
 	    self.log.Fatal(err)

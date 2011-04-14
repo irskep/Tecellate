@@ -22,13 +22,14 @@ func initLogs(name string, t *testing.T) func() {
     if err != nil {
         panic("Directory logs/neighbor_test could not be created.")
     }
-    
+
     logflow.FileSink("logs/neighbor_test/all", true, ".*")
     logflow.FileSink("logs/neighbor_test/" + name, true, ".*")
+    logflow.FileSink("logs/neighbor_test/debug", true, ".*/debug")
 
     // Or show all output anyway I guess...
 //     logflow.StdoutSink(".*/info")
-    // logflow.StdoutSink(".*")
+//     logflow.StdoutSink(".*/debug")
 
     defer logflow.Println("test", fmt.Sprintf(`
 --------------------------------------------------------------------------------
@@ -57,22 +58,22 @@ func makeAgent(id uint, x int, y int) *aproxy.AgentProxy {
 
 func TestLocalInfoPass(t *testing.T) {
     // initLogs("Local info", t)
-    // 
+    //
     // gameconf := NewGameConfig(11, "noise", false, true, 20, 10)
     // gameconf.AddAgent(makeAgent(1, 0, 0))
-    // 
+    //
     // coords := gameconf.InitWithChainedLocalCoordinators(2, 10)
     // coords.Run()
-    // 
+    //
     // logflow.RemoveAllSinks()
 }
 
 func TestTCPInfoPass(t *testing.T) {
     defer initLogs("TCP info", t)()
-    
+
     gameconf := NewGameConfig(2, "noise", false, true, 20, 10)
     gameconf.AddAgent(makeAgent(1, 0, 0))
-    
+
     coords := gameconf.InitWithTCPChainedLocalCoordinators(2, 10)
     coords.Run()
 }

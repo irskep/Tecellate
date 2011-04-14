@@ -196,7 +196,7 @@ func (self *AgentProxy) recv() (bool, *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
     case msg := <-self.rcv:
-        self.log.Printf("recv : %v", msg)
+        self.log.Logf("proto", "recv : %v", msg)
         return true, &msg
     case <-timeout.C:
         timeout.Stop()
@@ -211,7 +211,7 @@ func (self *AgentProxy) send(msg *link.Message) bool {
     case m := <-self.rcv:
         self.log.Println("recv unresolved message", m)
     case self.snd <- *msg:
-        self.log.Printf("sent : %v", msg)
+        self.log.Logf("proto", "sent : %v", msg)
         return true
     case <-timeout.C:
         timeout.Stop()
