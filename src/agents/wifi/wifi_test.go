@@ -4,7 +4,7 @@ import "testing"
 
 import (
     "os"
-//     "runtime"
+    "runtime"
 )
 import (
     "fmt"
@@ -17,10 +17,10 @@ import (
     "logflow"
 )
 
-/*
+
 func init() {
-    runtime.GOMAXPROCS(2)
-}*/
+    runtime.GOMAXPROCS(1)
+}
 
 func initLogs(name string, t *testing.T) func() {
     // Show all output if test fails
