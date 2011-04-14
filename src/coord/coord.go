@@ -205,9 +205,6 @@ func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
             // lstn.Accept() will not have been executed yet, which will cause the
             // client's netchan import to fail.
             // However, the chance is extremely slim.
-            self.log.Print("Arbitrarily blocking RPC setups")
-            time.Sleep(1e10)
-            self.log.Print("Now accepting RPC setups")
         	conn, err := lstn.Accept()
         	if err != nil {
         		self.log.Fatal("listen:", err)
@@ -218,12 +215,16 @@ func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
 }
 
 func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
+    // This method is actually entirely futile because the race condition we're trying
+    // to account for happens between listener creation and exporter.ServeConn().
+    // An error is only thrown if the listener does not exist, but we must already
+    // have a listener to call ServeConn().
+    // To really fix this, you have to try sending a message down the pipe and see
+    // if it panics.
     var err os.Error
     for i := 0; i < 3; i++ {
-        self.log.Print("Making importer")
         conn, err := net.Dial(network, "", remoteaddr)
         if err == nil {
-            self.log.Print("It worked!")
             return netchan.NewImporter(conn)
         }
         self.log.Print("It failed.")
