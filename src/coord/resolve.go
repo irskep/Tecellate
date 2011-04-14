@@ -83,7 +83,7 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
         }
         
         if _, has := moves[t.pos.Complex()]; has {
-            self.log.Print("Agent ", state.Id, " bounces from ", t.pos, " to ", state.Position)
+            self.log.Print("Agent ", state.Id, " bounces to ", state.Position)
             t.pos = state.Position
         } else {
             self.log.Print("Agent ", state.Id, " moves to ", t.pos)
