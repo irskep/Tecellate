@@ -67,5 +67,8 @@ func (self *WifiBot) Id() uint {
 func (self *WifiBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
     self.hello.Run(comm)
+    if self.time%10 == 0 {
+        self.log("info", self.time, "my nieghbors", self.hello.Neighbors())
+    }
 }
 

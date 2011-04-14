@@ -181,7 +181,7 @@ func (self *AgentProxy) getid() {
 }
 
 func (self *AgentProxy) start_turn() bool {
-    return self.acked_send(link.NewMessage(link.Commands["Start"]))
+    return self.acked_send(link.NewMessage(link.Commands["Start"], self.state.Turn))
 }
 
 func (self *AgentProxy) ack_cmd(cmd link.Command) {

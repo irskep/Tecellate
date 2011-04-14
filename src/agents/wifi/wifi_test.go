@@ -4,6 +4,7 @@ import "testing"
 
 import (
     "os"
+//     "runtime"
 )
 import (
     "fmt"
@@ -16,6 +17,10 @@ import (
     "logflow"
 )
 
+/*
+func init() {
+    runtime.GOMAXPROCS(2)
+}*/
 
 func initLogs(name string, t *testing.T) func() {
     // Show all output if test fails
@@ -56,7 +61,7 @@ func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy
 func TestAnnounce_2Agents(t *testing.T) {
     defer initLogs("TestAnnounce_2Agents", t)()
 
-    var time cagent.Energy = 100
+    var time cagent.Energy = 700
     gameconf := coord.NewGameConfig(int(time), "noise", true, false, 50, 50)
     gameconf.AddAgent(makeAgent(1, geo.NewPoint(1, 1), time))
     gameconf.AddAgent(makeAgent(2, geo.NewPoint(3, 3), time))

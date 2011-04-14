@@ -11,6 +11,8 @@ import . "byteslice"
 
 const (
     BACKOFF = 3
+    HOLDTIME = 150
+    RESET = 200
 )
 
 type HelloMachine struct {
@@ -21,6 +23,7 @@ type HelloMachine struct {
     backoff uint32
     wait uint32
     next_state uint32
+    neighbors map[uint32]uint32
 }
 
 func NewHelloMachine(agent agent.Agent) *HelloMachine {
@@ -28,12 +31,23 @@ func NewHelloMachine(agent agent.Agent) *HelloMachine {
         agent:agent,
         backoff:BACKOFF,
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/hello/%d", agent.Id())),
+        neighbors:make(map[uint32]uint32),
     }
 }
 
 func (self *HelloMachine) Run(comm agent.Comm) {
     self.PerformListens(comm)
     self.PerformSends(comm)
+}
+
+func (self *HelloMachine) Neighbors() []uint32 {
+    neighbors := make([]uint32, 0, len(self.neighbors))
+    for id, time := range self.neighbors {
+        if time + RESET > uint32(self.agent.Time()) {
+            neighbors = append(neighbors, id)
+        }
+    }
+    return neighbors
 }
 
 func (self *HelloMachine) log(level logflow.LogLevel, v ...interface{}) {
@@ -50,7 +64,7 @@ func (self *HelloMachine) confirm_last(comm agent.Comm) (confirm bool) {
 func (self *HelloMachine) hello(comm agent.Comm) {
     pkt := MakeHello(uint32(self.agent.Id()))
     bytes := pkt.Bytes()
-    self.log("info", self.agent.Time(), "sending", pkt)
+//     self.log("info", self.agent.Time(), "sending", pkt)
     comm.Broadcast(1, bytes)
     self.last = bytes
 }
@@ -61,13 +75,14 @@ func (self *HelloMachine) PerformSends(comm agent.Comm) {
             self.hello(comm)
             self.state = 1
         case 1:
+            self.next_state = 0
             if self.confirm_last(comm) {
-                self.state = 3
+//                 self.log("info", self.agent.Time(), "restart")
+                self.state = 2
                 self.backoff = BACKOFF
-                self.wait = self.backoff
+                self.wait = HOLDTIME
             } else {
                 self.state = 2
-                self.next_state = 0
                 self.backoff = uint32(float64(self.backoff)*(pseudo_rand.Float64() + 1.5))
                 self.wait = self.backoff
             }
@@ -95,7 +110,8 @@ func (self *HelloMachine) PerformListens(comm agent.Comm) {
     if !ok { return }
     switch cmd {
         case Commands["HELLO"]:
-            self.log("info", self.agent.Time(), "Got a hello from", pkt.IdField())
+            id := pkt.IdField()
+            self.neighbors[id] = uint32(self.agent.Time())
+//             self.log("info", self.agent.Time(), "Got a hello from", id)
     }
 }
-
