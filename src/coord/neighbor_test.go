@@ -17,7 +17,6 @@ import (
 func initLogs(name string, t *testing.T) func() {
     // Show all output if test fails
     logflow.NewSink(logflow.NewTestWriter(t), ".*")
-    fmt.Println(logflow.AllSinks())
 
     err := os.MkdirAll("logs/neighbor_test", 0776)
     if err != nil {
