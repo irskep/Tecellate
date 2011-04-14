@@ -198,6 +198,11 @@ func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
         }
         for i := 0; i < len(self.rpcSendChannels)*2; i++ {
             ready <- true
+            // There is a race condition here. There is a very slim chance that the
+            // main thread will unblock (it is waiting for ready) and yet the call to
+            // lstn.Accept() will not have been executed yet, which will cause the
+            // client's netchan import to fail.
+            // However, the chance is extremely slim.
         	conn, err := lstn.Accept()
         	if err != nil {
         		self.log.Fatal("listen:", err)
