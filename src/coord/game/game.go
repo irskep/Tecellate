@@ -19,6 +19,7 @@ type GameState struct {
     conf *config.Config
     statesToServe []cagent.AgentState
     messages *Messages
+    myMessages *Messages
 }
 
 func NewGameState() *GameState {
@@ -26,16 +27,18 @@ func NewGameState() *GameState {
         Turn:0,
         Agents:make([]cagent.Agent, 0),
         messages:NewMessages(nil),
+        myMessages:NewMessages(nil),
     }
 }
 
-func (self *GameState) Advance(transforms []cagent.Transform, messages *Messages) {
+func (self *GameState) Advance(transforms []cagent.Transform, messages *Messages, myMessages *Messages) {
     self.Turn += 1
     self.statesToServe = nil
     for i, agent := range(self.Agents) {
         agent.Apply(transforms[i])
     }
     self.messages = messages
+    self.myMessages = myMessages
 }
 
 func (self *GameState) Configure(conf *config.Config) {
@@ -54,7 +57,7 @@ func (self *GameState) AgentStates() []cagent.AgentState {
 }
 
 func (self *GameState) MakeRPCResponse() GameStateResponse {
-    return GameStateResponse{self.Turn, self.AgentStates(), self.messages.Msgs}
+    return GameStateResponse{self.Turn, self.AgentStates(), self.myMessages.Msgs}
 }
 
 func (self *GameState) Listen(loc geo.Point, freq uint8) []byte {

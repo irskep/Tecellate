@@ -69,9 +69,11 @@ func (self *WifiBot) Id() uint {
 func (self *WifiBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
     self.hello.Run(comm)
-    self.route.Run(self.hello.Neighbors(), comm)
-    if self.Time()%100 == 9 {
-        self.log("info", self.Time(), "reachable", self.route.Reachable())
+//     self.route.Run(self.hello.Neighbors(), comm)
+    if self.Time()%10 == 9 {
+        self.log("info", self.Time(), "neighbors", self.hello.Neighbors())
+
+//         self.log("info", self.Time(), "reachable", self.route.Reachable())
 //         s := fmt.Sprintf("\nRoute Table (%v):\n", self.agent.Id())
 //         for i := uint32(1); i <= 8; i++ {
 //             if route, has := self.routes[i]; has {
