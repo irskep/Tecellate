@@ -6,7 +6,7 @@ import . "byteslice"
 
 type TTL uint8
 const DEFAULT_TTL = 128
-const SEND_TTL = 10
+// const SEND_TTL = 10
 
 //                                      TTL  CRC32  ADDRS
 const MessageBodySize = PacketBodySize - 1  -  4  -   8
@@ -28,7 +28,7 @@ func NewMessage(msg ByteSlice, from, dest uint32) *Message {
         DestAddr:dest,
         FromAddr:from,
         TTL:DEFAULT_TTL,
-        SendTTL:SEND_TTL,
+        SendTTL:DEFAULT_TTL/2,
     }
 }
 
@@ -40,12 +40,16 @@ func MakeMessage(msg ByteSlice) *Message {
     ttl       := bytes[8:9]
     message   := bytes[9:len(bytes)-4]
     crc       := bytes[len(bytes)-4:]
+    send_ttl := TTL(ttl.Int8())/2
+    if send_ttl < 10 {
+        send_ttl = 10
+    }
     return &Message{
         Message:message,
         DestAddr:dest_addr.Int32(),
         FromAddr:from_addr.Int32(),
         TTL:TTL(ttl.Int8()),
-        SendTTL:SEND_TTL,
+        SendTTL:send_ttl,
         checksum:crc,
     }
 }

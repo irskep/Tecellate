@@ -71,7 +71,7 @@ func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy
 func TestAnnounce(t *testing.T) {
     defer initLogs("TestAnnounce", t)()
 
-    var time cagent.Energy = 3000
+    var time cagent.Energy = 1000
     gameconf := coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
     gameconf.AddAgent(makeAgent(1, geo.NewPoint(0, 0), time))
     gameconf.AddAgent(makeAgent(2, geo.NewPoint(6, 6), time))
