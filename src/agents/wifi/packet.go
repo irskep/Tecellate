@@ -41,12 +41,22 @@ func MakePacket(bytes ByteSlice) *Packet {
     return self
 }
 
+func MakeHello(id uint32) *Packet {
+    self := NewPacket(Commands["HELLO"])
+    copy(self.pkt[4:8], ByteSlice32(id))
+    return self
+}
+
 func (self *Packet) Cmd() (bool, Command, string) {
     cmd := Command(self.pkt[0])
     if cmd < Command(len(cmdsr)) {
         return true, cmd, cmdsr[cmd]
     }
     return false, 0, ""
+}
+
+func (self *Packet) IdField() uint32 {
+    return ByteSlice(self.pkt[4:8]).Int32()
 }
 
 func (self *Packet) Bytes() ByteSlice {
@@ -71,5 +81,5 @@ func (self *Packet) String() string {
     } else {
         command = "Unknown"
     }
-    return fmt.Sprintf("<Packet cmd:%v %v %v>", command, self.pkt[len(self.pkt)-4:], self.ValidateChecksum())
+    return fmt.Sprintf("<Packet cmd:%v %v %v id:%v>", command, self.pkt[len(self.pkt)-4:], self.ValidateChecksum(), self.IdField())
 }

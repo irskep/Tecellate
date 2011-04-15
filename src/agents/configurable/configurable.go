@@ -42,10 +42,14 @@ func (self *Configurable) Turn(comm agent.Comm) {
     }
     if (self.LogEnergy) {
         comm.Log("Energy:", comm.Energy())
-    }    
+    }
     return
 }
 
 func (self *Configurable) Id() uint {
     return self.id
+}
+
+func (self *Configurable) Time() uint {
+    return 0
 }

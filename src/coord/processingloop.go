@@ -4,10 +4,10 @@ import game "coord/game"
 import geo "coord/geometry"
 // import cagent "coord/agent"
 
-import (
-    "rand"
-    "time"
-)
+// import (
+//     "rand"
+//     "time"
+// )
 
 func (self *Coordinator) ProcessTurns(complete chan bool) {
     self.log.Println("My agents:", self.availableGameState.Agents)
@@ -21,10 +21,10 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         responses := self.peerDataForTurn(i)
         transforms, messages := self.transformsForNextTurn(responses)
 
-        // Stress test to discover race conditions
-        if (self.conf.RandomlyDelayProcessing) {
-            time.Sleep(int64(float64(1e9)*rand.Float64()))
-        }
+//         // Stress test to discover race conditions
+//         if (self.conf.RandomlyDelayProcessing) {
+//             time.Sleep(int64(float64(1e9)*rand.Float64()))
+//         }
 
         // Wait for all RPC requests from peers to go through the other goroutine
         for _, _ = range(self.peers) {

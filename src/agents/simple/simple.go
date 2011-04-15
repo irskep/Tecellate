@@ -48,3 +48,7 @@ func (self *Simple) Turn(comm agent.Comm) {
 func (self *Simple) Id() uint {
     return self.id
 }
+
+func (self *Simple) Time() uint {
+    return 0
+}

@@ -18,6 +18,7 @@ import (
 type Agent interface {
     Turn(Comm)
     Id() uint
+    Time() uint
 }
 
 func Run(agent Agent, send link.SendLink, recv link.RecvLink) {

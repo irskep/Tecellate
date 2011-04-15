@@ -3,7 +3,7 @@ package agent
 import "fmt"
 import geo "coord/geometry"
 
-type Energy uint8
+type Energy uint32
 
 type AgentState struct {
     Id int
