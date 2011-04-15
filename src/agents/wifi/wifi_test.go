@@ -6,7 +6,7 @@ import (
     "os"
     "runtime"
     "fmt"
-    "strings"
+//     "strings"
 )
 import (
     "agent"
@@ -20,7 +20,7 @@ import (
 
 var write_to_sinks logflow.WriteToSinks = logflow.WriteToSinksFunction
 func init() {
-    runtime.GOMAXPROCS(1)
+    runtime.GOMAXPROCS(2)
 }
 
 func initLogs(name string, t *testing.T) func() {
@@ -36,9 +36,9 @@ func initLogs(name string, t *testing.T) func() {
 
     defer func() {
        logflow.WriteToSinksFunction = func(keypath, s string) {
-           if strings.HasPrefix(keypath, "agent/wifi") {
-               fmt.Print(keypath, ": ", s)
-           }
+//            if strings.HasPrefix(keypath, "agent/wifi") {
+//                fmt.Print(keypath, ": ", s)
+//            }
        }
     }()
 
@@ -71,7 +71,7 @@ func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy
 func TestAnnounce(t *testing.T) {
     defer initLogs("TestAnnounce", t)()
 
-    var time cagent.Energy = 500
+    var time cagent.Energy = 5000
     gameconf := coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
     gameconf.AddAgent(makeAgent(1, geo.NewPoint(0, 0), time))
     gameconf.AddAgent(makeAgent(2, geo.NewPoint(6, 6), time))

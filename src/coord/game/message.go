@@ -151,9 +151,12 @@ func (self *Messages) Hear(loc geo.Point, freq uint8) (msg []byte) {
 
 
     if _, has := self.Cache[loc.Complex()]; !has {
-        self.Cache[loc.Complex()] = make(map[uint8][]byte)
+        freq_map := make(map[uint8][]byte)
+        self.Cache[loc.Complex()] = freq_map
+        self.Cache[loc.Complex()][freq] = msg
+    } else {
+        self.Cache[loc.Complex()][freq] = msg
     }
-    self.Cache[loc.Complex()][freq] = msg
 
     return
 }
