@@ -42,5 +42,6 @@ func (self *BufWriter) Write(p []byte) (int, os.Error) {
 }
 
 func (self *BufWriter) Close() os.Error {
+    self.wr.Flush()
     return self.f.Close()
 }
