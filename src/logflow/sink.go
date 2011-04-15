@@ -19,6 +19,14 @@ type Sink interface {
 var sinks []*sink = make([]*sink, 0)
 var sinkCache map[string][]Sink = make(map[string][]Sink)
 
+type WriteToSinks func(string, string)
+
+var WriteToSinksFunction WriteToSinks = func(keypath, s string) {
+    for _, snk := range SinksMatchingKeypath(keypath) {
+        snk.Write(keypath, s)
+    }
+}
+
 type sink struct {
     keypathRegexp *regexp.Regexp
     writer io.WriteCloser
@@ -89,9 +97,7 @@ func SinksMatchingKeypath(keypath string) []Sink {
 }
 
 func WriteToSinksMatchingKeypath(keypath string, s string) {
-    for _, snk := range SinksMatchingKeypath(keypath) {
-        snk.Write(keypath, s)
-    }
+    WriteToSinksFunction(keypath, s)
 }
 
 func RemoveAllSinks() {

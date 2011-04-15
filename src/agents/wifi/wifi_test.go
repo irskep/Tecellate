@@ -5,9 +5,10 @@ import "testing"
 import (
     "os"
     "runtime"
+    "fmt"
+    "strings"
 )
 import (
-    "fmt"
     "agent"
     "agent/link"
     "coord"
@@ -17,7 +18,7 @@ import (
     "logflow"
 )
 
-
+var write_to_sinks logflow.WriteToSinks = logflow.WriteToSinksFunction
 func init() {
     runtime.GOMAXPROCS(1)
 }
@@ -30,8 +31,16 @@ func initLogs(name string, t *testing.T) func() {
     if err != nil {
         panic("Directory logs/wifi could not be created.")
     }
-    logflow.FileSink("logs/wifi/test/" + name, true, ".*")
-    logflow.StdoutSink("agent/wifi.*")
+//     logflow.FileSink("logs/wifi/test/" + name, true, ".*")
+//     logflow.StdoutSink("agent/wifi.*")
+
+    defer func() {
+       logflow.WriteToSinksFunction = func(keypath, s string) {
+           if strings.HasPrefix(keypath, "agent/wifi") {
+               fmt.Print(keypath, ": ", s)
+           }
+       }
+    }()
 
     defer logflow.Println("test", fmt.Sprintf(`
 --------------------------------------------------------------------------------
@@ -43,6 +52,7 @@ func initLogs(name string, t *testing.T) func() {
     End Testing %v
 `, name))
     logflow.RemoveAllSinks()
+    logflow.WriteToSinksFunction = write_to_sinks
     }
 }
 
