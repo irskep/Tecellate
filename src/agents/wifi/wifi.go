@@ -41,6 +41,7 @@ type WifiBot struct {
     time uint
     hello *HelloMachine
     route *RouteMachine
+    send  *SendMachine
 }
 
 func NewWifiBot(id uint) *WifiBot {
@@ -50,6 +51,7 @@ func NewWifiBot(id uint) *WifiBot {
     }
     self.hello = NewHelloMachine(1, self)
     self.route = NewRouteMachine(2, self)
+    self.send = NewSendMachine(3, self)
 //     logflow.FileSink("logs/wifi/all", true, ".*")
     return self
 }
@@ -69,9 +71,16 @@ func (self *WifiBot) Id() uint {
 func (self *WifiBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
     self.hello.Run(comm)
-//     self.route.Run(self.hello.Neighbors(), comm)
-    if self.Time()%10 == 9 {
-        self.log("info", self.Time(), "neighbors", self.hello.Neighbors())
+    self.route.Run(self.hello.Neighbors(), comm)
+    m := self.send.Run(self.route.Routes(), comm)
+    if m != nil {
+        self.log("info", self.Time(), "got a message", string([]byte(m.Body())))
+    }
+    if self.Id() == 8 && self.Time() == 1500 {
+        self.send.Send([]byte("Hello there Number 1."), 1)
+    }
+    if self.Time()%100 == 9 {
+//         self.log("info", self.Time(), "neighbors", self.hello.Neighbors())
 
 //         self.log("info", self.Time(), "reachable", self.route.Reachable())
 //         s := fmt.Sprintf("\nRoute Table (%v):\n", self.agent.Id())

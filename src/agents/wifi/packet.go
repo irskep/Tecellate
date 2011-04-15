@@ -13,7 +13,8 @@ type Packet struct {
     pkt [game.MessageLength]byte
 }
 
-const PacketBodySize = game.MessageLength - 12
+//                                          CMD   ADDRESS   CRC32
+const PacketBodySize = game.MessageLength -  4  -    4    -   4
 
 // init functions --------------------------------------------------------------
 func init() {
