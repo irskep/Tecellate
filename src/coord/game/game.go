@@ -72,10 +72,10 @@ type GameStateResponse struct {
     Messages map[uint8][]cagent.Message
 }
 
-func (self GameStateResponse) CopyToHeap() *GameStateResponse {
+func (self *GameStateResponse) CopyToHeap() *GameStateResponse {
     return &GameStateResponse{self.Turn, self.AgentStates, self.Messages}
 }
 
-func (self GameStateResponse) String() string {
+func (self *GameStateResponse) String() string {
     return fmt.Sprintf("Turn %d: %v (%d messages)", self.Turn, self.AgentStates, len(self.Messages))
 }

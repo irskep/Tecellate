@@ -56,6 +56,6 @@ func (self *AgentState) PrevResult() bool {
     return false
 }
 
-func (self *AgentState) String() string {
+func (self AgentState) String() string {
     return fmt.Sprintf("<AgentState id:%v pos:%v>", self.Id, self.Position.String())
 }
