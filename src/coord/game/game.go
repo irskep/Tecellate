@@ -49,8 +49,8 @@ func (self *GameState) Configure(conf *config.Config) {
 func (self *GameState) AgentStates() []cagent.AgentState {
     if self.statesToServe == nil {
         self.statesToServe = make([]cagent.AgentState, len(self.Agents))
-        for _, agent := range(self.Agents) {
-            self.statesToServe = append(self.statesToServe, *agent.State())
+        for i, agent := range(self.Agents) {
+            self.statesToServe[i] = *agent.State()
         }
     }
     return self.statesToServe
