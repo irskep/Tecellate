@@ -75,7 +75,7 @@ func FileSink(path string, appnd bool, matches ...string) (*sink, os.Error) {
     if err != nil {
         return nil, err
     }
-    newSink, err := NewSink(f, matches...)
+    newSink, err := NewSink(NewBufWriter(f), matches...)
     if newSink == nil {
         return nil, err
     }
