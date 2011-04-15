@@ -16,6 +16,7 @@ const (
 )
 
 type HelloMachine struct {
+    freq uint8
     agent agent.Agent
     logger logflow.Logger
     last ByteSlice
@@ -26,8 +27,9 @@ type HelloMachine struct {
     neighbors map[uint32]uint32
 }
 
-func NewHelloMachine(agent agent.Agent) *HelloMachine {
+func NewHelloMachine(freq uint8, agent agent.Agent) *HelloMachine {
     return &HelloMachine {
+        freq:freq,
         agent:agent,
         backoff:BACKOFF,
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/hello/%d", agent.Id())),
@@ -55,7 +57,7 @@ func (self *HelloMachine) log(level logflow.LogLevel, v ...interface{}) {
 }
 
 func (self *HelloMachine) confirm_last(comm agent.Comm) (confirm bool) {
-    bytes := comm.Listen(1)
+    bytes := comm.Listen(self.freq)
     confirm = self.last.Eq(bytes)
 //     self.log("info", self.agent.Time(), "confirm_last", confirm)
     return
@@ -65,7 +67,7 @@ func (self *HelloMachine) hello(comm agent.Comm) {
     pkt := MakeHello(uint32(self.agent.Id()))
     bytes := pkt.Bytes()
 //     self.log("info", self.agent.Time(), "sending", pkt)
-    comm.Broadcast(1, bytes)
+    comm.Broadcast(self.freq, bytes)
     self.last = bytes
 }
 
@@ -104,7 +106,7 @@ func (self *HelloMachine) PerformListens(comm agent.Comm) {
         case 1:
             return
     }
-    pkt := MakePacket(comm.Listen(1))
+    pkt := MakePacket(comm.Listen(self.freq))
     if !pkt.ValidateChecksum() { return }
     ok, cmd, _ := pkt.Cmd()
     if !ok { return }

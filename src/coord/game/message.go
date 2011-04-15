@@ -107,7 +107,7 @@ func (self *Messages) Add(msg cagent.Message) {
 
 func (self *Messages) Hear(loc geo.Point, freq uint8) (msg []byte) {
     if freqs, has := self.Cache[loc.Complex()]; has {
-        if m, has := freqs[freq]; has{
+        if m, has := freqs[freq]; has {
 //             log.Logln(logflow.DEBUG, "Cached!", loc, freq, m)
             return m
         }

@@ -18,7 +18,7 @@ type Packet struct {
 func init() {
     Commands = make(map[string]Command)
     cmdsr = []string{
-        "HELLO", "ACK", "NAK", "ROUTE",
+        "HELLO", "ACK", "NAK", "ROUTE", "MESSAGE",
     }
     for i, cmd := range cmdsr {
         Commands[cmd] = Command(i)

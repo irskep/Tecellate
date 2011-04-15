@@ -48,8 +48,8 @@ func NewWifiBot(id uint) *WifiBot {
         id:uint32(id),
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/%d", id)),
     }
-    self.hello = NewHelloMachine(self)
-    self.route = NewRouteMachine(self)
+    self.hello = NewHelloMachine(1, self)
+    self.route = NewRouteMachine(2, self)
 //     logflow.FileSink("logs/wifi/all", true, ".*")
     return self
 }

@@ -10,7 +10,10 @@ import . "byteslice"
 const ROUTE_HOLDTIME = 25
 const ROUTE_PAUSE = 10
 
+type RoutingTable map[uint32]*Route
+
 type RouteMachine struct {
+    freq uint8
     agent agent.Agent
     logger logflow.Logger
     last ByteSlice
@@ -18,7 +21,7 @@ type RouteMachine struct {
     backoff uint32
     wait uint32
     next_state uint32
-    routes map[uint32]*Route
+    routes RoutingTable
     route_keys []uint32
     next_route int
 }
@@ -56,8 +59,9 @@ func (self *Route) String() string {
     return fmt.Sprintf("<Route hops:%v dest:%v next:%v>", self.Hops, self.DestAddr, self.NextAddr)
 }
 
-func NewRouteMachine(agent agent.Agent) *RouteMachine {
+func NewRouteMachine(freq uint8, agent agent.Agent) *RouteMachine {
     self := &RouteMachine {
+        freq:freq,
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/route/%d", agent.Id())),
         agent:agent,
         backoff:BACKOFF,
@@ -65,7 +69,7 @@ func NewRouteMachine(agent agent.Agent) *RouteMachine {
         state:2,
         next_state:0,
         next_route:0,
-        routes:make(map[uint32]*Route),
+        routes:make(RoutingTable),
     }
     id := uint32(self.agent.Id())
     self.routes[id] = NewRoute(0, id, id)
@@ -75,6 +79,10 @@ func NewRouteMachine(agent agent.Agent) *RouteMachine {
 
 func (self *RouteMachine) Reachable() []uint32 {
     return self.route_keys
+}
+
+func (self *RouteMachine) Routes() RoutingTable {
+    return self.routes
 }
 
 func (self *RouteMachine) Run(neighbors []uint32, comm agent.Comm) {
@@ -99,7 +107,7 @@ func (self *RouteMachine) set_route_keys() {
 }
 
 func (self *RouteMachine) confirm_last(comm agent.Comm) (confirm bool) {
-    bytes := comm.Listen(2)
+    bytes := comm.Listen(self.freq)
     confirm = self.last.Eq(bytes)
 //     self.log("info", self.agent.Time(), "confirm_last", confirm)
     return
@@ -116,7 +124,7 @@ func (self *RouteMachine) send_route(comm agent.Comm) {
     pkt := NewPacket(Commands["ROUTE"], uint32(self.agent.Id()))
     pkt.SetBody(route.Bytes())
     bytes := pkt.Bytes()
-    comm.Broadcast(2, bytes)
+    comm.Broadcast(self.freq, bytes)
     self.last = bytes
 //     self.log("info", self.agent.Time(), "sent", pkt, route)
 }
@@ -161,7 +169,7 @@ func (self *RouteMachine) PerformListens(comm agent.Comm) {
         case 1:
             return
     }
-    pkt := MakePacket(comm.Listen(2))
+    pkt := MakePacket(comm.Listen(self.freq))
     if !pkt.ValidateChecksum() { return }
     ok, cmd, _ := pkt.Cmd()
     if !ok { return }
