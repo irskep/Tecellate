@@ -41,17 +41,15 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
     moves := make(map[complex128]int, len(agents))
     for _, peerGameState := range(peers) {
         for _, st := range peerGameState.AgentStates {
-            self.log.Println(st.Position, " cannot be moved into (occupied by neighbor-agent)")
             moves[st.Position.Complex()] = 1
             if st.Move.Valid {
-                self.log.Println(st.Move.Position, " cannot be moved into (neighbor-agent intends to move there)")
+                requestedPosition := st.Move.Position.Add(st.Position)
                 moves[st.Move.Position.Complex()] = 1
             }
         }
     }
     
     for _, agent := range(agents) {
-        self.log.Println(agent.State().Position, " cannot be moved into (occupied at start)")
         moves[agent.State().Position.Complex()] = 1
     }
     
