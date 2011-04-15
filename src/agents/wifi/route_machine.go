@@ -7,7 +7,7 @@ import "agent"
 import "logflow"
 import . "byteslice"
 
-const ROUTE_HOLDTIME = 300
+const ROUTE_HOLDTIME = 25
 const ROUTE_PAUSE = 10
 
 type RouteMachine struct {
@@ -79,10 +79,12 @@ func (self *RouteMachine) Run(neighbors []uint32, comm agent.Comm) {
     }
     self.set_route_keys()
     self.PerformListens(comm)
-    if self.agent.Time()%10 == 0 {
+    if self.agent.Time()%10 == 9 {
         s := fmt.Sprintf("\nRoute Table (%v):\n", self.agent.Id())
-        for _, route := range self.routes {
-            s += fmt.Sprint(route, "\n")
+        for i := uint32(1); i <= 8; i++ {
+            if route, has := self.routes[i]; has {
+                s += fmt.Sprint(route, "\n")
+            }
         }
         self.log("info", s)
     }

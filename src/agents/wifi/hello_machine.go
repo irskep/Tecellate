@@ -11,7 +11,7 @@ import . "byteslice"
 
 const (
     BACKOFF = 3
-    HOLDTIME = 70
+    HOLDTIME = 15
     RESET = 250
 )
 
