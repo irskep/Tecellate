@@ -11,8 +11,8 @@ import . "byteslice"
 
 const (
     BACKOFF = 3
-    HOLDTIME = 150
-    RESET = 200
+    HOLDTIME = 70
+    RESET = 250
 )
 
 type HelloMachine struct {

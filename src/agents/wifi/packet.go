@@ -18,7 +18,7 @@ type Packet struct {
 func init() {
     Commands = make(map[string]Command)
     cmdsr = []string{
-        "HELLO", "ACK", "NAK",
+        "HELLO", "ACK", "NAK", "ROUTE",
     }
     for i, cmd := range cmdsr {
         Commands[cmd] = Command(i)
@@ -27,9 +27,10 @@ func init() {
 
 
 // packet methods --------------------------------------------------------------
-func NewPacket(cmd Command) *Packet {
+func NewPacket(cmd Command, id uint32) *Packet {
     self := new(Packet)
     self.pkt[0] = byte(cmd)
+    copy(self.pkt[4:8], ByteSlice32(id))
     return self
 }
 
@@ -42,8 +43,7 @@ func MakePacket(bytes ByteSlice) *Packet {
 }
 
 func MakeHello(id uint32) *Packet {
-    self := NewPacket(Commands["HELLO"])
-    copy(self.pkt[4:8], ByteSlice32(id))
+    self := NewPacket(Commands["HELLO"], id)
     return self
 }
 
@@ -57,6 +57,20 @@ func (self *Packet) Cmd() (bool, Command, string) {
 
 func (self *Packet) IdField() uint32 {
     return ByteSlice(self.pkt[4:8]).Int32()
+}
+
+func (self *Packet) SetBody(bytes ByteSlice) {
+    body := ByteSlice(self.pkt[8:len(self.pkt)-4])
+    copy(body, bytes)
+}
+
+func (self *Packet) GetBody(k int) ByteSlice {
+    bytes_len := len(self.pkt)-12
+    if 0 < k && k < bytes_len { bytes_len = k }
+    body := ByteSlice(self.pkt[8:len(self.pkt)-4])
+    bytes := make(ByteSlice, bytes_len)
+    copy(bytes, body)
+    return bytes
 }
 
 func (self *Packet) Bytes() ByteSlice {
@@ -81,5 +95,5 @@ func (self *Packet) String() string {
     } else {
         command = "Unknown"
     }
-    return fmt.Sprintf("<Packet cmd:%v %v %v id:%v>", command, self.pkt[len(self.pkt)-4:], self.ValidateChecksum(), self.IdField())
+    return fmt.Sprintf("<Packet cmd:%v %v %v id:%v>", command, ByteSlice(self.pkt[len(self.pkt)-4:]), self.ValidateChecksum(), self.IdField())
 }

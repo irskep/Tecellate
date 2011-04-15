@@ -8,7 +8,7 @@ import geo "coord/geometry"
 import cagent "coord/agent"
 import "logflow"
 
-const MessageLength = 128
+const MessageLength = 32
 const HearingRange = 10.0
 const corrupt_scale = 1.137
 const combine_scale = corrupt_scale*3

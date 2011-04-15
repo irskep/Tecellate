@@ -40,6 +40,7 @@ type WifiBot struct {
     logger logflow.Logger
     time uint
     hello *HelloMachine
+    route *RouteMachine
 }
 
 func NewWifiBot(id uint) *WifiBot {
@@ -48,6 +49,7 @@ func NewWifiBot(id uint) *WifiBot {
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/%d", id)),
     }
     self.hello = NewHelloMachine(self)
+    self.route = NewRouteMachine(self)
 //     logflow.FileSink("logs/wifi/all", true, ".*")
     return self
 }
@@ -67,8 +69,6 @@ func (self *WifiBot) Id() uint {
 func (self *WifiBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
     self.hello.Run(comm)
-    if self.time%10 == 0 {
-        self.log("info", self.time, "my nieghbors", self.hello.Neighbors())
-    }
+    self.route.Run(self.hello.Neighbors(), comm)
 }
 
