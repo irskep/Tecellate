@@ -7,6 +7,7 @@ import "sort"
 import geo "coord/geometry"
 import cagent "coord/agent"
 import "logflow"
+import "sync"
 
 const MessageLength = 32
 const HearingRange = 10.0
@@ -22,6 +23,7 @@ type sortableMessages struct {
 type Messages struct {
     Msgs map[uint8][]cagent.Message
     Cache map[complex128](map[uint8][]byte)
+    mu sync.Mutex
 }
 
 // initializer for random number generator -------------------------------------
@@ -149,14 +151,12 @@ func (self *Messages) Hear(loc geo.Point, freq uint8) (msg []byte) {
         msg = randbytes(MessageLength)
     }
 
-
+    self.mu.Lock()
     if _, has := self.Cache[loc.Complex()]; !has {
-        freq_map := make(map[uint8][]byte)
-        self.Cache[loc.Complex()] = freq_map
-        self.Cache[loc.Complex()][freq] = msg
-    } else {
-        self.Cache[loc.Complex()][freq] = msg
+        self.Cache[loc.Complex()] = make(map[uint8][]byte)
     }
+    self.Cache[loc.Complex()][freq] = msg
+    self.mu.Unlock()
 
     return
 }

@@ -73,21 +73,17 @@ func NewRouteMachine(agent agent.Agent) *RouteMachine {
     return self
 }
 
+func (self *RouteMachine) Reachable() []uint32 {
+    return self.route_keys
+}
+
 func (self *RouteMachine) Run(neighbors []uint32, comm agent.Comm) {
     for _, neighbor := range neighbors {
         self.routes[neighbor] = NewRoute(1, neighbor, neighbor)
     }
     self.set_route_keys()
     self.PerformListens(comm)
-    if self.agent.Time()%10 == 9 {
-        s := fmt.Sprintf("\nRoute Table (%v):\n", self.agent.Id())
-        for i := uint32(1); i <= 8; i++ {
-            if route, has := self.routes[i]; has {
-                s += fmt.Sprint(route, "\n")
-            }
-        }
-        self.log("info", s)
-    }
+
     self.PerformSends(comm)
 }
 
@@ -105,7 +101,7 @@ func (self *RouteMachine) set_route_keys() {
 func (self *RouteMachine) confirm_last(comm agent.Comm) (confirm bool) {
     bytes := comm.Listen(2)
     confirm = self.last.Eq(bytes)
-    self.log("info", self.agent.Time(), "confirm_last", confirm)
+//     self.log("info", self.agent.Time(), "confirm_last", confirm)
     return
 }
 
@@ -122,7 +118,7 @@ func (self *RouteMachine) send_route(comm agent.Comm) {
     bytes := pkt.Bytes()
     comm.Broadcast(2, bytes)
     self.last = bytes
-    self.log("info", self.agent.Time(), "sent", pkt, route)
+//     self.log("info", self.agent.Time(), "sent", pkt, route)
 }
 
 func (self *RouteMachine) PerformSends(comm agent.Comm) {
@@ -184,6 +180,6 @@ func (self *RouteMachine) PerformListens(comm agent.Comm) {
                 self.routes[route.DestAddr] = route
             }
 
-            self.log("info", self.agent.Time(), "Got a route from", from, "route", route)
+//             self.log("info", self.agent.Time(), "Got a route from", from, "route", route)
     }
 }
