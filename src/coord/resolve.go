@@ -26,10 +26,11 @@ func (self *Coordinator) doTurns(agents []cagent.Agent) {
     }
 }
 
-func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) ([]cagent.Transform, *game.Messages) {
+func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) ([]cagent.Transform, *game.Messages, *game.Messages) {
     agents := self.availableGameState.Agents
     transforms := make([]cagent.Transform, len(agents))
     messages := game.NewMessages(peers)
+    myMessages := game.NewMessages(nil)
     
     self.doTurns(agents)
 
@@ -40,17 +41,14 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
     moves := make(map[complex128]int, len(agents))
     for _, peerGameState := range(peers) {
         for _, st := range peerGameState.AgentStates {
-            self.log.Print("Marking ", st.Position, " as taken by neighbor")
             moves[st.Position.Complex()] = 1
             if st.Move.Valid {
-                self.log.Print("Marking ", st.Position, " as taken by neighbor's transform")
                 moves[st.Move.Position.Complex()] = 1
             }
         }
     }
     
     for _, agent := range(agents) {
-        self.log.Print("Marking ", agent.State().Position, " as taken by one of my agents")
         moves[agent.State().Position.Complex()] = 1
     }
     
@@ -77,6 +75,7 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
             t.pos = *state.Move.Position.Add(state.Position)
             for _, msg := range state.Move.Messages {
                 messages.Add(msg)
+                myMessages.Add(msg)
             }
         } else {
             t.pos = state.Position
@@ -95,5 +94,5 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
 
 
     self.log.Println("\n---------- Ending Resolve -----------\n\n")
-    return transforms, messages;
+    return transforms, messages, myMessages;
 }

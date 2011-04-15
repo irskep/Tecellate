@@ -19,7 +19,7 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         }
 
         responses := self.peerDataForTurn(i)
-        transforms, messages := self.transformsForNextTurn(responses)
+        transforms, messages, myMessages := self.transformsForNextTurn(responses)
 
 //         // Stress test to discover race conditions
 //         if (self.conf.RandomlyDelayProcessing) {
@@ -31,7 +31,7 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
             <- self.rpcRequestsReceivedConfirmation
         }
 
-        self.availableGameState.Advance(transforms, messages)
+        self.availableGameState.Advance(transforms, messages, myMessages)
     }
 
     self.log.Printf("Sending complete")
