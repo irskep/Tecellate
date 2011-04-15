@@ -17,6 +17,7 @@ type Sink interface {
 }
 
 var sinks []*sink = make([]*sink, 0)
+var sinkCache map[string][]Sink = make(map[string][]Sink)
 
 type sink struct {
     keypathRegexp *regexp.Regexp
@@ -74,20 +75,22 @@ func FileSink(path string, appnd bool, matches ...string) (*sink, os.Error) {
 }
 
 func SinksMatchingKeypath(keypath string) []Sink {
-    matches := make([]Sink, 0)
-    for _, snk := range sinks {
-        if snk.MatchesKeypath(keypath) {
-            matches = append(matches, snk)
+    matches, has := sinkCache[keypath]
+    if !has {
+        matches = make([]Sink, 0)
+        for _, snk := range sinks {
+            if snk.MatchesKeypath(keypath) {
+                matches = append(matches, snk)
+            }
         }
+        sinkCache[keypath] = matches
     }
     return matches
 }
 
 func WriteToSinksMatchingKeypath(keypath string, s string) {
-    for _, snk := range sinks {
-        if snk.MatchesKeypath(keypath) {
-            snk.Write(keypath, s)
-        }
+    for _, snk := range SinksMatchingKeypath(keypath) {
+        snk.Write(keypath, s)
     }
 }
 
