@@ -40,5 +40,5 @@ func (self *Point) String() string {
     if self == nil {
         return "<nil>"
     }
-    return fmt.Sprintf("<Point (%d, %d)>", self.X, self.Y)
+    return fmt.Sprintf("(%d, %d)", self.X, self.Y)
 }

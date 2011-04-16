@@ -49,8 +49,8 @@ func (self *GameState) Configure(conf *config.Config) {
 func (self *GameState) AgentStates() []cagent.AgentState {
     if self.statesToServe == nil {
         self.statesToServe = make([]cagent.AgentState, len(self.Agents))
-        for _, agent := range(self.Agents) {
-            self.statesToServe = append(self.statesToServe, *agent.State())
+        for i, agent := range(self.Agents) {
+            self.statesToServe[i] = *agent.State()
         }
     }
     return self.statesToServe
@@ -72,10 +72,10 @@ type GameStateResponse struct {
     Messages map[uint8][]cagent.Message
 }
 
-func (self GameStateResponse) CopyToHeap() *GameStateResponse {
+func (self *GameStateResponse) CopyToHeap() *GameStateResponse {
     return &GameStateResponse{self.Turn, self.AgentStates, self.Messages}
 }
 
-func (self GameStateResponse) String() string {
+func (self *GameStateResponse) String() string {
     return fmt.Sprintf("Turn %d: %v (%d messages)", self.Turn, self.AgentStates, len(self.Messages))
 }

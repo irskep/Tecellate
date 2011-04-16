@@ -28,7 +28,7 @@ func initLogs(name string, t *testing.T) func() {
     logflow.FileSink("logs/neighbor_test/debug", true, ".*/debug")
 
     // Or show all output anyway I guess...
-//     logflow.StdoutSink(".*/info")
+    // logflow.StdoutSink(".*")
 //     logflow.StdoutSink(".*/debug")
 
     defer logflow.Println("test", fmt.Sprintf(`
@@ -77,8 +77,7 @@ func TestTCPInfoPass(t *testing.T) {
     
     gameconf := NewGameConfig(3, "noise", false, true, 20, 10)
     gameconf.AddAgent(makeAgent(1, 0, 0, 1, 0))
-    gameconf.AddAgent(makeAgent(2, 4, 0, -1, 0))
+    gameconf.AddAgent(makeAgent(2, 5, 0, -1, 0))
     
-    coords := gameconf.InitWithTCPChainedLocalCoordinators(2, 10)
-    coords.Run()
+    gameconf.InitWithTCPChainedLocalCoordinators(2, 10).Run()
 }

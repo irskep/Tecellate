@@ -227,10 +227,10 @@ func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string
         if err == nil {
             return netchan.NewImporter(conn)
         }
-        self.log.Print("It failed.")
+        self.log.Print("Netchan import failed, retrying")
         time.Sleep(1e9/2)
     }
-    self.log.Print("Big time.")
+    self.log.Print("Netchan import failed three times. Bailing out.")
     self.log.Fatal(err)
     return nil
 }
@@ -240,10 +240,6 @@ func (self *Coordinator) ConnectToRPCServer(otherID int) {
     ch_recv := make(chan game.GameStateResponse)
 
     imp := self.makeImporterWithRetry("tcp", fmt.Sprintf("127.0.0.1:%d", 8000+otherID))
-    //     imp, err := netchan.Import("tcp", fmt.Sprintf("127.0.0.1:%d", 8000+otherID))
-    //     if err != nil {
-    //     self.log.Fatal(err)
-    // }
 
 	err := imp.Import(fmt.Sprintf("coord_req_%d", self.conf.Identifier), ch_send, netchan.Send, 1)
 	if err != nil {

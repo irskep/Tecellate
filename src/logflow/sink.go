@@ -18,6 +18,7 @@ type Sink interface {
 
 var sinks []*sink = make([]*sink, 0)
 var sinkCache map[string][]Sink = make(map[string][]Sink)
+var cacheProtector sync.Mutex
 
 type WriteToSinks func(string, string)
 
@@ -74,7 +75,7 @@ func FileSink(path string, appnd bool, matches ...string) (*sink, os.Error) {
     if err != nil {
         return nil, err
     }
-    newSink, err := NewSink(f, matches...)
+    newSink, err := NewSink(NewBufWriter(f), matches...)
     if newSink == nil {
         return nil, err
     }
@@ -85,6 +86,8 @@ func FileSink(path string, appnd bool, matches ...string) (*sink, os.Error) {
 func SinksMatchingKeypath(keypath string) []Sink {
     matches, has := sinkCache[keypath]
     if !has {
+        cacheProtector.Lock()
+        defer cacheProtector.Unlock()
         matches = make([]Sink, 0)
         for _, snk := range sinks {
             if snk.MatchesKeypath(keypath) {
@@ -107,10 +110,11 @@ func RemoveAllSinks() {
         }
     }
     sinks = make([]*sink, 0)
+    sinkCache = make(map[string][]Sink)
 }
 
 func (self *sink) String() string {
-    return fmt.Sprintf("%v", self.keypathRegexp.String())
+    return fmt.Sprintf("%v (%v)", self.keypathRegexp.String(), self.writer)
 }
 
 func (self *sink) MatchesKeypath(keypath string) bool {
