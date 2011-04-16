@@ -59,14 +59,14 @@ func (self *HelloMachine) log(level logflow.LogLevel, v ...interface{}) {
 func (self *HelloMachine) confirm_last(comm agent.Comm) (confirm bool) {
     bytes := comm.Listen(self.freq)
     confirm = self.last.Eq(bytes)
-    self.log("info", self.agent.Time(), "confirm_last", confirm)
+//     self.log("info", self.agent.Time(), "confirm_last", confirm)
     return
 }
 
 func (self *HelloMachine) hello(comm agent.Comm) {
     pkt := MakeHello(uint32(self.agent.Id()))
     bytes := pkt.Bytes()
-    self.log("info", self.agent.Time(), "sending", pkt)
+//     self.log("info", self.agent.Time(), "sending", pkt)
     comm.Broadcast(self.freq, bytes)
     self.last = bytes
 }
@@ -114,6 +114,6 @@ func (self *HelloMachine) PerformListens(comm agent.Comm) {
         case Commands["HELLO"]:
             id := pkt.IdField()
             self.neighbors[id] = uint32(self.agent.Time())
-            self.log("info", self.agent.Time(), "Got a hello from", id)
+//             self.log("info", self.agent.Time(), "Got a hello from", id)
     }
 }
