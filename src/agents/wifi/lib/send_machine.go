@@ -1,4 +1,4 @@
-package wifi
+package lib
 
 import "fmt"
 import pseudo_rand "rand"
@@ -6,6 +6,9 @@ import "container/list"
 import "agent"
 import "logflow"
 import . "byteslice"
+
+import . "agents/wifi/lib/message"
+import . "agents/wifi/lib/packet"
 
 type SendMachine struct {
     freq uint8
@@ -69,7 +72,7 @@ func (self *MessageQueue) Clean() {
 func NewSendMachine(freq uint8, agent agent.Agent) *SendMachine {
     self := &SendMachine {
         freq:freq,
-        logger:logflow.NewSource(fmt.Sprintf("agent/wifi/route/%d", agent.Id())),
+        logger:logflow.NewSource(fmt.Sprintf("agent/wifi/send/%d", agent.Id())),
         agent:agent,
         backoff:BACKOFF,
         wait:ROUTE_HOLDTIME,
@@ -175,9 +178,9 @@ func (self *SendMachine) PerformListens(comm agent.Comm) *Message {
         case Commands["MESSAGE"]:
             myaddr := uint32(self.agent.Id())
             to := pkt.IdField()
-            self.log("info", self.agent.Time(), "heard", to, "pkt", pkt)
+            body := pkt.GetBody(PacketBodySize)
+            self.log("info", self.agent.Time(), "heard", to, "pkt", pkt, MakeMessage(body))
             if to == myaddr {
-                body := pkt.GetBody(PacketBodySize)
                 msg := MakeMessage(body)
                 if msg.ValidateChecksum() {
                     if msg.DestAddr == myaddr {

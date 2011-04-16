@@ -1,14 +1,16 @@
-package wifi
+package lib
 
 import "fmt"
 import pseudo_rand "rand"
-// import crypto_rand "crypto/rand"
 import "agent"
 import "logflow"
 import . "byteslice"
 
-const ROUTE_HOLDTIME = 25
-const ROUTE_PAUSE = 10
+import . "agents/wifi/lib/route"
+import . "agents/wifi/lib/packet"
+
+const ROUTE_HOLDTIME = 15
+const ROUTE_PAUSE = 5
 
 type RoutingTable map[uint32]*Route
 
@@ -56,9 +58,8 @@ func (self *RouteMachine) Run(neighbors []uint32, comm agent.Comm) {
     for _, neighbor := range neighbors {
         self.routes[neighbor] = NewRoute(1, neighbor, neighbor)
     }
-    self.set_route_keys()
+    self.clean_table()
     self.PerformListens(comm)
-
     self.PerformSends(comm)
 }
 
@@ -71,6 +72,18 @@ func (self *RouteMachine) set_route_keys() {
     for k, _ := range self.routes {
         self.route_keys = append(self.route_keys, k)
     }
+}
+
+func (self *RouteMachine) clean_table() {
+    self.set_route_keys()
+    for _, k := range self.route_keys {
+        route := self.routes[k]
+        route.DecTTL()
+        if route.TTL == 0 {
+            self.routes[k] = nil, false
+        }
+    }
+    self.set_route_keys()
 }
 
 func (self *RouteMachine) confirm_last(comm agent.Comm) (confirm bool) {

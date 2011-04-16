@@ -1,16 +1,26 @@
-package wifi
+package route
 
 import "fmt"
 import . "byteslice"
+
+import . "agents/wifi/lib/message"
+
+const ROUTE_TTL = 512
 
 type Route struct {
     Hops uint16
     DestAddr uint32
     NextAddr uint32
+    TTL TTL
 }
 
 func NewRoute(hops uint16, dest_addr, next_addr uint32) *Route {
-    return &Route{Hops:hops, DestAddr:dest_addr, NextAddr:next_addr}
+    return &Route{
+        Hops:hops,
+        DestAddr:dest_addr,
+        NextAddr:next_addr,
+        TTL:ROUTE_TTL,
+    }
 }
 
 func MakeRoute(from uint32, bytes ByteSlice) *Route {
@@ -18,7 +28,12 @@ func MakeRoute(from uint32, bytes ByteSlice) *Route {
         Hops:bytes[:2].Int16(),
         DestAddr:bytes[2:].Int32(),
         NextAddr:from,
+        TTL:ROUTE_TTL,
     }
+}
+
+func (self *Route) DecTTL() {
+    if self.TTL > 0 { self.TTL -= 1 }
 }
 
 func (self *Route) IncHops() {

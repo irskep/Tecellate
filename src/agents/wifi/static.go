@@ -8,34 +8,14 @@ File: agents/wifi/wifi.go
 package wifi
 
 import "fmt"
-import pseudo_rand "rand"
-import crypto_rand "crypto/rand"
 import "agent"
 import "logflow"
-import . "byteslice"
 
-// initializer for random number generator -------------------------------------
-func randbytes(k int) ByteSlice {
-    bytes := make(ByteSlice, k)
-    cbytes := bytes[:]
-    for
-        n, err := crypto_rand.Read(cbytes);
-        n < k;
-        n, err = crypto_rand.Read(cbytes) {
-            if err != nil {
-                panic("Can't get random bytes.")
-            }
-            k = k-n
-            cbytes = cbytes[n:]
-    }
-    return bytes
-}
-func init() {
-    pseudo_rand.Seed(int64(randbytes(8).Int64()))
-}
+import . "agents/wifi/lib"
 
-// WifiBot ---------------------------------------------------------------------
-type WifiBot struct {
+
+// StaticBot ---------------------------------------------------------------------
+type StaticBot struct {
     id uint32
     logger logflow.Logger
     time uint
@@ -44,10 +24,10 @@ type WifiBot struct {
     send  *SendMachine
 }
 
-func NewWifiBot(id uint) *WifiBot {
-    self := &WifiBot{
+func NewStaticBot(id uint) *StaticBot {
+    self := &StaticBot{
         id:uint32(id),
-        logger:logflow.NewSource(fmt.Sprintf("agent/wifi/%d", id)),
+        logger:logflow.NewSource(fmt.Sprintf("agent/wifi/static/%d", id)),
     }
     self.hello = NewHelloMachine(1, self)
     self.route = NewRouteMachine(2, self)
@@ -56,22 +36,22 @@ func NewWifiBot(id uint) *WifiBot {
     return self
 }
 
-func (self *WifiBot) log(level logflow.LogLevel, v ...interface{}) {
+func (self *StaticBot) log(level logflow.LogLevel, v ...interface{}) {
     self.logger.Logln(level, v...)
 }
 
-func (self *WifiBot) Time() uint {
+func (self *StaticBot) Time() uint {
     return self.time
 }
 
-func (self *WifiBot) Id() uint {
+func (self *StaticBot) Id() uint {
     return uint(self.id)
 }
 
-func (self *WifiBot) Turn(comm agent.Comm) {
+func (self *StaticBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
 
-    if self.Id() == 8 && self.Time() == 200 {
+    if self.Id() == 8 && self.Time() == 500 {
         self.send.Send([]byte("Hello there Number 1."), 1)
     }
 

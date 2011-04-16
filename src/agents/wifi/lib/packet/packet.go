@@ -1,4 +1,4 @@
-package wifi
+package packet
 
 import "fmt"
 import "hash/crc32"

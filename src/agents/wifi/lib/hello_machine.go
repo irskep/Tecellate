@@ -1,4 +1,4 @@
-package wifi
+package lib
 
 
 import "fmt"
@@ -8,12 +8,24 @@ import "agent"
 import "logflow"
 import . "byteslice"
 
+import . "agents/wifi/lib/packet"
 
 const (
     BACKOFF = 3
     HOLDTIME = 15
     RESET = 250
 )
+
+type Neighbors []uint32
+
+func (self Neighbors) In(id uint32) bool {
+    for _, cur := range self {
+        if id == cur {
+            return true
+        }
+    }
+    return false
+}
 
 type HelloMachine struct {
     freq uint8
@@ -42,7 +54,7 @@ func (self *HelloMachine) Run(comm agent.Comm) {
     self.PerformSends(comm)
 }
 
-func (self *HelloMachine) Neighbors() []uint32 {
+func (self *HelloMachine) Neighbors() Neighbors {
     neighbors := make([]uint32, 0, len(self.neighbors))
     for id, time := range self.neighbors {
         if time + RESET > uint32(self.agent.Time()) {
