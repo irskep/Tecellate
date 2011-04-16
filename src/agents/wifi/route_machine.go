@@ -2,10 +2,12 @@ package wifi
 
 import "fmt"
 import pseudo_rand "rand"
-// import crypto_rand "crypto/rand"
 import "agent"
 import "logflow"
 import . "byteslice"
+
+import . "agents/wifi/route"
+import . "agents/wifi/packet"
 
 const ROUTE_HOLDTIME = 15
 const ROUTE_PAUSE = 5

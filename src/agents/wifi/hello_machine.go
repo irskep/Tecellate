@@ -8,6 +8,7 @@ import "agent"
 import "logflow"
 import . "byteslice"
 
+import . "agents/wifi/packet"
 
 const (
     BACKOFF = 3

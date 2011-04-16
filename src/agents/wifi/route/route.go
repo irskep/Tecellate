@@ -1,7 +1,9 @@
-package wifi
+package route
 
 import "fmt"
 import . "byteslice"
+
+import . "agents/wifi/message"
 
 const ROUTE_TTL = 512
 

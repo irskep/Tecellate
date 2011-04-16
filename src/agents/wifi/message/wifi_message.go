@@ -1,8 +1,10 @@
-package wifi
+package message
 
 import "fmt"
 import "hash/crc32"
 import . "byteslice"
+
+import . "agents/wifi/packet"
 
 type TTL uint16
 const DEFAULT_TTL = 128

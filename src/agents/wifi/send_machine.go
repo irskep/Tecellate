@@ -7,6 +7,9 @@ import "agent"
 import "logflow"
 import . "byteslice"
 
+import . "agents/wifi/message"
+import . "agents/wifi/packet"
+
 type SendMachine struct {
     freq uint8
     agent agent.Agent
