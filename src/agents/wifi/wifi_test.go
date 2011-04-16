@@ -1,6 +1,7 @@
 package wifi
 
 import "testing"
+import "fmt"
 
 import (
     "agent"
@@ -9,6 +10,7 @@ import (
     cagent "coord/agent"
     aproxy "coord/agent/proxy"
     geo "coord/geometry"
+    "agents/wifi/lib"
 )
 
 type AgentFactory func(uint, *geo.Point, cagent.Energy) agent.Agent
@@ -48,7 +50,7 @@ func TestStatic_run10(t *testing.T) {
     _, closer := initLogs("TestStatic_run10", t)
     defer closer()
 
-    var time cagent.Energy = 1000
+    var time cagent.Energy = 200
     gameconf := coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
     f := AgentFactories(gameconf)
     f["Static"](1, geo.NewPoint(0, 0), time)
@@ -70,16 +72,38 @@ func TestStatic_Neighbors(t *testing.T) {
     var time cagent.Energy = 1000
     gameconf := coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
     f := AgentFactories(gameconf)
-    b1 := f["Static"](1, geo.NewPoint(0, 0), time).(*StaticBot)
-    f["Static"](2, geo.NewPoint(6, 6), time)
-    f["Static"](3, geo.NewPoint(12, 12), time)
-    f["Static"](4, geo.NewPoint(18, 18), time)
-    f["Static"](5, geo.NewPoint(24, 24), time)
-    f["Static"](6, geo.NewPoint(30, 30), time)
-    f["Static"](7, geo.NewPoint(36, 36), time)
-    f["Static"](8, geo.NewPoint(42, 42), time)
+
+    var first uint32 = 1
+    var last uint32 = 8
+
+    var bots []*StaticBot = []*StaticBot{
+        f["Static"](uint(first), geo.NewPoint(0, 0), time).(*StaticBot),
+        f["Static"](2, geo.NewPoint(6, 6), time).(*StaticBot),
+        f["Static"](3, geo.NewPoint(12, 12), time).(*StaticBot),
+        f["Static"](4, geo.NewPoint(18, 18), time).(*StaticBot),
+        f["Static"](5, geo.NewPoint(24, 24), time).(*StaticBot),
+        f["Static"](6, geo.NewPoint(30, 30), time).(*StaticBot),
+        f["Static"](7, geo.NewPoint(36, 36), time).(*StaticBot),
+        f["Static"](uint(last), geo.NewPoint(42, 42), time).(*StaticBot),
+    }
     coords := gameconf.InitWithChainedLocalCoordinators(1, 60)
     coords.Run()
-    log(b1)
+
+    check := func(id, i uint32, neighbors lib.Neighbors) {
+        if !neighbors.In(i) {
+            msg := fmt.Sprintf("id %v not in bot %v neighbors %v",
+                                i, id, neighbors,
+            )
+            log(msg)
+            t.Fatal(msg)
+        }
+    }
+
+    for _, bot := range bots {
+        id := uint32(bot.Id())
+        neighbors := bot.hello.Neighbors()
+        if id != first { check(id, id - 1, neighbors) }
+        if id != last { check(id, id + 1, neighbors)}
+    }
 }
 
