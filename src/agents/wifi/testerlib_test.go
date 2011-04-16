@@ -12,7 +12,7 @@ func init() {
     runtime.GOMAXPROCS(4)
 }
 
-func initLogs(name string, t *testing.T) func() {
+func initLogs(name string, t *testing.T) (log func(...interface{}), closer func()) {
     // Show all output if test fails
     logflow.NewSink(logflow.NewTestWriter(t), ".*")
 
@@ -23,24 +23,31 @@ func initLogs(name string, t *testing.T) func() {
 //     logflow.FileSink("logs/wifi/test/" + name, true, ".*")
 //     logflow.StdoutSink("agent/wifi.*")
 
+    log = func(v ...interface{}) {
+        logflow.Println(fmt.Sprintf("test/%v", name), v...)
+    }
+
     defer func() {
        logflow.WriteToSinksFunction = func(keypath, s string) {
            if strings.HasPrefix(keypath, "agent/wifi") {
                fmt.Print(keypath, ": ", s)
+           } else if strings.HasPrefix(keypath, fmt.Sprintf("test/%v", name)) {
+               fmt.Print(keypath, ": ", s)
            }
        }
-    }()
-
-    defer logflow.Println("test", fmt.Sprintf(`
+       log(fmt.Sprintf(`
 --------------------------------------------------------------------------------
     Start Testing %v
 `, name))
-    return func() {
-    logflow.Println("test", fmt.Sprintf(`
+    }()
+
+    closer = func() {
+    log(fmt.Sprintf(`
 --------------------------------------------------------------------------------
     End Testing %v
 `, name))
     logflow.RemoveAllSinks()
     logflow.WriteToSinksFunction = write_to_sinks
     }
+    return log, closer
 }

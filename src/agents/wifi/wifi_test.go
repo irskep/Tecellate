@@ -11,45 +11,75 @@ import (
     geo "coord/geometry"
 )
 
-// func AgentFactories(gameconf *coord.GameConfig) {
-func makeStaticAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy {
-    agnt := make(chan link.Message, 10)
-    prox := make(chan link.Message, 10)
-    simple := NewStaticBot(id)
-    proxy := aproxy.NewAgentProxy(prox, agnt)
-    proxy.SetState(cagent.NewAgentState(0, *pos, energy))
-    go func() {
-        agent.Run(simple, agnt, prox)
-    }()
-    return proxy
-}
-// }
+type AgentFactory func(uint, *geo.Point, cagent.Energy) agent.Agent
 
-func makeRandAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy {
-    agnt := make(chan link.Message, 10)
-    prox := make(chan link.Message, 10)
-    simple := NewRandomBot(id)
-    proxy := aproxy.NewAgentProxy(prox, agnt)
-    proxy.SetState(cagent.NewAgentState(0, *pos, energy))
-    go func() {
-        agent.Run(simple, agnt, prox)
-    }()
-    return proxy
+func AgentFactories(gameconf *coord.GameConfig) map[string]AgentFactory {
+    return map[string]AgentFactory {
+    "Static":
+        func(id uint, pos *geo.Point, energy cagent.Energy) agent.Agent {
+            agnt := make(chan link.Message, 10)
+            prox := make(chan link.Message, 10)
+            bot := NewStaticBot(id)
+            proxy := aproxy.NewAgentProxy(prox, agnt)
+            proxy.SetState(cagent.NewAgentState(0, *pos, energy))
+            go func() {
+                agent.Run(bot, agnt, prox)
+            }()
+            gameconf.AddAgent(proxy)
+            return bot
+        },
+    "Random":
+        func(id uint, pos *geo.Point, energy cagent.Energy) agent.Agent {
+            agnt := make(chan link.Message, 10)
+            prox := make(chan link.Message, 10)
+            bot := NewRandomBot(id)
+            proxy := aproxy.NewAgentProxy(prox, agnt)
+            proxy.SetState(cagent.NewAgentState(0, *pos, energy))
+            go func() {
+                agent.Run(bot, agnt, prox)
+            }()
+            gameconf.AddAgent(proxy)
+            return bot
+        },
+    }
 }
 
-func TestStatic(t *testing.T) {
-    defer initLogs("TestStatic", t)()
+func TestStatic_run10(t *testing.T) {
+    _, closer := initLogs("TestStatic_run10", t)
+    defer closer()
 
     var time cagent.Energy = 1000
-    var gameconf *coord.GameConfig = coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
-    gameconf.AddAgent(makeStaticAgent(1, geo.NewPoint(0, 0), time))
-    gameconf.AddAgent(makeStaticAgent(2, geo.NewPoint(6, 6), time))
-    gameconf.AddAgent(makeStaticAgent(3, geo.NewPoint(12, 12), time))
-    gameconf.AddAgent(makeStaticAgent(4, geo.NewPoint(18, 18), time))
-    gameconf.AddAgent(makeStaticAgent(5, geo.NewPoint(24, 24), time))
-    gameconf.AddAgent(makeStaticAgent(6, geo.NewPoint(30, 30), time))
-    gameconf.AddAgent(makeStaticAgent(7, geo.NewPoint(36, 36), time))
-    gameconf.AddAgent(makeStaticAgent(8, geo.NewPoint(42, 42), time))
+    gameconf := coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
+    f := AgentFactories(gameconf)
+    f["Static"](1, geo.NewPoint(0, 0), time)
+    f["Static"](2, geo.NewPoint(6, 6), time)
+    f["Static"](3, geo.NewPoint(12, 12), time)
+    f["Static"](4, geo.NewPoint(18, 18), time)
+    f["Static"](5, geo.NewPoint(24, 24), time)
+    f["Static"](6, geo.NewPoint(30, 30), time)
+    f["Static"](7, geo.NewPoint(36, 36), time)
+    f["Static"](8, geo.NewPoint(42, 42), time)
     coords := gameconf.InitWithChainedLocalCoordinators(1, 60)
     coords.Run()
 }
+
+func TestStatic_Neighbors(t *testing.T) {
+    log, closer := initLogs("TestStatic_Neighbors", t)
+    defer closer()
+
+    var time cagent.Energy = 1000
+    gameconf := coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
+    f := AgentFactories(gameconf)
+    b1 := f["Static"](1, geo.NewPoint(0, 0), time).(*StaticBot)
+    f["Static"](2, geo.NewPoint(6, 6), time)
+    f["Static"](3, geo.NewPoint(12, 12), time)
+    f["Static"](4, geo.NewPoint(18, 18), time)
+    f["Static"](5, geo.NewPoint(24, 24), time)
+    f["Static"](6, geo.NewPoint(30, 30), time)
+    f["Static"](7, geo.NewPoint(36, 36), time)
+    f["Static"](8, geo.NewPoint(42, 42), time)
+    coords := gameconf.InitWithChainedLocalCoordinators(1, 60)
+    coords.Run()
+    log(b1)
+}
+
