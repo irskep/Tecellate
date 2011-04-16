@@ -71,7 +71,7 @@ func (self *WifiBot) Id() uint {
 func (self *WifiBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
 
-    if self.Id() == 8 && self.Time() == 200 {
+    if self.Id() == 8 && self.Time() == 500 {
         self.send.Send([]byte("Hello there Number 1."), 1)
     }
 

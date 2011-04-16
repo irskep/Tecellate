@@ -175,9 +175,9 @@ func (self *SendMachine) PerformListens(comm agent.Comm) *Message {
         case Commands["MESSAGE"]:
             myaddr := uint32(self.agent.Id())
             to := pkt.IdField()
-            self.log("info", self.agent.Time(), "heard", to, "pkt", pkt)
+            body := pkt.GetBody(PacketBodySize)
+            self.log("info", self.agent.Time(), "heard", to, "pkt", pkt, MakeMessage(body))
             if to == myaddr {
-                body := pkt.GetBody(PacketBodySize)
                 msg := MakeMessage(body)
                 if msg.ValidateChecksum() {
                     if msg.DestAddr == myaddr {

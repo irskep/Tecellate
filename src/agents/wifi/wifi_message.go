@@ -4,12 +4,12 @@ import "fmt"
 import "hash/crc32"
 import . "byteslice"
 
-type TTL uint8
+type TTL uint16
 const DEFAULT_TTL = 128
 // const SEND_TTL = 10
 
 //                                      TTL  CRC32  ADDRS
-const MessageBodySize = PacketBodySize - 1  -  4  -   8
+const MessageBodySize = PacketBodySize - 2  -  4  -   8
 
 type Message struct {
     Message ByteSlice
@@ -37,10 +37,10 @@ func MakeMessage(msg ByteSlice) *Message {
     copy(bytes, msg)
     dest_addr := bytes[0:4]
     from_addr := bytes[4:8]
-    ttl       := bytes[8:9]
-    message   := bytes[9:len(bytes)-4]
+    ttl       := bytes[8:10]
+    message   := bytes[10:len(bytes)-4]
     crc       := bytes[len(bytes)-4:]
-    send_ttl := TTL(ttl.Int8())/2
+    send_ttl := TTL(ttl.Int16())/2
     if send_ttl < 10 {
         send_ttl = 10
     }
@@ -48,7 +48,7 @@ func MakeMessage(msg ByteSlice) *Message {
         Message:message,
         DestAddr:dest_addr.Int32(),
         FromAddr:from_addr.Int32(),
-        TTL:TTL(ttl.Int8()),
+        TTL:TTL(ttl.Int16()),
         SendTTL:send_ttl,
         checksum:crc,
     }
@@ -77,11 +77,11 @@ func (self *Message) body_bytes() ByteSlice {
     bytes     := make(ByteSlice, PacketBodySize)
     dest_addr := bytes[0:4]
     from_addr := bytes[4:8]
-    ttl       := bytes[8:9]
-    msg       := bytes[9:len(bytes)-4]
+    ttl       := bytes[8:10]
+    msg       := bytes[10:len(bytes)-4]
     copy(dest_addr, ByteSlice32(self.DestAddr))
     copy(from_addr, ByteSlice32(self.FromAddr))
-    copy(ttl, ByteSlice8(uint8(self.TTL)))
+    copy(ttl, ByteSlice16(uint16(self.TTL)))
     copy(msg, self.Message)
     return bytes
 }
