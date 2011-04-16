@@ -1,4 +1,4 @@
-package wifi
+package lib
 
 import "fmt"
 import pseudo_rand "rand"
@@ -7,8 +7,8 @@ import "agent"
 import "logflow"
 import . "byteslice"
 
-import . "agents/wifi/message"
-import . "agents/wifi/packet"
+import . "agents/wifi/lib/message"
+import . "agents/wifi/lib/packet"
 
 type SendMachine struct {
     freq uint8

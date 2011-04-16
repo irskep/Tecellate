@@ -1,4 +1,4 @@
-package wifi
+package lib
 
 
 import "fmt"
@@ -8,7 +8,7 @@ import "agent"
 import "logflow"
 import . "byteslice"
 
-import . "agents/wifi/packet"
+import . "agents/wifi/lib/packet"
 
 const (
     BACKOFF = 3

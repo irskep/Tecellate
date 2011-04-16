@@ -4,7 +4,7 @@ import "fmt"
 import "hash/crc32"
 import . "byteslice"
 
-import . "agents/wifi/packet"
+import . "agents/wifi/lib/packet"
 
 type TTL uint16
 const DEFAULT_TTL = 128

@@ -14,6 +14,8 @@ import "agent"
 import "logflow"
 import . "byteslice"
 
+import . "agents/wifi/lib"
+
 // initializer for random number generator -------------------------------------
 func randbytes(k int) ByteSlice {
     bytes := make(ByteSlice, k)
