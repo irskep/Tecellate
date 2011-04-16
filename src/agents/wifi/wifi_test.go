@@ -46,30 +46,7 @@ func AgentFactories(gameconf *coord.GameConfig) map[string]AgentFactory {
     }
 }
 
-func TestStatic_run10(t *testing.T) {
-    _, closer := initLogs("TestStatic_run10", t)
-    defer closer()
-
-    var time cagent.Energy = 200
-    gameconf := coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
-    f := AgentFactories(gameconf)
-    f["Static"](1, geo.NewPoint(0, 0), time)
-    f["Static"](2, geo.NewPoint(6, 6), time)
-    f["Static"](3, geo.NewPoint(12, 12), time)
-    f["Static"](4, geo.NewPoint(18, 18), time)
-    f["Static"](5, geo.NewPoint(24, 24), time)
-    f["Static"](6, geo.NewPoint(30, 30), time)
-    f["Static"](7, geo.NewPoint(36, 36), time)
-    f["Static"](8, geo.NewPoint(42, 42), time)
-    coords := gameconf.InitWithChainedLocalCoordinators(1, 60)
-    coords.Run()
-}
-
-func TestStatic_Neighbors(t *testing.T) {
-    log, closer := initLogs("TestStatic_Neighbors", t)
-    defer closer()
-
-    var time cagent.Energy = 1000
+func run_static(time cagent.Energy) (uint32, uint32, []*StaticBot) {
     gameconf := coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
     f := AgentFactories(gameconf)
 
@@ -88,6 +65,22 @@ func TestStatic_Neighbors(t *testing.T) {
     }
     coords := gameconf.InitWithChainedLocalCoordinators(1, 60)
     coords.Run()
+
+    return first, last, bots
+}
+
+func TestStatic_run10(t *testing.T) {
+    _, closer := initLogs("TestStatic_run10", t)
+    defer closer()
+
+    run_static(200)
+}
+
+func TestStatic_Neighbors(t *testing.T) {
+    log, closer := initLogs("TestStatic_Neighbors", t)
+    defer closer()
+
+    first, last, bots := run_static(200)
 
     check := func(id, i uint32, neighbors lib.Neighbors) {
         if !neighbors.In(i) {
