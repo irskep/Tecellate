@@ -72,7 +72,7 @@ func (self *MessageQueue) Clean() {
 func NewSendMachine(freq uint8, agent agent.Agent) *SendMachine {
     self := &SendMachine {
         freq:freq,
-        logger:logflow.NewSource(fmt.Sprintf("agent/wifi/route/%d", agent.Id())),
+        logger:logflow.NewSource(fmt.Sprintf("agent/wifi/send/%d", agent.Id())),
         agent:agent,
         backoff:BACKOFF,
         wait:ROUTE_HOLDTIME,
