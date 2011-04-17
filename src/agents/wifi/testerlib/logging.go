@@ -9,14 +9,15 @@ import "logflow"
 
 var write_to_sinks logflow.WriteToSinks = logflow.WriteToSinksFunction
 func init() {
-    runtime.GOMAXPROCS(4)
+    runtime.GOMAXPROCS(1)
 }
 
-func InitLogs(name string, t *testing.T) (log func(...interface{}), closer func()) {
+func InitLogs(name string, t *testing.T) (closer func()) {
     fmt.Println("    -", name)
 
     // Show all output if test fails
-    snk, _ := logflow.NewSink(logflow.NewTestWriter(t), ".*")
+    writer := logflow.NewTestWriter(t)
+    snk, _ := logflow.NewSink(writer, ".*")
 
     err := os.MkdirAll("logs/wifi", 0776)
     if err != nil {
@@ -25,9 +26,9 @@ func InitLogs(name string, t *testing.T) (log func(...interface{}), closer func(
 //     logflow.FileSink("logs/wifi/test/" + name, true, ".*")
 //     logflow.StdoutSink("agent/wifi.*")
 
-    log = func(v ...interface{}) {
-        logflow.Println(fmt.Sprintf("test/%v", name), v...)
-    }
+//     log = func(v ...interface{}) {
+//         logflow.Println(fmt.Sprintf("test/%v", name), v...)
+//     }
 
     defer func() {
        logflow.WriteToSinksFunction = func(keypath, s string) {
@@ -37,20 +38,20 @@ func InitLogs(name string, t *testing.T) (log func(...interface{}), closer func(
                snk.Write(keypath, s)
            }
        }
-       log(fmt.Sprintf(`
+       writer.Write([]byte(fmt.Sprintf(`
 
     - Start Testing %v
---------------------------------------------------------------------------------`, name))
+--------------------------------------------------------------------------------`, name)))
     }()
 
     closer = func() {
-    log(fmt.Sprintf(`
---------------------------------------------------------------------------------
+    writer.Write([]byte(fmt.Sprintf(
+`--------------------------------------------------------------------------------
     - End Testing %v
 
-`, name))
+`, name)))
     logflow.RemoveAllSinks()
     logflow.WriteToSinksFunction = write_to_sinks
     }
-    return log, closer
+    return closer
 }

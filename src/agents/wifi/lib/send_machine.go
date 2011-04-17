@@ -16,7 +16,7 @@ type SendMachine struct {
     logger logflow.Logger
     last ByteSlice
     state uint32
-    backoff uint32
+    backoff float64
     wait uint32
     next_state uint32
     routes RoutingTable
@@ -148,8 +148,8 @@ func (self *SendMachine) PerformSends(comm agent.Comm) {
             } else {
                 self.state = 2
                 self.next_state = 0
-                self.backoff = uint32(float64(self.backoff)*(pseudo_rand.Float64() + 1.5))
-                self.wait = self.backoff
+                self.backoff = self.backoff*(pseudo_rand.Float64() + 1.5)
+                self.wait = uint32(self.backoff)
             }
         case 2:
             self.wait -= 1

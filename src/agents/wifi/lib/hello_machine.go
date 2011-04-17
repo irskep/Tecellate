@@ -11,7 +11,7 @@ import . "byteslice"
 import . "agents/wifi/lib/packet"
 
 const (
-    BACKOFF = 3
+    BACKOFF = 3.125
     HOLDTIME = 15
     RESET = 250
 )
@@ -22,7 +22,7 @@ type HelloMachine struct {
     logger logflow.Logger
     last ByteSlice
     state uint32
-    backoff uint32
+    backoff float64
     wait uint32
     next_state uint32
     neighbors map[uint32]uint32
@@ -86,8 +86,8 @@ func (self *HelloMachine) PerformSends(comm agent.Comm) {
                 self.wait = HOLDTIME
             } else {
                 self.state = 2
-                self.backoff = uint32(float64(self.backoff)*(pseudo_rand.Float64() + 1.5))
-                self.wait = self.backoff
+                self.backoff = self.backoff*(pseudo_rand.Float64() + 1.5)
+                self.wait = uint32(self.backoff)
             }
         case 2:
 //             self.log("debug", self.agent.Time(), "wait", self.wait, "backoff", self.backoff)
