@@ -38,15 +38,16 @@ func initLogs(name string, t *testing.T) (log func(...interface{}), closer func(
            }
        }
        log(fmt.Sprintf(`
---------------------------------------------------------------------------------
-    Start Testing %v
-`, name))
+
+    - Start Testing %v
+--------------------------------------------------------------------------------`, name))
     }()
 
     closer = func() {
     log(fmt.Sprintf(`
 --------------------------------------------------------------------------------
-    End Testing %v
+    - End Testing %v
+
 `, name))
     logflow.RemoveAllSinks()
     logflow.WriteToSinksFunction = write_to_sinks

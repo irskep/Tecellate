@@ -163,6 +163,8 @@ func (self *RouteMachine) PerformListens(comm agent.Comm) {
             if cur, has := self.routes[route.DestAddr]; has {
                 if route.Hops < cur.Hops {
                     self.routes[route.DestAddr] = route
+                } else if route.Hops == cur.Hops {
+                    self.routes[route.DestAddr] = route
                 }
             } else {
                 self.routes[route.DestAddr] = route
