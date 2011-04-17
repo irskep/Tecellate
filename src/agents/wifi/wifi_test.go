@@ -10,6 +10,7 @@ import (
     cagent "coord/agent"
     aproxy "coord/agent/proxy"
     geo "coord/geometry"
+    "agents/wifi/testerlib"
 )
 
 
@@ -81,13 +82,13 @@ func run_static(time cagent.Energy) (uint32, uint32, []*StaticBot) {
 }
 
 func TestStatic_run8(t *testing.T) {
-    _, closer := initLogs("TestStatic_run8", t)
+    _, closer := testerlib.InitLogs("TestStatic_run8", t)
     defer closer()
 
     run_static(200)
 }
 
-func check (id, i uint32, neighbors Neighbors) (string, bool) {
+func check(id, i uint32, neighbors Neighbors) (string, bool) {
     if !neighbors.In(i) {
         msg := fmt.Sprintf("id %v not in bot %v neighbors %v", i, id, neighbors)
         return msg, false
@@ -96,7 +97,7 @@ func check (id, i uint32, neighbors Neighbors) (string, bool) {
 }
 
 func TestStatic_Neighbors(t *testing.T) {
-    _, closer := initLogs("TestStatic_Neighbors", t)
+    _, closer := testerlib.InitLogs("TestStatic_Neighbors", t)
     defer closer()
 
     first, last, bots := run_static(200)
@@ -118,7 +119,7 @@ func TestStatic_Neighbors(t *testing.T) {
 }
 
 func TestStatic_Reachable(t *testing.T) {
-    log, closer := initLogs("TestStatic_Reachable", t)
+    log, closer := testerlib.InitLogs("TestStatic_Reachable", t)
     defer closer()
 
     var msgs []string

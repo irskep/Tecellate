@@ -1,4 +1,4 @@
-package wifi
+package testerlib
 
 import "testing"
 import "os"
@@ -12,7 +12,7 @@ func init() {
     runtime.GOMAXPROCS(4)
 }
 
-func initLogs(name string, t *testing.T) (log func(...interface{}), closer func()) {
+func InitLogs(name string, t *testing.T) (log func(...interface{}), closer func()) {
     fmt.Println("    -", name)
 
     // Show all output if test fails
