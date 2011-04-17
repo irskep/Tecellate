@@ -13,8 +13,10 @@ func init() {
 }
 
 func initLogs(name string, t *testing.T) (log func(...interface{}), closer func()) {
+    fmt.Println("    -", name)
+
     // Show all output if test fails
-    logflow.NewSink(logflow.NewTestWriter(t), ".*")
+    snk, _ := logflow.NewSink(logflow.NewTestWriter(t), ".*")
 
     err := os.MkdirAll("logs/wifi", 0776)
     if err != nil {
@@ -30,9 +32,9 @@ func initLogs(name string, t *testing.T) (log func(...interface{}), closer func(
     defer func() {
        logflow.WriteToSinksFunction = func(keypath, s string) {
            if strings.HasPrefix(keypath, "agent/wifi") {
-               fmt.Print(keypath, ": ", s)
+               snk.Write(keypath, s)
            } else if strings.HasPrefix(keypath, fmt.Sprintf("test/%v", name)) {
-               fmt.Print(keypath, ": ", s)
+               snk.Write(keypath, s)
            }
        }
        log(fmt.Sprintf(`

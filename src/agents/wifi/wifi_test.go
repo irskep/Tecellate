@@ -10,8 +10,19 @@ import (
     cagent "coord/agent"
     aproxy "coord/agent/proxy"
     geo "coord/geometry"
-    "agents/wifi/lib"
 )
+
+
+type Neighbors []uint32
+
+func (self Neighbors) In(id uint32) bool {
+    for _, cur := range self {
+        if id == cur {
+            return true
+        }
+    }
+    return false
+}
 
 type AgentFactory func(uint, *geo.Point, cagent.Energy) agent.Agent
 
@@ -69,11 +80,19 @@ func run_static(time cagent.Energy) (uint32, uint32, []*StaticBot) {
     return first, last, bots
 }
 
-func TestStatic_run10(t *testing.T) {
-    _, closer := initLogs("TestStatic_run10", t)
+func TestStatic_run8(t *testing.T) {
+    _, closer := initLogs("TestStatic_run8", t)
     defer closer()
 
     run_static(200)
+}
+
+func check (t *testing.T, log func(...interface{}), id, i uint32, neighbors Neighbors) {
+    if !neighbors.In(i) {
+        msg := fmt.Sprintf("id %v not in bot %v neighbors %v", i, id, neighbors)
+        log(msg)
+        t.Fatal(msg)
+    }
 }
 
 func TestStatic_Neighbors(t *testing.T) {
@@ -82,21 +101,26 @@ func TestStatic_Neighbors(t *testing.T) {
 
     first, last, bots := run_static(200)
 
-    check := func(id, i uint32, neighbors lib.Neighbors) {
-        if !neighbors.In(i) {
-            msg := fmt.Sprintf("id %v not in bot %v neighbors %v",
-                                i, id, neighbors,
-            )
-            log(msg)
-            t.Fatal(msg)
-        }
-    }
-
     for _, bot := range bots {
         id := uint32(bot.Id())
         neighbors := bot.hello.Neighbors()
-        if id != first { check(id, id - 1, neighbors) }
-        if id != last { check(id, id + 1, neighbors)}
+        if id != first { check(t, log, id, id - 1, neighbors) }
+        if id != last { check(t, log, id, id + 1, neighbors) }
+    }
+}
+
+func TestStatic_Reachable(t *testing.T) {
+    log, closer := initLogs("TestStatic_Reachable", t)
+    defer closer()
+
+    first, last, bots := run_static(500)
+
+    for _, bot := range bots {
+        id := uint32(bot.Id())
+        reachable := bot.route.Reachable()
+        for i := first; i <= last; i++ {
+            check(t, log, id, i, reachable)
+        }
     }
 }
 
