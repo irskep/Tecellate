@@ -20,7 +20,7 @@ func TestSimple(t *testing.T) {
     defer initLogs("TestSimple", t)()
 
     proxy := makeAgent(1, geo.NewPoint(0, 0), 1)
-    gameconf := coord.NewGameConfig(3, "noise", true, false, 50, 50)
+    gameconf := coord.NewGameConfig(3, "noise", true, 50, 50)
     gameconf.AddAgent(proxy)
     coord := gameconf.InitWithSingleLocalCoordinator()
     proxy.SetGameState(coord.GetGameState())
@@ -100,7 +100,7 @@ func makeAgent(id uint, pos *geo.Point, energy cagent.Energy) *aproxy.AgentProxy
 func TestWithCoord_2Agents(t *testing.T) {
     defer initLogs("Coord_2Agents", t)()
 
-    gameconf := coord.NewGameConfig(3, "noise", true, false, 50, 50)
+    gameconf := coord.NewGameConfig(3, "noise", true, 50, 50)
     gameconf.AddAgent(makeAgent(1, geo.NewPoint(0, 0), 1))
 //     gameconf.AddAgent(makeAgent(2, geo.NewPoint(10, 1), 1))
     gameconf.AddAgent(makeAgent(3, geo.NewPoint(20, 1), 1))

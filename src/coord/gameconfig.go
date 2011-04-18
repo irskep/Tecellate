@@ -2,7 +2,7 @@
 
 package coord
 
-import "coord/agent"
+import cagent "coord/agent"
 import "coord/config"
 import geo "coord/geometry"
 
@@ -10,27 +10,25 @@ type GameConfig struct {
     MaxTurns int
     MessageStyle string
     UseFood bool
-    RandomlyDelayProcessing bool
     Size geo.Point
-    Agents []agent.Agent
+    Agents []cagent.Agent
 }
 
-func NewGameConfig(maxTurns int, msgStyle string, food bool, delay bool, w, h int) *GameConfig {
+func NewGameConfig(maxTurns int, msgStyle string, food bool, w, h int) *GameConfig {
     return &GameConfig{MaxTurns: maxTurns,
                        MessageStyle: msgStyle,
                        UseFood: food,
-                       RandomlyDelayProcessing: delay,
                        Size: *geo.NewPoint(w, h),
-                       Agents: make([]agent.Agent, 0),
+                       Agents: make([]cagent.Agent, 0),
     }
 }
 
-func (self *GameConfig) AddAgent(a agent.Agent) {
+func (self *GameConfig) AddAgent(a cagent.Agent) {
     self.Agents = append(self.Agents, a)
 }
 
 func (self *GameConfig) CoordConfig(id int, bl *geo.Point, tr *geo.Point) *config.Config {
-    thisCoordsAgents := make([]agent.Agent, 0)
+    thisCoordsAgents := make([]cagent.Agent, 0)
     
     for _, a := range self.Agents {
         p := a.State().Position
@@ -44,7 +42,6 @@ func (self *GameConfig) CoordConfig(id int, bl *geo.Point, tr *geo.Point) *confi
                             thisCoordsAgents, 
                             self.MessageStyle, 
                             self.UseFood, 
-                            self.RandomlyDelayProcessing, 
                             bl, 
                             tr)
 }

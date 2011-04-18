@@ -44,7 +44,7 @@ func AgentFactories(gameconf *coord.GameConfig) map[string]AgentFactory {
 }
 
 func run_static(time cagent.Energy) (uint32, uint32, []*StaticBot) {
-    gameconf := coord.NewGameConfig(int(time), "noise", true, false, 100, 100)
+    gameconf := coord.NewGameConfig(int(time), "noise", true, 100, 100)
     f := AgentFactories(gameconf)
 
     var first uint32 = 1
