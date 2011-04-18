@@ -1,7 +1,7 @@
 package coord
 
 import "agents/configurable"
-import aproxy "coord/agent/proxy"
+import "agent"
 
 import (
     "fmt"
@@ -40,16 +40,12 @@ func initLogs(name string, t *testing.T) func() {
     }
 }
 
-func makeAgent(id uint, xVelocity, yVelocity int) *configurable.Configurable {
+func makeAgent(id uint, xVelocity, yVelocity int) agent.Agent {
     a := configurable.New(id)
     a.XVelocity = xVelocity
     a.YVelocity = yVelocity
     a.LogMove = true
     return a
-}
-
-func proxyLocal(a *configurable.Configurable, x, y int) *aproxy.AgentProxy {
-    return aproxy.RunAgentLocal(a, x, y)
 }
 
 func TestLocalInfoPass(t *testing.T) {
@@ -70,8 +66,13 @@ func TestTCPInfoPass(t *testing.T) {
     logflow.FileSink("logs/neighbor_test/agents", true, "test|agent/.*")
     
     gameconf := NewGameConfig(3, "noise", false, 20, 10)
-    gameconf.AddAgent(proxyLocal(makeAgent(1, 1, 0), 0, 0))
-    gameconf.AddAgent(proxyLocal(makeAgent(2, -1, 0), 5, 0))
     
-    gameconf.InitWithTCPChainedLocalCoordinators(2, 10).Run()
+    // gameconf.AddAgent(id, x, y)
+    gameconf.AddAgent(1, 0, 0)
+    gameconf.AddAgent(2, 5, 0)
+    
+    agents := map[uint]agent.Agent{1: makeAgent(1, 1, 0), 2: makeAgent(2, -1, 0)}
+    
+    // gameconf.InitWithTCPChainedLocalCoordinators(2, 10, agents).Run()
+    gameconf.InitWithChainedLocalCoordinators(2, agents).Run()
 }

@@ -1,12 +1,21 @@
 package config
 
 import geo "coord/geometry"
-import "coord/agent"
+
+type AgentDefinition struct {
+    Id uint
+    X int
+    Y int
+}
+
+func NewAgentDefinition(id uint, x, y int) *AgentDefinition {
+    return &AgentDefinition{Id: id, X: x, Y: y}
+}
 
 type Config struct {
     Identifier int
     MaxTurns int
-    Agents []agent.Agent
+    Agents []*AgentDefinition
     MessageStyle string     // boolean|noise|none
     UseFood bool
 
@@ -14,7 +23,7 @@ type Config struct {
     TopRight *geo.Point
 }
 
-func NewConfig(id int, maxTurns int, agents []agent.Agent, style string, food bool, bl, tr *geo.Point) *Config {
+func NewConfig(id int, maxTurns int, agents []*AgentDefinition, style string, food bool, bl, tr *geo.Point) *Config {
     return &Config{Identifier: id,
                    MaxTurns: maxTurns,
                    Agents: agents,

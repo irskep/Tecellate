@@ -8,6 +8,8 @@ File: coord/coord.go
 package coord
 
 import (
+    agent "agent"
+    cproxy "coord/agent/proxy"
     "coord/game"
     "coord/config"
     "fmt"
@@ -61,7 +63,7 @@ func (self CoordinatorSlice) ChainTCP() {
         if i > 0 {
             c.ExportRemote(i-1)
         }
-        c.RunExporter(ready, len(c.rpcSendChannels)*2)
+        c.RunExporter(ready, len(c.rpcSendChannels)*2+len(c.conf.Agents))
     }
     for _, _ = range(self) {
         <- ready
@@ -75,6 +77,15 @@ func (self CoordinatorSlice) ChainTCP() {
         if i > 0 {
             logflow.Printf("main", "Connect %d to %d over TCP", i, i-1)
             c.ConnectToRPCServer(i-1)
+        }
+    }
+}
+
+func (self CoordinatorSlice) ConnectToLocalAgents(agents map[uint]agent.Agent) {
+    for _, c := range(self) {
+        for _, ad := range(c.conf.Agents) {
+            p := cproxy.RunAgentLocal(agents[ad.Id], ad.X, ad.Y)
+            c.availableGameState.Agents = append(c.availableGameState.Agents, p)
         }
     }
 }

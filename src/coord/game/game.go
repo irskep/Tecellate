@@ -43,7 +43,6 @@ func (self *GameState) Advance(transforms []cagent.Transform, messages *Messages
 
 func (self *GameState) Configure(conf *config.Config) {
     self.conf = conf
-    self.Agents = conf.Agents
 }
 
 func (self *GameState) AgentStates() []cagent.AgentState {
