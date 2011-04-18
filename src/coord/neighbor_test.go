@@ -32,7 +32,8 @@ func initLogs(name string, t *testing.T) func() {
     Start Testing %v
 `, name))
     return func() {
-        logflow.Println("test", fmt.Sprintf(` --------------------------------------------------------------------------------
+        logflow.Println("test", fmt.Sprintf(` 
+--------------------------------------------------------------------------------
         End Testing %v
     `, name))
         logflow.RemoveAllSinks()
