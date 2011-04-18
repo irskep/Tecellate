@@ -62,6 +62,21 @@ func Println(keypath string, v ...interface{}) {
     WriteToSinksMatchingKeypath(keypath, fmt.Sprintln(v...))
 }
 
+func Fatal(keypath string, v ...interface{}) {
+    WriteToSinksMatchingKeypath(keypath, fmt.Sprint(v...))
+    os.Exit(1)
+}
+
+func Fatalf(keypath string, format string, v ...interface{}) {
+    WriteToSinksMatchingKeypath(keypath, fmt.Sprintf(format, v...))
+    os.Exit(1)
+}
+
+func Fatalln(keypath string, v ...interface{}) {
+    WriteToSinksMatchingKeypath(keypath, fmt.Sprintln(v...))
+    os.Exit(1)
+}
+
 /*
     Things that make me a special snowflake
 */

@@ -87,8 +87,7 @@ type Coordinator struct {
     rpcSendChannels []chan game.GameStateResponse
     rpcRecvChannels []chan GameStateRequest
     conf *config.Config
-    coordProxyExporter *netchan.Exporter
-    agentProxyExporter *netchan.Exporter
+    exporter *netchan.Exporter
 
     // RPC server threads send an ints down this channel representing
     // a turn info request served.
@@ -114,8 +113,7 @@ func NewCoordinator() *Coordinator {
                         peers: make([]*CoordinatorProxy, 0),
                         rpcSendChannels: make([]chan game.GameStateResponse, 0),
                         rpcRecvChannels: make([]chan GameStateRequest, 0),
-                        coordProxyExporter: netchan.NewExporter(),
-                        agentProxyExporter: netchan.NewExporter(),
+                        exporter: netchan.NewExporter(),
                         rpcRequestsReceivedConfirmation: make(chan int),
                         nextTurnAvailableSignals: make([]chan int, 0),
                         log: logflow.NewSource("coord/?")}
@@ -173,12 +171,12 @@ func (self *Coordinator) ExportRemote(otherID int) {
     ch_recv := make(chan GameStateRequest)
     ch_send := make(chan game.GameStateResponse)
 
-    err := self.coordProxyExporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
+    err := self.exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
     if err != nil {
 	    self.log.Fatal(err)
 	}
 
-    err = self.coordProxyExporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
+    err = self.exporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
 	if err != nil {
 	    self.log.Fatal(err)
 	}
@@ -206,14 +204,14 @@ func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
         	if err != nil {
         		self.log.Fatal("listen:", err)
         	}
-        	go self.coordProxyExporter.ServeConn(conn)
+        	go self.exporter.ServeConn(conn)
         }
     }()
 }
 
 func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
     // This method is actually entirely futile because the race condition we're trying
-    // to account for happens between listener creation and coordProxyExporter.ServeConn().
+    // to account for happens between listener creation and exporter.ServeConn().
     // An error is only thrown if the listener does not exist, but we must already
     // have a listener to call ServeConn().
     // To really fix this, you have to try sending a message down the pipe and see
