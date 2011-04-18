@@ -47,13 +47,14 @@ func (self *GameConfig) CoordConfig(id int, bl *geo.Point, tr *geo.Point) *confi
 
 func (self *GameConfig) InitWithChainedLocalCoordinators(k int, agents map[uint]agent.Agent) CoordinatorSlice {
     coords := self.SideBySideCoordinators(k, self.Size.X/k, self.Size.Y)
-    coords.Chain()
     coords.ConnectToLocalAgents(agents)
+    coords.Chain()
     return coords
 }
 
-func (self *GameConfig) InitWithTCPChainedLocalCoordinators(k int, agents []agent.Agent) CoordinatorSlice {
+func (self *GameConfig) InitWithTCPChainedLocalCoordinators(k int, agents map[uint]agent.Agent) CoordinatorSlice {
     coords := self.SideBySideCoordinators(k, self.Size.X/k, self.Size.Y)
+    coords.PrepareAgentProxies()
     coords.ChainTCP()
     return coords
 }

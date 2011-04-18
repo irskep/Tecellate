@@ -9,8 +9,11 @@ package coord
 
 import (
     agent "agent"
-    cproxy "coord/agent/proxy"
+    "agent/link"
+    cagent "coord/agent"
+    aproxy "coord/agent/proxy"
     "coord/game"
+    geo "coord/geometry"
     "coord/config"
     "fmt"
     "logflow"
@@ -40,6 +43,15 @@ func (self CoordinatorSlice) Run() {
     }
 }
 
+func (self CoordinatorSlice) ConnectToLocalAgents(agents map[uint]agent.Agent) {
+    for _, c := range(self) {
+        for _, ad := range(c.conf.Agents) {
+            p := aproxy.RunAgentLocal(agents[ad.Id], ad.X, ad.Y)
+            c.availableGameState.Agents = append(c.availableGameState.Agents, p)
+        }
+    }
+}
+
 func (self CoordinatorSlice) Chain() {
     for i, c := range(self) {
         if i < len(self)-1 {
@@ -53,9 +65,15 @@ func (self CoordinatorSlice) Chain() {
     }
 }
 
+func (self CoordinatorSlice) PrepareAgentProxies() {
+    for _, c := range(self) {
+        c.RunExporter()
+        c.PrepareAgentProxies()
+    }
+}
+
 func (self CoordinatorSlice) ChainTCP() {
     logflow.Println("main", "Exporting channels")
-    ready := make(chan bool)
     for i, c := range(self) {
         if i < len(self)-1 {
             c.ExportRemote(i+1)
@@ -63,10 +81,6 @@ func (self CoordinatorSlice) ChainTCP() {
         if i > 0 {
             c.ExportRemote(i-1)
         }
-        c.RunExporter(ready, len(c.rpcSendChannels)*2+len(c.conf.Agents))
-    }
-    for _, _ = range(self) {
-        <- ready
     }
     logflow.Println("main", "Connecting coordinators")
     for i, c := range(self) {
@@ -77,15 +91,6 @@ func (self CoordinatorSlice) ChainTCP() {
         if i > 0 {
             logflow.Printf("main", "Connect %d to %d over TCP", i, i-1)
             c.ConnectToRPCServer(i-1)
-        }
-    }
-}
-
-func (self CoordinatorSlice) ConnectToLocalAgents(agents map[uint]agent.Agent) {
-    for _, c := range(self) {
-        for _, ad := range(c.conf.Agents) {
-            p := cproxy.RunAgentLocal(agents[ad.Id], ad.X, ad.Y)
-            c.availableGameState.Agents = append(c.availableGameState.Agents, p)
         }
     }
 }
@@ -178,6 +183,58 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
 
 // REMOTE/PRODUCTION
 
+func (self *Coordinator) Address() string {
+    return fmt.Sprintf("127.0.0.1:%d", 8000+self.conf.Identifier)
+}
+
+func (self *Coordinator) RunExporter() {
+    go func() {
+        self.log.Println("Listening at", self.Address())
+        addr, _ := net.ResolveTCPAddr(self.Address())
+        lstn, err := net.ListenTCP(addr.Network(), addr)
+        if err != nil {
+            self.log.Fatal(err)
+        }
+        // There is a race condition here. There is a very slim chance that the
+        // main thread will unblock (it is waiting for ready) and yet the call to
+        // lstn.Accept() will not have been executed yet, which will cause the
+        // client's netchan import to fail.
+        // However, the chance is extremely slim.
+        for {
+        	conn, err := lstn.Accept()
+        	if err != nil {
+        		self.log.Fatal("listen:", err)
+        	}
+        	go self.exporter.ServeConn(conn)
+        }
+    }()
+}
+
+func (self *Coordinator) PrepareAgentProxies() {
+    for _, ad := range(self.conf.Agents) {
+        p2a := make(chan link.Message, 10)
+        a2p := make(chan link.Message, 10)
+        
+        self.log.Print("Exporting ", fmt.Sprintf("agent_rsp_%d", ad.Id))
+        
+        err := self.exporter.Export(fmt.Sprintf("agent_rsp_%d", ad.Id), p2a, netchan.Send)
+    	if err != nil {
+    	    self.log.Fatal(err)
+    	}
+    	
+        self.log.Print("Exporting ", fmt.Sprintf("agent_req_%d", ad.Id))
+        
+        err = self.exporter.Export(fmt.Sprintf("agent_req_%d", ad.Id), a2p, netchan.Recv)
+        if err != nil {
+    	    self.log.Fatal(err)
+    	}
+
+        proxy := aproxy.NewAgentProxy(p2a, a2p)
+        proxy.SetState(cagent.NewAgentState(0, *geo.NewPoint(ad.X, ad.Y), 0))
+        self.availableGameState.Agents = append(self.availableGameState.Agents, proxy)
+    }
+}
+
 func (self *Coordinator) ExportRemote(otherID int) {
     ch_recv := make(chan GameStateRequest)
     ch_send := make(chan game.GameStateResponse)
@@ -193,31 +250,6 @@ func (self *Coordinator) ExportRemote(otherID int) {
 	}
 
 	self.AddRPCChannel(ch_send, ch_recv)
-}
-
-func (self *Coordinator) RunExporter(ready chan bool, numChans int) {
-    go func() {
-        addr_string := fmt.Sprintf("127.0.0.1:%d", 8000+self.conf.Identifier)
-        self.log.Println("Listening at", addr_string)
-        addr, _ := net.ResolveTCPAddr(addr_string)
-        lstn, err := net.ListenTCP(addr.Network(), addr)
-        if err != nil {
-            self.log.Fatal(err)
-        }
-        // There is a race condition here. There is a very slim chance that the
-        // main thread will unblock (it is waiting for ready) and yet the call to
-        // lstn.Accept() will not have been executed yet, which will cause the
-        // client's netchan import to fail.
-        // However, the chance is extremely slim.
-        ready <- true
-        for i := 0; i < numChans; i++ {
-        	conn, err := lstn.Accept()
-        	if err != nil {
-        		self.log.Fatal("listen:", err)
-        	}
-        	go self.exporter.ServeConn(conn)
-        }
-    }()
 }
 
 func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
