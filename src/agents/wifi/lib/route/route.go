@@ -3,7 +3,7 @@ package route
 import "fmt"
 import . "byteslice"
 
-import . "agents/wifi/lib/message"
+import . "agents/wifi/lib/datagram"
 
 const ROUTE_TTL = 512
 

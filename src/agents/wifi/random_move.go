@@ -25,9 +25,9 @@ type RandomBot struct {
     send  *SendMachine
 }
 
-func NewRandomBot(id uint) *RandomBot {
+func NewRandomBot(id uint32) *RandomBot {
     self := &RandomBot{
-        id:uint32(id),
+        id:id,
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/randmv/%d", id)),
     }
     self.hello = NewHelloMachine(1, self)

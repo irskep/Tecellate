@@ -1,4 +1,4 @@
-package message
+package datagram
 
 import "fmt"
 import "hash/crc32"
@@ -11,10 +11,10 @@ const DEFAULT_TTL = 128
 // const SEND_TTL = 10
 
 //                                      TTL  CRC32  ADDRS
-const MessageBodySize = PacketBodySize - 2  -  4  -   8
+const DataGramBodySize = PacketBodySize - 2  -  4  -   8
 
-type Message struct {
-    Message ByteSlice
+type DataGram struct {
+    DataGram ByteSlice
     DestAddr uint32
     FromAddr uint32
     TTL TTL
@@ -22,11 +22,11 @@ type Message struct {
     checksum ByteSlice
 }
 
-func NewMessage(msg ByteSlice, from, dest uint32) *Message {
-    bytes := make(ByteSlice, MessageBodySize)
+func NewDataGram(msg ByteSlice, from, dest uint32) *DataGram {
+    bytes := make(ByteSlice, DataGramBodySize)
     copy(bytes, msg)
-    return &Message{
-        Message:bytes,
+    return &DataGram{
+        DataGram:bytes,
         DestAddr:dest,
         FromAddr:from,
         TTL:DEFAULT_TTL,
@@ -34,7 +34,7 @@ func NewMessage(msg ByteSlice, from, dest uint32) *Message {
     }
 }
 
-func MakeMessage(msg ByteSlice) *Message {
+func MakeDataGram(msg ByteSlice) *DataGram {
     bytes := make(ByteSlice, PacketBodySize)
     copy(bytes, msg)
     dest_addr := bytes[0:4]
@@ -46,8 +46,8 @@ func MakeMessage(msg ByteSlice) *Message {
     if send_ttl < 10 {
         send_ttl = 10
     }
-    return &Message{
-        Message:message,
+    return &DataGram{
+        DataGram:message,
         DestAddr:dest_addr.Int32(),
         FromAddr:from_addr.Int32(),
         TTL:TTL(ttl.Int16()),
@@ -56,26 +56,26 @@ func MakeMessage(msg ByteSlice) *Message {
     }
 }
 
-func (self *Message) Body() ByteSlice {
-    return self.Message
+func (self *DataGram) Body() ByteSlice {
+    return self.DataGram
 }
 
-func (self *Message) DecTTL() {
+func (self *DataGram) DecTTL() {
     if self.TTL > 0 { self.TTL -= 1 }
     if self.SendTTL > 0 { self.SendTTL -= 1 }
 }
 
-func (self *Message) ComputeChecksum() ByteSlice {
+func (self *DataGram) ComputeChecksum() ByteSlice {
     bytes     := self.Bytes()
     crc       := bytes[len(bytes)-4:]
     return crc
 }
 
-func (self *Message) ValidateChecksum() bool {
+func (self *DataGram) ValidateChecksum() bool {
     return self.checksum.Eq(self.ComputeChecksum())
 }
 
-func (self *Message) body_bytes() ByteSlice {
+func (self *DataGram) body_bytes() ByteSlice {
     bytes     := make(ByteSlice, PacketBodySize)
     dest_addr := bytes[0:4]
     from_addr := bytes[4:8]
@@ -84,11 +84,11 @@ func (self *Message) body_bytes() ByteSlice {
     copy(dest_addr, ByteSlice32(self.DestAddr))
     copy(from_addr, ByteSlice32(self.FromAddr))
     copy(ttl, ByteSlice16(uint16(self.TTL)))
-    copy(msg, self.Message)
+    copy(msg, self.DataGram)
     return bytes
 }
 
-func (self *Message) Bytes() ByteSlice {
+func (self *DataGram) Bytes() ByteSlice {
     bytes     := self.body_bytes()
     body      := bytes[:len(bytes)-4]
     crc       := bytes[len(bytes)-4:]
@@ -96,7 +96,7 @@ func (self *Message) Bytes() ByteSlice {
     return bytes
 }
 
-func (self *Message) String() string {
-    if self == nil { return "<nil Message>" }
-    return fmt.Sprintf("<Message from:%v to:%v ttl:%v>", self.FromAddr, self.DestAddr, self.TTL)
+func (self *DataGram) String() string {
+    if self == nil { return "<nil DataGram>" }
+    return fmt.Sprintf("<DataGram from:%v to:%v ttl:%v>", self.FromAddr, self.DestAddr, self.TTL)
 }

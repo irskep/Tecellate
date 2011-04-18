@@ -17,6 +17,9 @@ import . "agents/wifi/lib"
 // StaticBot ---------------------------------------------------------------------
 type StaticBot struct {
     id uint32
+    first uint32
+    last uint32
+    next uint32
     logger logflow.Logger
     time uint
     hello *HelloMachine
@@ -24,9 +27,12 @@ type StaticBot struct {
     send  *SendMachine
 }
 
-func NewStaticBot(id uint) *StaticBot {
+func NewStaticBot(id, first, last uint32) *StaticBot {
     self := &StaticBot{
-        id:uint32(id),
+        id:id,
+        first:first,
+        last:last,
+        next:first,
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/static/%d", id)),
     }
     self.hello = NewHelloMachine(1, self)
