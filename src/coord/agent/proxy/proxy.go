@@ -6,9 +6,11 @@ import (
     "logflow"
 )
 import (
+    "agent"
     "agent/link"
+    cagent "coord/agent"
     "coord/game"
-//     geo "coord/geometry"
+    geo "coord/geometry"
 )
 
 import . "coord/agent"
@@ -28,6 +30,18 @@ func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
     self.rcv = recv
     self.log = logflow.NewSource("agentproxy/?")
     return self
+}
+
+func RunAgentLocal(a agent.Agent, x, y int) *AgentProxy {
+    p2a := make(chan link.Message, 10)
+    a2p := make(chan link.Message, 10)
+    
+    proxy := NewAgentProxy(p2a, a2p)
+    proxy.SetState(cagent.NewAgentState(0, *geo.NewPoint(x, y), 0))
+    go func() {
+        agent.Run(a, a2p, p2a)
+    }()
+    return proxy
 }
 
 func (self *AgentProxy) SetState(state *AgentState) {

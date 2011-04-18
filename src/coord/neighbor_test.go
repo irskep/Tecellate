@@ -1,11 +1,7 @@
 package coord
 
-import "agent"
-import "agent/link"
 import "agents/configurable"
-import cagent "coord/agent"
 import aproxy "coord/agent/proxy"
-import geo "coord/geometry"
 
 import (
     "fmt"
@@ -44,18 +40,11 @@ func initLogs(name string, t *testing.T) func() {
 }
 
 func makeAgent(id uint, x, y, xVelocity, yVelocity int) *aproxy.AgentProxy {
-    p2a := make(chan link.Message, 10)
-    a2p := make(chan link.Message, 10)
     a := configurable.New(id)
     a.XVelocity = xVelocity
     a.YVelocity = yVelocity
     a.LogMove = true
-    proxy := aproxy.NewAgentProxy(p2a, a2p)
-    proxy.SetState(cagent.NewAgentState(0, *geo.NewPoint(x, y), 0))
-    go func() {
-        agent.Run(a, a2p, p2a)
-    }()
-    return proxy
+    return aproxy.RunAgentLocal(a, x, y)
 }
 
 func TestLocalInfoPass(t *testing.T) {

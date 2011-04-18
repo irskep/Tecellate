@@ -87,7 +87,8 @@ type Coordinator struct {
     rpcSendChannels []chan game.GameStateResponse
     rpcRecvChannels []chan GameStateRequest
     conf *config.Config
-    exporter *netchan.Exporter
+    coordProxyExporter *netchan.Exporter
+    agentProxyExporter *netchan.Exporter
 
     // RPC server threads send an ints down this channel representing
     // a turn info request served.
@@ -113,7 +114,8 @@ func NewCoordinator() *Coordinator {
                         peers: make([]*CoordinatorProxy, 0),
                         rpcSendChannels: make([]chan game.GameStateResponse, 0),
                         rpcRecvChannels: make([]chan GameStateRequest, 0),
-                        exporter: netchan.NewExporter(),
+                        coordProxyExporter: netchan.NewExporter(),
+                        agentProxyExporter: netchan.NewExporter(),
                         rpcRequestsReceivedConfirmation: make(chan int),
                         nextTurnAvailableSignals: make([]chan int, 0),
                         log: logflow.NewSource("coord/?")}
@@ -134,24 +136,8 @@ func (self *Coordinator) Run() {
     self.ProcessTurns(nil)
 }
 
-// LOCAL/TESTING
-
-
 func (self *Coordinator) GetGameState() *game.GameState {
     return self.availableGameState
-}
-
-// Set up a connection with another coordinator in the same process.
-func (self *Coordinator) ConnectToLocal(other *Coordinator) {
-    // We communicate over this channel instead of a netchan
-    newSendChannel := make(chan game.GameStateResponse)
-    newRecvChannel := make(chan GameStateRequest)
-
-    // Add a proxy for new peer
-    self.peers = append(self.peers, NewCoordProxy(other.conf.Identifier, self.conf.Identifier, newRecvChannel, newSendChannel))
-
-    // Tell peer to listen for RPC requests from me
-    other.AddRPCChannel(newSendChannel, newRecvChannel)
 }
 
 // Set up the server end of an RPC relationship
@@ -166,18 +152,33 @@ func (self *Coordinator) AddRPCChannel(newSendChannel chan game.GameStateRespons
     self.nextTurnAvailableSignals = append(self.nextTurnAvailableSignals, make(chan int))
 }
 
+// LOCAL/TESTING
+
+// Set up a connection with another coordinator in the same process.
+func (self *Coordinator) ConnectToLocal(other *Coordinator) {
+    // We communicate over this channel instead of a netchan
+    newSendChannel := make(chan game.GameStateResponse)
+    newRecvChannel := make(chan GameStateRequest)
+
+    // Add a proxy for new peer
+    self.peers = append(self.peers, NewCoordProxy(other.conf.Identifier, self.conf.Identifier, newRecvChannel, newSendChannel))
+
+    // Tell peer to listen for RPC requests from me
+    other.AddRPCChannel(newSendChannel, newRecvChannel)
+}
+
 // REMOTE/PRODUCTION
 
 func (self *Coordinator) ExportRemote(otherID int) {
     ch_recv := make(chan GameStateRequest)
     ch_send := make(chan game.GameStateResponse)
 
-    err := self.exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
+    err := self.coordProxyExporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
     if err != nil {
 	    self.log.Fatal(err)
 	}
 
-    err = self.exporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
+    err = self.coordProxyExporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
 	if err != nil {
 	    self.log.Fatal(err)
 	}
@@ -205,14 +206,14 @@ func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
         	if err != nil {
         		self.log.Fatal("listen:", err)
         	}
-        	go self.exporter.ServeConn(conn)
+        	go self.coordProxyExporter.ServeConn(conn)
         }
     }()
 }
 
 func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
     // This method is actually entirely futile because the race condition we're trying
-    // to account for happens between listener creation and exporter.ServeConn().
+    // to account for happens between listener creation and coordProxyExporter.ServeConn().
     // An error is only thrown if the listener does not exist, but we must already
     // have a listener to call ServeConn().
     // To really fix this, you have to try sending a message down the pipe and see
