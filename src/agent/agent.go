@@ -82,21 +82,21 @@ func makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer 
 }
 
 func RunWithCoordinator(agent Agent, addr string) {
-    ch_send := make(link.SendLink)
-    ch_recv := make(link.RecvLink)
+    ch_send := make(chan link.Message)
+    ch_recv := make(chan link.Message)
 
     imp := makeImporterWithRetry("tcp", addr)
     
     logflow.Print("agent", "Importing ", fmt.Sprintf("agent_req_%d", agent.Id()))
     
-	err := imp.Import(fmt.Sprintf("agent_req_%d", agent.Id()), ch_recv, netchan.Send, 1)
+	err := imp.Import(fmt.Sprintf("agent_req_%d", agent.Id()), ch_send, netchan.Send, 1)
 	if err != nil {
 	    logflow.Fatal("agent", err)
 	}
 	
     logflow.Print("agent", "Importing ", fmt.Sprintf("agent_rsp_%d", agent.Id()))
 
-	err = imp.Import(fmt.Sprintf("agent_rsp_%d", agent.Id()), ch_send, netchan.Recv, 1)
+	err = imp.Import(fmt.Sprintf("agent_rsp_%d", agent.Id()), ch_recv, netchan.Recv, 1)
 	if err != nil {
 	    logflow.Fatal("agent", err)
 	}
