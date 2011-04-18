@@ -55,7 +55,6 @@ func (self CoordinatorSlice) ChainTCP() {
     logflow.Println("main", "Exporting channels")
     ready := make(chan bool)
     for i, c := range(self) {
-        c.InitTCP()
         if i < len(self)-1 {
             c.ExportRemote(i+1)
         }
@@ -114,6 +113,7 @@ func NewCoordinator() *Coordinator {
                         peers: make([]*CoordinatorProxy, 0),
                         rpcSendChannels: make([]chan game.GameStateResponse, 0),
                         rpcRecvChannels: make([]chan GameStateRequest, 0),
+                        exporter: netchan.NewExporter(),
                         rpcRequestsReceivedConfirmation: make(chan int),
                         nextTurnAvailableSignals: make([]chan int, 0),
                         log: logflow.NewSource("coord/?")}
@@ -167,10 +167,6 @@ func (self *Coordinator) AddRPCChannel(newSendChannel chan game.GameStateRespons
 }
 
 // REMOTE/PRODUCTION
-
-func (self *Coordinator) InitTCP() {
-    self.exporter = netchan.NewExporter()
-}
 
 func (self *Coordinator) ExportRemote(otherID int) {
     ch_recv := make(chan GameStateRequest)
