@@ -2,7 +2,6 @@ package lib
 
 import "fmt"
 import pseudo_rand "rand"
-import "container/list"
 import "agent"
 import "logflow"
 import . "byteslice"
@@ -24,50 +23,6 @@ type SendMachine struct {
     sendq *DataGramQueue
 }
 
-type DataGramQueue struct {
-    list *list.List
-}
-
-func NewDataGramQueue() *DataGramQueue {
-    return &DataGramQueue{
-        list:list.New(),
-    }
-}
-
-func (self *DataGramQueue) Len() int {
-    return self.list.Len()
-}
-
-func (self *DataGramQueue) Empty() bool {
-    return self.list.Len() == 0
-}
-
-func (self *DataGramQueue) Queue(m *DataGram) {
-    self.list.PushBack(m)
-}
-
-func (self *DataGramQueue) Dequeue() (*DataGram, bool) {
-    front := self.list.Front()
-    if front == nil { return nil, false }
-    m := front.Value.(*DataGram)
-    self.list.Remove(front)
-    return m, true
-}
-
-func (self *DataGramQueue) Clean() {
-    for e := self.list.Front(); e != nil; {
-        m := e.Value.(*DataGram)
-        m.DecTTL()
-        if m.SendTTL == 0 || m.TTL == 0 {
-            next_e := e.Next()
-            self.list.Remove(e)
-            e = next_e
-            if e == nil { break }
-        } else {
-            e = e.Next()
-        }
-    }
-}
 
 func NewSendMachine(freq uint8, agent agent.Agent) *SendMachine {
     self := &SendMachine {
