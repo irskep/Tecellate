@@ -1,4 +1,4 @@
-package wifi
+package packet
 
 import "fmt"
 import "hash/crc32"
@@ -13,6 +13,8 @@ type Packet struct {
     pkt [game.MessageLength]byte
 }
 
+//                                          CMD   ADDRESS   CRC32
+const PacketBodySize = game.MessageLength -  4  -    4    -   4
 
 // init functions --------------------------------------------------------------
 func init() {
@@ -65,7 +67,7 @@ func (self *Packet) SetBody(bytes ByteSlice) {
 }
 
 func (self *Packet) GetBody(k int) ByteSlice {
-    bytes_len := len(self.pkt)-12
+    bytes_len := PacketBodySize
     if 0 < k && k < bytes_len { bytes_len = k }
     body := ByteSlice(self.pkt[8:len(self.pkt)-4])
     bytes := make(ByteSlice, bytes_len)

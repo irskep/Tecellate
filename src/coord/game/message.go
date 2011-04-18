@@ -9,7 +9,7 @@ import cagent "coord/agent"
 import "logflow"
 import "sync"
 
-const MessageLength = 32
+const MessageLength = 64
 const HearingRange = 10.0
 const corrupt_scale = 1.137
 const combine_scale = corrupt_scale*3
@@ -106,12 +106,15 @@ func (self *Messages) Add(msg cagent.Message) {
 }
 
 func (self *Messages) Hear(loc geo.Point, freq uint8) (msg []byte) {
+
+    self.mu.Lock()
     if freqs, has := self.Cache[loc.Complex()]; has {
         if m, has := freqs[freq]; has {
-//             log.Logln(logflow.DEBUG, "Cached!", loc, freq, m)
+            self.mu.Unlock()
             return m
         }
     }
+    self.mu.Unlock()
 
     msg = make([]byte, MessageLength)
     if messages, has := self.Msgs[freq]; has {
