@@ -61,7 +61,7 @@ func (self CoordinatorSlice) ChainTCP() {
         if i > 0 {
             c.ExportRemote(i-1)
         }
-        c.ListenForRPCConnections(ready)
+        c.RunExporter(ready, len(c.rpcSendChannels)*2)
     }
     for _, _ = range(self) {
         <- ready
@@ -184,7 +184,7 @@ func (self *Coordinator) ExportRemote(otherID int) {
 	self.AddRPCChannel(ch_send, ch_recv)
 }
 
-func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
+func (self *Coordinator) RunExporter(ready chan bool, numChans int) {
     go func() {
         addr_string := fmt.Sprintf("127.0.0.1:%d", 8000+self.conf.Identifier)
         self.log.Println("Listening at", addr_string)
@@ -193,13 +193,13 @@ func (self *Coordinator) ListenForRPCConnections(ready chan bool) {
         if err != nil {
             self.log.Fatal(err)
         }
-        for i := 0; i < len(self.rpcSendChannels)*2; i++ {
-            ready <- true
-            // There is a race condition here. There is a very slim chance that the
-            // main thread will unblock (it is waiting for ready) and yet the call to
-            // lstn.Accept() will not have been executed yet, which will cause the
-            // client's netchan import to fail.
-            // However, the chance is extremely slim.
+        // There is a race condition here. There is a very slim chance that the
+        // main thread will unblock (it is waiting for ready) and yet the call to
+        // lstn.Accept() will not have been executed yet, which will cause the
+        // client's netchan import to fail.
+        // However, the chance is extremely slim.
+        ready <- true
+        for i := 0; i < numChans; i++ {
         	conn, err := lstn.Accept()
         	if err != nil {
         		self.log.Fatal("listen:", err)
