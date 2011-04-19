@@ -20,6 +20,7 @@ type DataGram struct {
     TTL TTL
     SendTTL TTL
     checksum ByteSlice
+    ack bool
 }
 
 func NewDataGram(msg ByteSlice, from, dest uint32) *DataGram {
@@ -31,6 +32,20 @@ func NewDataGram(msg ByteSlice, from, dest uint32) *DataGram {
         FromAddr:from,
         TTL:DEFAULT_TTL,
         SendTTL:DEFAULT_TTL/2,
+        ack:false,
+    }
+}
+
+func NewAckGram(msg ByteSlice, from, dest uint32) *DataGram {
+    bytes := make(ByteSlice, DataGramBodySize)
+    copy(bytes, msg)
+    return &DataGram{
+        DataGram:bytes,
+        DestAddr:dest,
+        FromAddr:from,
+        TTL:DEFAULT_TTL,
+        SendTTL:DEFAULT_TTL/2,
+        ack:true,
     }
 }
 
@@ -54,6 +69,10 @@ func MakeDataGram(msg ByteSlice) *DataGram {
         SendTTL:send_ttl,
         checksum:crc,
     }
+}
+
+func (self *DataGram) IsAck() bool {
+    return self.ack
 }
 
 func (self *DataGram) Body() ByteSlice {

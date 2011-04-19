@@ -113,7 +113,7 @@ func (self *HelloMachine) PerformListens(comm agent.Comm) {
     if !ok { return }
     switch cmd {
         case Commands["HELLO"]:
-            id := pkt.IdField()
+            id := pkt.FromField()
             self.neighbors[id] = uint32(self.agent.Time())
 //             self.log("info", self.agent.Time(), "Got a hello from", id)
     }

@@ -1,7 +1,7 @@
 package lib
 
 import "fmt"
-import pseudo_rand "rand"
+// import pseudo_rand "rand"
 import "agent"
 import "logflow"
 import . "byteslice"
@@ -10,15 +10,17 @@ import . "agents/wifi/lib/datagram"
 import . "agents/wifi/lib/packet"
 
 const SEND_HOLDTIME = 10
+const ACK_WAIT = 20
 
 type SendMachine struct {
     freq uint8
     agent agent.Agent
     logger logflow.Logger
-    last ByteSlice
+    last_checksum ByteSlice
     state uint32
     backoff float64
     wait uint32
+    ack_wait uint32
     next_state uint32
     routes RoutingTable
     recieve ByteSlice
@@ -50,7 +52,7 @@ func (self *SendMachine) Run(routes RoutingTable, comm agent.Comm) *DataGram {
 
 func (self *SendMachine) Send(msg ByteSlice, dest uint32) {
     self.sendq.Queue(NewDataGram(msg, uint32(self.agent.Id()), dest))
-    self.log("info", self.agent.Time(), "Put message on sendq", msg)
+    self.log("info", self.agent.Time(), "Put message on sendq", string([]byte(msg)))
 }
 
 func (self *SendMachine) log(level logflow.LogLevel, v ...interface{}) {
@@ -58,19 +60,55 @@ func (self *SendMachine) log(level logflow.LogLevel, v ...interface{}) {
 }
 
 func (self *SendMachine) confirm_last(comm agent.Comm) (confirm bool) {
-    bytes := comm.Listen(self.freq)
-    confirm = self.last.Eq(bytes)
-//     self.log("info", self.agent.Time(), "confirm_last", confirm)
-    return
+
+    self.ack_wait -= 1
+    if self.ack_wait == 0 {
+        self.state = 2
+        self.next_state = 0
+        self.wait = 1
+        return false
+    }
+
+    pkt := MakePacket(comm.Listen(self.freq))
+    if !pkt.ValidateChecksum() { return false }
+    ok, cmd, _ := pkt.Cmd()
+    if !ok { return false }
+    self.log("info", self.agent.Time(), "got possible ack pkt", pkt)
+    switch cmd {
+        case Commands["ACK"]:
+            self.log("info", self.agent.Time(), "it is an ack")
+            myaddr := self.agent.Id()
+            to := pkt.ToField()
+            body := pkt.GetBody(PacketBodySize)
+            self.log("info", self.agent.Time(), "it is to me?", myaddr, to)
+            if to == myaddr {
+                msg := MakeDataGram(body)
+                self.log("info", self.agent.Time(), "the datagram", msg)
+                if msg.ValidateChecksum() {
+                    self.log("info", self.agent.Time(), "it validates")
+                    self.log("info", self.agent.Time(), "it dest", msg.DestAddr, "myaddr", myaddr)
+                    if msg.DestAddr == myaddr {
+                        self.log("info", self.agent.Time(), "it dest == myaddr")
+                        bytes := msg.Body()[0:4]
+                        self.log("info", self.agent.Time(), "bytes", bytes, "last", self.last_checksum)
+                        if self.last_checksum.Eq(bytes) {
+                            return true
+                        }
+                    }
+                }
+            }
+    }
+    return false
 }
 
-func (self *SendMachine) send_message(comm agent.Comm) bool {
+func (self *SendMachine) send_message(comm agent.Comm) (sent, isack bool) {
+
     find := func() (*DataGram, bool) {
         for i := 0; i < self.sendq.Len(); i++ {
             msg, ok := self.sendq.Dequeue()
             if !ok { break; }
             if _, has := self.routes[msg.DestAddr]; !has {
-                self.sendq.QueueFront(msg)
+                self.sendq.Queue(msg)
             } else {
                 return msg, true
             }
@@ -78,41 +116,53 @@ func (self *SendMachine) send_message(comm agent.Comm) bool {
         return nil, false
     }
     msg, found := find()
-    if !found { return false }
+    if !found { return false, false }
 
+    self.sendq.QueueFront(msg)
     if self.agent.Id() == 8 {
         self.log("info", self.agent.Time(), "sending", msg)
     }
 
     next := self.routes[msg.DestAddr].NextAddr
-    pkt := NewPacket(Commands["MESSAGE"], next)
+    var pkt *Packet
+    if msg.IsAck() {
+        pkt = NewPacket(Commands["ACK"], self.agent.Id(), next)
+    } else {
+        pkt = NewPacket(Commands["MESSAGE"], self.agent.Id(), next)
+    }
     pkt.SetBody(msg.Bytes())
     bytes := pkt.Bytes()
     comm.Broadcast(self.freq, bytes)
-    self.last = bytes
-//     self.log("info", self.agent.Time(), "sent", pkt, msg)
-    return true
+    if !msg.IsAck() { self.last_checksum = msg.ComputeChecksum() }
+    self.log("info", self.agent.Time(), "sent", pkt, msg)
+    return true, msg.IsAck()
 }
 
 func (self *SendMachine) PerformSends(comm agent.Comm) {
+//     if self.agent.Id() == 8  && self.agent.Time() >= 750 && self.agent.Time() <= 800 {
+//         self.log("info", self.agent.Time(), "id 8, current state", self.state)
+//     }
     switch self.state {
         case 0:
-            if self.send_message(comm) {
+            sent, isack := self.send_message(comm)
+            if sent && !isack {
                 self.state = 1
+                self.ack_wait = ACK_WAIT
+            } else if sent {
+                self.sendq.Dequeue()
+                self.state = 3
             } else {
                 self.state = 3
             }
         case 1:
             if self.confirm_last(comm) {
+                m, _ := self.sendq.Dequeue()
+                self.log("info", self.agent.Time(), "dequeued msg", m)
                 self.state = 2
                 self.next_state = 3
                 self.backoff = BACKOFF
                 self.wait = SEND_HOLDTIME
             } else {
-                self.state = 2
-                self.next_state = 0
-                self.backoff = self.backoff*(pseudo_rand.Float64() + 1.5)
-                self.wait = uint32(self.backoff)
             }
         case 2:
             self.wait -= 1
@@ -140,12 +190,15 @@ func (self *SendMachine) PerformListens(comm agent.Comm) *DataGram {
     switch cmd {
         case Commands["MESSAGE"]:
             myaddr := uint32(self.agent.Id())
-            to := pkt.IdField()
+            to := pkt.ToField()
+            from := pkt.FromField()
             body := pkt.GetBody(PacketBodySize)
             self.log("info", self.agent.Time(), "heard", to, "pkt", pkt, MakeDataGram(body))
             if to == myaddr {
                 msg := MakeDataGram(body)
                 if msg.ValidateChecksum() {
+                    ack := NewAckGram(msg.ComputeChecksum(), myaddr, from)
+                    self.sendq.QueueFront(ack)
                     if msg.DestAddr == myaddr {
                         return msg
                     }

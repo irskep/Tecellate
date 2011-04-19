@@ -13,8 +13,8 @@ type Packet struct {
     pkt [game.MessageLength]byte
 }
 
-//                                          CMD   ADDRESS   CRC32
-const PacketBodySize = game.MessageLength -  4  -    4    -   4
+//                                          CMD   FromAddr   ToAddr   CRC32
+const PacketBodySize = game.MessageLength -  4  -    4     -   4    -   4
 
 // init functions --------------------------------------------------------------
 func init() {
@@ -29,10 +29,11 @@ func init() {
 
 
 // packet methods --------------------------------------------------------------
-func NewPacket(cmd Command, id uint32) *Packet {
+func NewPacket(cmd Command, from, to uint32) *Packet {
     self := new(Packet)
     self.pkt[0] = byte(cmd)
-    copy(self.pkt[4:8], ByteSlice32(id))
+    copy(self.pkt[4:8], ByteSlice32(from))
+    copy(self.pkt[8:12], ByteSlice32(to))
     return self
 }
 
@@ -45,7 +46,7 @@ func MakePacket(bytes ByteSlice) *Packet {
 }
 
 func MakeHello(id uint32) *Packet {
-    self := NewPacket(Commands["HELLO"], id)
+    self := NewPacket(Commands["HELLO"], id, 0xffffffff)
     return self
 }
 
@@ -57,19 +58,23 @@ func (self *Packet) Cmd() (bool, Command, string) {
     return false, 0, ""
 }
 
-func (self *Packet) IdField() uint32 {
+func (self *Packet) FromField() uint32 {
     return ByteSlice(self.pkt[4:8]).Int32()
 }
 
+func (self *Packet) ToField() uint32 {
+    return ByteSlice(self.pkt[8:12]).Int32()
+}
+
 func (self *Packet) SetBody(bytes ByteSlice) {
-    body := ByteSlice(self.pkt[8:len(self.pkt)-4])
+    body := ByteSlice(self.pkt[12:len(self.pkt)-4])
     copy(body, bytes)
 }
 
 func (self *Packet) GetBody(k int) ByteSlice {
     bytes_len := PacketBodySize
     if 0 < k && k < bytes_len { bytes_len = k }
-    body := ByteSlice(self.pkt[8:len(self.pkt)-4])
+    body := ByteSlice(self.pkt[12:len(self.pkt)-4])
     bytes := make(ByteSlice, bytes_len)
     copy(bytes, body)
     return bytes
@@ -97,5 +102,5 @@ func (self *Packet) String() string {
     } else {
         command = "Unknown"
     }
-    return fmt.Sprintf("<Packet cmd:%v %v %v id:%v>", command, ByteSlice(self.pkt[len(self.pkt)-4:]), self.ValidateChecksum(), self.IdField())
+    return fmt.Sprintf("<Packet cmd:%v from:%v, to:%v>", command, self.FromField(), self.ToField())
 }

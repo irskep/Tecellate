@@ -32,7 +32,7 @@ func NewStaticBot(id, first, last uint32) *StaticBot {
     self := &StaticBot{
         id:id,
         first:first,
-        last:last,
+        last:first,
         next:first,
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/static/%d", id)),
         recieved:make([]uint32, 0, int(last-first)),

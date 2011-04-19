@@ -109,7 +109,7 @@ func (self *RouteMachine) send_route(comm agent.Comm) {
         self.next_route = 0
         return
     }
-    pkt := NewPacket(Commands["ROUTE"], uint32(self.agent.Id()))
+    pkt := NewPacket(Commands["ROUTE"], self.agent.Id(), 0xffffffff)
     pkt.SetBody(route.Bytes())
     bytes := pkt.Bytes()
     comm.Broadcast(self.freq, bytes)
@@ -163,7 +163,7 @@ func (self *RouteMachine) PerformListens(comm agent.Comm) {
     if !ok { return }
     switch cmd {
         case Commands["ROUTE"]:
-            from := pkt.IdField()
+            from := pkt.FromField()
             body := pkt.GetBody(6)
             route := MakeRoute(from, body)
             route.IncHops()
