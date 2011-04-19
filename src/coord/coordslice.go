@@ -23,10 +23,7 @@ func (self CoordinatorSlice) Run() {
         <- complete
     }
     for _, c := range(self) {
-        if c.listener != nil {
-            logflow.Print("main", "closing ", c)
-            c.listener.Close()
-        }
+        c.Close()
     }
 }
 

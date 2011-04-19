@@ -76,6 +76,31 @@ func (self *Coordinator) Run() {
     self.ProcessTurns(nil)
 }
 
+func (self *Coordinator) Close() {
+    if self.listener != nil {
+        self.log.Print("Closing channels")
+        self.listener.Close()
+        for _, ch := range(self.rpcSendChannels) {
+            if !closed(ch) {
+                //close(ch)
+            }
+        }
+        for _, ch := range(self.rpcRecvChannels) {
+            if !closed(ch) {
+                //close(ch)
+            }
+        }
+        for _, p := range(self.peers) {
+            if !closed(p.sendChannel) {
+                close(p.sendChannel)
+            }
+            if !closed(p.recvChannel) {
+                close(p.recvChannel)
+            }
+        }
+    }
+}
+
 func (self *Coordinator) GetGameState() *game.GameState {
     return self.availableGameState
 }
@@ -127,13 +152,18 @@ func (self *Coordinator) RunExporter() {
         // lstn.Accept() will not have been executed yet, which will cause the
         // client's netchan import to fail.
         // However, the chance is extremely slim.
-        for {
-            conn, err := self.listener.Accept()
+        n := len(self.rpcSendChannels)+len(self.conf.Agents)
+        for i := 0; i<n; i++ {
+            conn, err := self.listener.AcceptTCP()
+            self.log.Print("Serving netchan export ", i, " of ", n)
             if err != nil {
                 self.log.Fatal("listen:", err)
             }
+            conn.SetLinger(0)
             go self.exporter.ServeConn(conn)
         }
+        self.log.Print("Closing listener")
+        self.listener.Close()
     }()
 }
 
