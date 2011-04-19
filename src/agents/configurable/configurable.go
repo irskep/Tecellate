@@ -3,7 +3,7 @@ package configurable
 import "agent"
 
 type Configurable struct {
-    id uint
+    id uint32
     XVelocity int
     YVelocity int
     LogBroadcast bool
@@ -15,7 +15,7 @@ type Configurable struct {
     LogEnergy bool
 }
 
-func New(id uint) *Configurable {
+func New(id uint32) *Configurable {
     return &Configurable{id, 0, 0, false, false, false, false, false, false, false}
 }
 
@@ -46,7 +46,7 @@ func (self *Configurable) Turn(comm agent.Comm) {
     return
 }
 
-func (self *Configurable) Id() uint {
+func (self *Configurable) Id() uint32 {
     return self.id
 }
 

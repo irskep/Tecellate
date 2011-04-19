@@ -8,7 +8,7 @@ type Energy uint32
 type Turn uint64
 
 type AgentState struct {
-    Id int
+    Id uint32
     Turn Turn
     Alive bool
     Position geo.Point
@@ -35,9 +35,9 @@ func (self Turn) Bytes() ByteSlice {
     return ByteSlice64(uint64(self))
 }
 
-func NewAgentState(turn uint64, pos geo.Point, energy Energy) *AgentState {
+func NewAgentState(id uint32, turn uint64, pos geo.Point, energy Energy) *AgentState {
     self := &AgentState{
-        Id:-1,
+        Id:id,
         Turn:Turn(turn),
         Alive:true,
         Position:pos,

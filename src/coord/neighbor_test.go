@@ -32,7 +32,7 @@ func initLogs(name string, t *testing.T) func() {
     Start Testing %v
 `, name))
     return func() {
-        logflow.Println("test", fmt.Sprintf(` 
+        logflow.Println("test", fmt.Sprintf(`
 --------------------------------------------------------------------------------
         End Testing %v
     `, name))
@@ -40,7 +40,7 @@ func initLogs(name string, t *testing.T) func() {
     }
 }
 
-func makeAgent(id uint, xVelocity, yVelocity int) agent.Agent {
+func makeAgent(id uint32, xVelocity, yVelocity int) agent.Agent {
     a := configurable.New(id)
     a.XVelocity = xVelocity
     a.YVelocity = yVelocity
@@ -62,18 +62,18 @@ func TestLocalInfoPass(t *testing.T) {
 
 func TestTCPInfoPass(t *testing.T) {
     defer initLogs("TCP info", t)()
-    
+
     logflow.FileSink("logs/neighbor_test/agents", true, "test|agent/.*")
     logflow.StdoutSink(".*")
-    
+
     gameconf := NewGameConfig(3, "noise", false, 20, 10)
-    
+
     // gameconf.AddAgent(id, x, y)
     gameconf.AddAgent(1, 0, 0, 100)
     gameconf.AddAgent(2, 5, 0, 100)
-    
-    agents := map[int]agent.Agent{1: makeAgent(1, 1, 0), 2: makeAgent(2, -1, 0)}
-    
+
+    agents := map[uint32]agent.Agent{1: makeAgent(1, 1, 0), 2: makeAgent(2, -1, 0)}
+
     coords := gameconf.InitWithTCPChainedLocalCoordinators(2, agents)
     // Start/connect the agents
     for _, c := range(coords) {

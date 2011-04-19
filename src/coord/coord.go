@@ -43,7 +43,7 @@ func (self CoordinatorSlice) Run() {
     }
 }
 
-func (self CoordinatorSlice) ConnectToLocalAgents(agents map[int]agent.Agent) {
+func (self CoordinatorSlice) ConnectToLocalAgents(agents map[uint32]agent.Agent) {
     for _, c := range(self) {
         for _, ad := range(c.conf.Agents) {
             p := aproxy.RunAgentLocal(agents[ad.Id], ad.X, ad.Y)
@@ -230,8 +230,7 @@ func (self *Coordinator) PrepareAgentProxies() {
         }
 
         proxy := aproxy.NewAgentProxy(p2a, a2p)
-        s := cagent.NewAgentState(0, *geo.NewPoint(ad.X, ad.Y), cagent.Energy(ad.Energy))
-        s.Id = ad.Id
+        s := cagent.NewAgentState(ad.Id, 0, *geo.NewPoint(ad.X, ad.Y), cagent.Energy(ad.Energy))
         proxy.SetState(s)
         self.availableGameState.Agents = append(self.availableGameState.Agents, proxy)
     }

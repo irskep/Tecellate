@@ -21,7 +21,7 @@ import (
 
 type Agent interface {
     Turn(Comm)
-    Id() uint
+    Id() uint32
     Time() uint
 }
 

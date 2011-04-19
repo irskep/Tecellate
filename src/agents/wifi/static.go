@@ -44,8 +44,8 @@ func (self *StaticBot) Time() uint {
     return self.time
 }
 
-func (self *StaticBot) Id() uint {
-    return uint(self.id)
+func (self *StaticBot) Id() uint32 {
+    return self.id
 }
 
 func (self *StaticBot) Turn(comm agent.Comm) {

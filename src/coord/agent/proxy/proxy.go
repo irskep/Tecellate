@@ -37,7 +37,7 @@ func RunAgentLocal(a agent.Agent, x, y int) *AgentProxy {
     a2p := make(chan link.Message, 10)
 
     proxy := NewAgentProxy(p2a, a2p)
-    proxy.SetState(cagent.NewAgentState(0, *geo.NewPoint(x, y), 0))
+    proxy.SetState(cagent.NewAgentState(a.Id(), 0, *geo.NewPoint(x, y), 0))
     go func() {
         agent.Run(a, a2p, p2a)
     }()
@@ -46,6 +46,7 @@ func RunAgentLocal(a agent.Agent, x, y int) *AgentProxy {
 
 func (self *AgentProxy) SetState(state *AgentState) {
     self.state = state
+    self.log = logflow.NewSource(fmt.Sprintf("agentproxy/%v", self.state.Id))
 }
 
 func (self *AgentProxy) State() *AgentState {

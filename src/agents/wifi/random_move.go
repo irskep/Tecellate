@@ -45,8 +45,8 @@ func (self *RandomBot) Time() uint {
     return self.time
 }
 
-func (self *RandomBot) Id() uint {
-    return uint(self.id)
+func (self *RandomBot) Id() uint32 {
+    return self.id
 }
 
 func (self *RandomBot) Turn(comm agent.Comm) {
