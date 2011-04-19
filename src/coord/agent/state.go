@@ -2,12 +2,14 @@ package agent
 
 import "fmt"
 import geo "coord/geometry"
+import . "byteslice"
 
 type Energy uint32
+type Turn uint64
 
 type AgentState struct {
-    Id int
-    Turn uint64
+    Id uint32
+    Turn Turn
     Alive bool
     Position geo.Point
     Energy Energy
@@ -15,10 +17,28 @@ type AgentState struct {
     Move Move
 }
 
-func NewAgentState(turn uint64, pos geo.Point, energy Energy) *AgentState {
+func MakeEnergy(bytes ByteSlice) Energy {
+    return Energy(bytes.Int32())
+}
+
+func (self Energy) Bytes() ByteSlice {
+    return ByteSlice32(uint32(self))
+}
+
+
+
+func MakeTurn(bytes ByteSlice) Turn {
+    return Turn(bytes.Int64())
+}
+
+func (self Turn) Bytes() ByteSlice {
+    return ByteSlice64(uint64(self))
+}
+
+func NewAgentState(id uint32, turn uint64, pos geo.Point, energy Energy) *AgentState {
     self := &AgentState{
-        Id:-1,
-        Turn:turn,
+        Id:id,
+        Turn:Turn(turn),
         Alive:true,
         Position:pos,
         Wait:0,
@@ -28,14 +48,14 @@ func NewAgentState(turn uint64, pos geo.Point, energy Energy) *AgentState {
 }
 
 func (self *AgentState) Transform(trans Transform) {
-    self.Turn = trans.Turn()
+    self.Turn = Turn(trans.Turn())
     self.Position = trans.Position()
     self.Energy = trans.Energy()
     self.Alive = trans.Alive()
     self.Wait = trans.Wait()
 }
 
-func (self *AgentState) Mv(pos geo.Point) bool {
+func (self *AgentState) Mv(pos *geo.Point) bool {
     return self.Move.mv(pos)
 }
 
@@ -56,6 +76,6 @@ func (self *AgentState) PrevResult() bool {
     return false
 }
 
-func (self *AgentState) String() string {
+func (self AgentState) String() string {
     return fmt.Sprintf("<AgentState id:%v pos:%v>", self.Id, self.Position.String())
 }

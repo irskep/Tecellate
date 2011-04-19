@@ -1,11 +1,7 @@
 package coord
 
-import "agent"
-import "agent/link"
 import "agents/configurable"
-import cagent "coord/agent"
-import aproxy "coord/agent/proxy"
-import geo "coord/geometry"
+import "agent"
 
 import (
     "fmt"
@@ -28,7 +24,7 @@ func initLogs(name string, t *testing.T) func() {
     logflow.FileSink("logs/neighbor_test/debug", true, ".*/debug")
 
     // Or show all output anyway I guess...
-//     logflow.StdoutSink(".*/info")
+    // logflow.StdoutSink(".*")
 //     logflow.StdoutSink(".*/debug")
 
     defer logflow.Println("test", fmt.Sprintf(`
@@ -36,33 +32,27 @@ func initLogs(name string, t *testing.T) func() {
     Start Testing %v
 `, name))
     return func() {
-        logflow.Println("test", fmt.Sprintf(` --------------------------------------------------------------------------------
+        logflow.Println("test", fmt.Sprintf(`
+--------------------------------------------------------------------------------
         End Testing %v
     `, name))
         logflow.RemoveAllSinks()
     }
 }
 
-func makeAgent(id uint, x, y, xVelocity, yVelocity int) *aproxy.AgentProxy {
-    p2a := make(chan link.Message, 10)
-    a2p := make(chan link.Message, 10)
+func makeAgent(id uint32, xVelocity, yVelocity int) agent.Agent {
     a := configurable.New(id)
     a.XVelocity = xVelocity
     a.YVelocity = yVelocity
     a.LogMove = true
-    proxy := aproxy.NewAgentProxy(p2a, a2p)
-    proxy.SetState(cagent.NewAgentState(0, *geo.NewPoint(x, y), 0))
-    go func() {
-        agent.Run(a, a2p, p2a)
-    }()
-    return proxy
+    return a
 }
 
 func TestLocalInfoPass(t *testing.T) {
     // initLogs("Local info", t)
     //
     // gameconf := NewGameConfig(11, "noise", false, true, 20, 10)
-    // gameconf.AddAgent(makeAgent(1, 0, 0))
+    // gameconf.AddAgent(makeAgentLocal(1, 0, 0))
     //
     // coords := gameconf.InitWithChainedLocalCoordinators(2, 10)
     // coords.Run()
@@ -72,13 +62,21 @@ func TestLocalInfoPass(t *testing.T) {
 
 func TestTCPInfoPass(t *testing.T) {
     defer initLogs("TCP info", t)()
-    
+
     logflow.FileSink("logs/neighbor_test/agents", true, "test|agent/.*")
-    
-    gameconf := NewGameConfig(3, "noise", false, true, 20, 10)
-    gameconf.AddAgent(makeAgent(1, 0, 0, 1, 0))
-    gameconf.AddAgent(makeAgent(2, 4, 0, -1, 0))
-    
-    coords := gameconf.InitWithTCPChainedLocalCoordinators(2, 10)
+    logflow.StdoutSink(".*/(info|debug)")
+
+    gameconf := NewGameConfig(3, "noise", false, 20, 10)
+
+    // gameconf.AddAgent(id, x, y)
+    gameconf.AddAgent(1, 0, 0, 100)
+    gameconf.AddAgent(2, 5, 0, 100)
+
+    agents := map[uint32]agent.Agent{1: makeAgent(1, 1, 0), 2: makeAgent(2, -1, 0)}
+
+    coords := gameconf.InitWithTCPChainedLocalCoordinators(2)
+    // Start/connect the agents
+    coords.StartAndConnectAgents(agents)
+    // Run the coordinators
     coords.Run()
 }

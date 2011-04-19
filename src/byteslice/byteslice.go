@@ -136,9 +136,13 @@ func (self ByteSlice) Concat(b ByteSlice) ByteSlice {
     return bytes
 }
 
-func (b ByteSlice) String() string {
-    if b == nil {
+func (self ByteSlice) String() string {
+    if self == nil {
         return "<nil>"
     }
-    return fmt.Sprintf("0x%x", b.Int64())
+    return fmt.Sprintf("0x%x", self.Int64())
+}
+
+func (self ByteSlice) Bytes() ByteSlice {
+    return self
 }

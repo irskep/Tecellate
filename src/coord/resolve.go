@@ -43,7 +43,8 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
         for _, st := range peerGameState.AgentStates {
             moves[st.Position.Complex()] = 1
             if st.Move.Valid {
-                moves[st.Move.Position.Complex()] = 1
+                requestedPosition := st.Move.Position.Add(st.Position)
+                moves[requestedPosition.Complex()] = 1
             }
         }
     }
@@ -62,31 +63,32 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
         } else {
             t.wait = 0
         }
-
-        if state.Energy > 0 {
-            t.energy = state.Energy - 1
-            t.alive = true
-        } else {
-            t.energy = 0
-            t.alive = false
+        
+        if self.conf.UseFood {
+            if state.Energy > 0 {
+                t.energy = state.Energy - 1
+                t.alive = true
+            } else {
+                t.energy = 0
+                t.alive = false
+            }
         }
 
         if state.Alive && state.Move.Valid {
-            t.pos = *state.Move.Position.Add(state.Position)
+            requestedPosition := *state.Move.Position.Add(state.Position)
+            if _, has := moves[requestedPosition.Complex()]; has {
+                self.log.Print("Agent ", state.Id, " fails move ", state.Position, " - ", requestedPosition)
+                t.pos = state.Position
+            } else {
+                self.log.Print("Agent ", state.Id, " performs move ", state.Position, " - ", requestedPosition)
+                moves[requestedPosition.Complex()] = 1
+                t.pos = requestedPosition
+            }
+            
             for _, msg := range state.Move.Messages {
                 messages.Add(msg)
                 myMessages.Add(msg)
             }
-        } else {
-            t.pos = state.Position
-        }
-        
-        if _, has := moves[t.pos.Complex()]; has {
-            self.log.Print("Agent ", state.Id, " bounces to ", state.Position)
-            t.pos = state.Position
-        } else {
-            self.log.Print("Agent ", state.Id, " moves to ", t.pos)
-            moves[t.pos.Complex()] = 1
         }
 
         transforms[i] = t

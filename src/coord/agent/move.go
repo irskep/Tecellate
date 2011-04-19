@@ -16,9 +16,9 @@ func (self *AgentState) NewMove() Move {
     return self.Move
 }
 
-func (self *Move) mv(pos geo.Point) bool {
+func (self *Move) mv(pos *geo.Point) bool {
     if !self.Setmv {
-        self.Position = pos
+        self.Position = *pos
         self.Setmv = true
         return true
     }

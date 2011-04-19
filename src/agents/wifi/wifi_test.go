@@ -1,6 +1,8 @@
 package wifi
 
 import "testing"
+
+
 import "fmt"
 
 import (
@@ -52,6 +54,7 @@ func TestStatic_Neighbors(t *testing.T) {
             }
         }
     }
+//     t.Fatal("lala")
 }
 
 func TestStatic_Reachable(t *testing.T) {

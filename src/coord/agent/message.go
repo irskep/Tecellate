@@ -15,7 +15,7 @@ func (self *AgentState) NewMessage(freq uint8, msg []byte) (bool, Message) {
     return true, m
 }
 
-func (self *Message) String() string {
+func (self Message) String() string {
     return fmt.Sprintf("<cagent.Message source:%v freq:%v msg:\"%v\">", self.Source, self.Frequency, string(self.Msg))
 }
 

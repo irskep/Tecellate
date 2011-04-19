@@ -11,10 +11,10 @@ import "agent"
 import "fmt"
 
 type Simple struct {
-    id uint
+    id uint32
 }
 
-func NewSimple(id uint) *Simple {
+func NewSimple(id uint32) *Simple {
     return &Simple{id:id}
 }
 
@@ -45,7 +45,7 @@ func (self *Simple) Turn(comm agent.Comm) {
     return
 }
 
-func (self *Simple) Id() uint {
+func (self *Simple) Id() uint32 {
     return self.id
 }
 

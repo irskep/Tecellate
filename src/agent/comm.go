@@ -8,6 +8,7 @@ import (
 import (
     "agent/link"
     cagent "coord/agent"
+    geo "coord/geometry"
 )
 
 type Comm interface {
@@ -43,10 +44,6 @@ func (self *comm) ack_start() {
     self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Start"]))
 }
 
-func (self *comm) id(id uint) {
-    self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Id"], id))
-}
-
 func (self *comm) complete() bool {
     r, _ := self.acked_send(link.NewMessage(link.Commands["Complete"]))
     return r
@@ -56,16 +53,14 @@ func (self *comm) await_cmd_ack(cmd link.Command) (bool, link.Arguments) {
     msg := self.recv()
 
     proc := func(ack bool) (bool, link.Arguments) {
-        switch acked := msg.Args[0].(type) {
-        case link.Command:
-            if acked == cmd {
-                if ack == true {
-                    return ack, msg.Args
-                } else {
-                    return ack, nil
-                }
+        acked := link.MakeCommand(msg.Args[0])
+        if acked == cmd {
+            if ack == true {
+                return ack, msg.Args
+            } else {
+                return ack, nil
             }
-        default:
+        } else {
             var s string
             if ack {
                 s = fmt.Sprintf("Acked incorrect cmd (expected %s) %s", cmd, msg)
@@ -112,8 +107,8 @@ func (self *comm) send(msg *link.Message) {
     timeout := time.NewTicker(link.Timeout)
     select {
     case m := <-self.rcv:
-        self.log.Logln("proto", m)
-        panic("unresolved message in pipe.")
+//         self.log.Logln("proto", m)
+        panic(fmt.Sprintf("unresolved message in pipe. \n msg = %v", m))
     case self.snd <- *msg:
 //         self.log.Logln("proto", "sent :", msg)
     case <-timeout.C:
@@ -137,10 +132,7 @@ func (self *comm) Listen(freq uint8) []byte {
     m := link.NewMessage(link.Commands["Listen"], newListen(freq))
     if ok, args := self.acked_send(m); ok {
         if len(args) == 2 {
-            switch msg := args[1].(type) {
-            case []byte:
-                return msg
-            }
+            return args[1]
         }
     }
     panic("didn't get an energy")
@@ -156,17 +148,14 @@ func (self *comm) Broadcast(freq uint8, msg []byte) bool {
 func (self *comm) Energy() cagent.Energy {
     if ok, args := self.acked_send(link.NewMessage(link.Commands["Energy"])); ok {
         if len(args) == 2 {
-            switch energy := args[1].(type) {
-            case cagent.Energy:
-                return energy
-            }
+            return cagent.MakeEnergy(args[1])
         }
     }
     panic("didn't get an energy")
 }
 
 func (self *comm) Move(x,y int) bool {
-    c, _ := self.acked_send(link.NewMessage(link.Commands["Move"], newMove(x, y)))
+    c, _ := self.acked_send(link.NewMessage(link.Commands["Move"], geo.NewPoint(x, y)))
     return c
 }
 
