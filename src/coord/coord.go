@@ -230,7 +230,7 @@ func (self *Coordinator) PrepareAgentProxies() {
     	}
 
         proxy := aproxy.NewAgentProxy(p2a, a2p)
-        s := cagent.NewAgentState(0, *geo.NewPoint(ad.X, ad.Y), 0)
+        s := cagent.NewAgentState(0, *geo.NewPoint(ad.X, ad.Y), cagent.Energy(ad.Energy))
         s.Id = ad.Id
         proxy.SetState(s)
         self.availableGameState.Agents = append(self.availableGameState.Agents, proxy)
