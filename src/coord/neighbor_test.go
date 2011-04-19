@@ -69,10 +69,10 @@ func TestTCPInfoPass(t *testing.T) {
     gameconf := NewGameConfig(3, "noise", false, 20, 10)
 
     // gameconf.AddAgent(id, x, y)
-    gameconf.AddAgent(1, 0, 0, 100)
-    gameconf.AddAgent(2, 5, 0, 100)
+    gameconf.AddAgent(1, 9, 0, 100)
+    // gameconf.AddAgent(2, 5, 0, 100)
 
-    agents := map[uint32]agent.Agent{1: makeAgent(1, 1, 0), 2: makeAgent(2, -1, 0)}
+    agents := map[uint32]agent.Agent{1: makeAgent(1, 1, 0)}//, 2: makeAgent(2, -1, 0)}
 
     coords := gameconf.InitWithTCPChainedLocalCoordinators(2)
     // Start/connect the agents

@@ -1,13 +1,6 @@
 package coord
 
 import game "coord/game"
-import geo "coord/geometry"
-// import cagent "coord/agent"
-
-// import (
-//     "rand"
-//     "time"
-// )
 
 func (self *Coordinator) ProcessTurns(complete chan bool) {
     self.log.Println("My agents:", self.availableGameState.Agents)
@@ -46,7 +39,7 @@ func (self *Coordinator) peerDataForTurn(turn int) []*game.GameStateResponse {
     responsesReceived := make(chan bool)
     for p, _ := range(self.peers) {
         go func(peerIndex int) {
-            responses[peerIndex] = self.peers[peerIndex].RequestStatesInBox(turn, geo.Point{0,0}, geo.Point{0,0})
+            responses[peerIndex] = self.peers[peerIndex].RequestStatesInBox(turn, *self.conf.BottomLeft, *self.conf.TopRight)
             responsesReceived <- true
         }(p)
     }
