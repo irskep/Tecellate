@@ -24,7 +24,7 @@ type StaticBot struct {
     send  *SendMachine
 }
 
-func NewStaticBot(id uint) *StaticBot {
+func NewStaticBot(id uint32) *StaticBot {
     self := &StaticBot{
         id:uint32(id),
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/static/%d", id)),

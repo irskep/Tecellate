@@ -2,8 +2,7 @@ package wifi
 
 import "testing"
 
-func TestDummy(t *testing.T) { }
-/*
+
 import "fmt"
 
 import (
@@ -101,4 +100,4 @@ func TestStatic_Reachable(t *testing.T) {
         t.Error("Misses =", misses)
     }
 }
-*/
+

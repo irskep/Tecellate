@@ -64,7 +64,7 @@ func TestTCPInfoPass(t *testing.T) {
     defer initLogs("TCP info", t)()
 
     logflow.FileSink("logs/neighbor_test/agents", true, "test|agent/.*")
-    logflow.StdoutSink(".*")
+//     logflow.StdoutSink(".*")
 
     gameconf := NewGameConfig(3, "noise", false, 20, 10)
 
@@ -74,14 +74,9 @@ func TestTCPInfoPass(t *testing.T) {
 
     agents := map[uint32]agent.Agent{1: makeAgent(1, 1, 0), 2: makeAgent(2, -1, 0)}
 
-    coords := gameconf.InitWithTCPChainedLocalCoordinators(2, agents)
+    coords := gameconf.InitWithTCPChainedLocalCoordinators(2)
     // Start/connect the agents
-    for _, c := range(coords) {
-        for _, ad := range(c.conf.Agents) {
-            logflow.Print("Starting agent ", ad.Id, " in ", c.conf)
-            go agent.RunWithCoordinator(agents[ad.Id], c.Address())
-        }
-    }
+    coords.StartAndConnectAgents(agents)
     // Run the coordinators
     coords.Run()
 }

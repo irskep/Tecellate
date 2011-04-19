@@ -95,6 +95,15 @@ func (self CoordinatorSlice) ChainTCP() {
     }
 }
 
+func (self CoordinatorSlice) StartAndConnectAgents(agents map[uint32]agent.Agent) {
+    for _, coord := range(self) {
+        for _, agent_desc := range(coord.conf.Agents) {
+            logflow.Print("Starting agent ", agent_desc.Id, " in ", coord.conf)
+            go agent.RunWithCoordinator(agents[agent_desc.Id], coord.Address())
+        }
+    }
+}
+
 /* Coordinator type */
 
 type Coordinator struct {
@@ -201,11 +210,11 @@ func (self *Coordinator) RunExporter() {
         // client's netchan import to fail.
         // However, the chance is extremely slim.
         for {
-        	conn, err := lstn.Accept()
-        	if err != nil {
-        		self.log.Fatal("listen:", err)
-        	}
-        	go self.exporter.ServeConn(conn)
+            conn, err := lstn.Accept()
+            if err != nil {
+                self.log.Fatal("listen:", err)
+            }
+            go self.exporter.ServeConn(conn)
         }
     }()
 }

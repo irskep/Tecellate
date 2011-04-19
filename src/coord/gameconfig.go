@@ -52,7 +52,7 @@ func (self *GameConfig) InitWithChainedLocalCoordinators(k int, agents map[uint3
     return coords
 }
 
-func (self *GameConfig) InitWithTCPChainedLocalCoordinators(k int, agents map[uint32]agent.Agent) CoordinatorSlice {
+func (self *GameConfig) InitWithTCPChainedLocalCoordinators(k int) CoordinatorSlice {
     coords := self.SideBySideCoordinators(k, self.Size.X/k, self.Size.Y)
     coords.PrepareAgentProxies()
     coords.ChainTCP()
