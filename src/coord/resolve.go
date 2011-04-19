@@ -5,6 +5,18 @@ import aproxy "coord/agent/proxy"
 import game "coord/game"
 // import geo "coord/geometry"
 
+func (self *Coordinator) getNewAgents(peers []*game.GameStateResponse) []cagent.Agent {
+    for _, rsp := range(peers) {
+        if len(rsp.AgentsToAdopt) > 0 {
+            self.log.Print("Got new agents from ", rsp.Identifier)
+            for _, as := range(rsp.AgentsToAdopt) {
+                self.log.Print("One of them is ", as)
+            }
+        }
+    }
+    return nil
+}
+
 func (self *Coordinator) doTurns(agents []cagent.Agent) {
     exec_turn := func(agent cagent.Agent, done chan<- bool) {
         agent.(*aproxy.AgentProxy).SetGameState(self.availableGameState)
@@ -26,11 +38,13 @@ func (self *Coordinator) doTurns(agents []cagent.Agent) {
     }
 }
 
-func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) ([]cagent.Transform, *game.Messages, *game.Messages) {
+func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) ([]cagent.Transform, *game.Messages, *game.Messages, []cagent.Agent) {
     agents := self.availableGameState.Agents
     transforms := make([]cagent.Transform, len(agents))
     messages := game.NewMessages(peers)
     myMessages := game.NewMessages(nil)
+    
+    newAgents := self.getNewAgents(peers)
     
     self.doTurns(agents)
 
@@ -96,5 +110,5 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
 
 
     self.log.Println("\n---------- Ending Resolve -----------\n\n")
-    return transforms, messages, myMessages;
+    return transforms, messages, myMessages, newAgents
 }

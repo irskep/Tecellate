@@ -42,6 +42,9 @@ func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
                 start()
             case msg.Cmd == link.Commands["Exit"]:
                 break
+            case msg.Cmd == link.Commands["Reconnect"]:
+                //thingy()
+                //comm.SwapChannels(newSend, newRecv)
             default:
                 s := fmt.Sprintf("Command %s not valid for current state.", msg.Cmd)
                 panic(s)

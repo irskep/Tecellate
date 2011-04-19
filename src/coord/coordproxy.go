@@ -11,22 +11,15 @@ import (
 
 var timeout int64 = 5*1e9
 
-type GameStateRequest struct {
-    SenderIdentifier int
-    Turn int
-    BottomLeft geo.Point
-    TopRight geo.Point
-}
-
 type CoordinatorProxy struct {
     Identifier int
     parentIdentifier int
-    sendChannel chan GameStateRequest
+    sendChannel chan game.GameStateRequest
     recvChannel chan game.GameStateResponse
     log logflow.Logger
 }
 
-func NewCoordProxy(identifier int, parentIdentifier int, sendChan chan GameStateRequest, recvChan chan game.GameStateResponse) *CoordinatorProxy {
+func NewCoordProxy(identifier int, parentIdentifier int, sendChan chan game.GameStateRequest, recvChan chan game.GameStateResponse) *CoordinatorProxy {
     return &CoordinatorProxy{identifier, 
                              parentIdentifier, 
                              sendChan, 
@@ -34,7 +27,7 @@ func NewCoordProxy(identifier int, parentIdentifier int, sendChan chan GameState
                              logflow.NewSource(fmt.Sprintf("coordproxy/%d/%d: ", parentIdentifier, identifier))}
 }
 
-func (self *CoordinatorProxy) request(request GameStateRequest) game.GameStateResponse {
+func (self *CoordinatorProxy) request(request game.GameStateRequest) game.GameStateResponse {
     self.sendChannel <- request
     
     timeout := time.NewTicker(timeout)
@@ -51,12 +44,9 @@ func (self *CoordinatorProxy) request(request GameStateRequest) game.GameStateRe
 func (self *CoordinatorProxy) RequestStatesInBox(turn int,
                                                  bottomLeft geo.Point,
                                                  topRight geo.Point) *game.GameStateResponse {
-    request := GameStateRequest{self.parentIdentifier, turn, bottomLeft, topRight}
+    request := game.GameStateRequest{self.parentIdentifier, turn, bottomLeft, topRight}
     self.log.Printf("req: %v", request)
     response := self.request(request)
     self.log.Printf("rsp: %v", response)
     return response.CopyToHeap()
-}
-
-func (self *CoordinatorProxy) SendComplete() {
 }
