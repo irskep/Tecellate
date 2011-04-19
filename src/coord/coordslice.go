@@ -30,7 +30,7 @@ func (self CoordinatorSlice) Run() {
 func (self CoordinatorSlice) ConnectToLocalAgents(agents map[uint32]agent.Agent) {
     for _, c := range(self) {
         for _, ad := range(c.conf.Agents) {
-            p := aproxy.RunAgentLocal(agents[ad.Id], ad.X, ad.Y)
+            p := aproxy.RunAgentLocal(agents[ad.Id], ad.X, ad.Y, ad.Energy)
             c.availableGameState.Agents = append(c.availableGameState.Agents, p)
         }
     }
