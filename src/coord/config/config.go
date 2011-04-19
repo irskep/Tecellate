@@ -3,12 +3,12 @@ package config
 import geo "coord/geometry"
 
 type AgentDefinition struct {
-    Id uint
+    Id int
     X int
     Y int
 }
 
-func NewAgentDefinition(id uint, x, y int) *AgentDefinition {
+func NewAgentDefinition(id int, x, y int) *AgentDefinition {
     return &AgentDefinition{Id: id, X: x, Y: y}
 }
 

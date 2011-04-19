@@ -23,7 +23,7 @@ func NewGameConfig(maxTurns int, msgStyle string, food bool, w, h int) *GameConf
     }
 }
 
-func (self *GameConfig) AddAgent(id uint, x, y int) {
+func (self *GameConfig) AddAgent(id int, x, y int) {
     self.Agents = append(self.Agents, config.NewAgentDefinition(id, x, y))
 }
 
@@ -45,14 +45,14 @@ func (self *GameConfig) CoordConfig(id int, bl *geo.Point, tr *geo.Point) *confi
                             tr)
 }
 
-func (self *GameConfig) InitWithChainedLocalCoordinators(k int, agents map[uint]agent.Agent) CoordinatorSlice {
+func (self *GameConfig) InitWithChainedLocalCoordinators(k int, agents map[int]agent.Agent) CoordinatorSlice {
     coords := self.SideBySideCoordinators(k, self.Size.X/k, self.Size.Y)
     coords.ConnectToLocalAgents(agents)
     coords.Chain()
     return coords
 }
 
-func (self *GameConfig) InitWithTCPChainedLocalCoordinators(k int, agents map[uint]agent.Agent) CoordinatorSlice {
+func (self *GameConfig) InitWithTCPChainedLocalCoordinators(k int, agents map[int]agent.Agent) CoordinatorSlice {
     coords := self.SideBySideCoordinators(k, self.Size.X/k, self.Size.Y)
     coords.PrepareAgentProxies()
     coords.ChainTCP()
