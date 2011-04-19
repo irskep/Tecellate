@@ -2,12 +2,11 @@ package lib
 
 import "fmt"
 import pseudo_rand "rand"
-import "container/list"
 import "agent"
 import "logflow"
 import . "byteslice"
 
-import . "agents/wifi/lib/message"
+import . "agents/wifi/lib/datagram"
 import . "agents/wifi/lib/packet"
 
 type SendMachine struct {
@@ -21,53 +20,9 @@ type SendMachine struct {
     next_state uint32
     routes RoutingTable
     recieve ByteSlice
-    sendq *MessageQueue
+    sendq *DataGramQueue
 }
 
-type MessageQueue struct {
-    list *list.List
-}
-
-func NewMessageQueue() *MessageQueue {
-    return &MessageQueue{
-        list:list.New(),
-    }
-}
-
-func (self *MessageQueue) Len() int {
-    return self.list.Len()
-}
-
-func (self *MessageQueue) Empty() bool {
-    return self.list.Len() == 0
-}
-
-func (self *MessageQueue) Queue(m *Message) {
-    self.list.PushBack(m)
-}
-
-func (self *MessageQueue) Dequeue() (*Message, bool) {
-    front := self.list.Front()
-    if front == nil { return nil, false }
-    m := front.Value.(*Message)
-    self.list.Remove(front)
-    return m, true
-}
-
-func (self *MessageQueue) Clean() {
-    for e := self.list.Front(); e != nil; {
-        m := e.Value.(*Message)
-        m.DecTTL()
-        if m.SendTTL == 0 || m.TTL == 0 {
-            next_e := e.Next()
-            self.list.Remove(e)
-            e = next_e
-            if e == nil { break }
-        } else {
-            e = e.Next()
-        }
-    }
-}
 
 func NewSendMachine(freq uint8, agent agent.Agent) *SendMachine {
     self := &SendMachine {
@@ -78,12 +33,12 @@ func NewSendMachine(freq uint8, agent agent.Agent) *SendMachine {
         wait:ROUTE_HOLDTIME,
         state:2,
         next_state:0,
-        sendq:NewMessageQueue(),
+        sendq:NewDataGramQueue(),
     }
     return self
 }
 
-func (self *SendMachine) Run(routes RoutingTable, comm agent.Comm) *Message {
+func (self *SendMachine) Run(routes RoutingTable, comm agent.Comm) *DataGram {
     self.routes = routes
     m := self.PerformListens(comm)
     self.PerformSends(comm)
@@ -92,7 +47,7 @@ func (self *SendMachine) Run(routes RoutingTable, comm agent.Comm) *Message {
 }
 
 func (self *SendMachine) Send(msg ByteSlice, dest uint32) {
-    self.sendq.Queue(NewMessage(msg, uint32(self.agent.Id()), dest))
+    self.sendq.Queue(NewDataGram(msg, uint32(self.agent.Id()), dest))
 }
 
 func (self *SendMachine) log(level logflow.LogLevel, v ...interface{}) {
@@ -107,7 +62,7 @@ func (self *SendMachine) confirm_last(comm agent.Comm) (confirm bool) {
 }
 
 func (self *SendMachine) send_message(comm agent.Comm) bool {
-    find := func() (*Message, bool) {
+    find := func() (*DataGram, bool) {
         for i := 0; i < self.sendq.Len(); i++ {
             msg, ok := self.sendq.Dequeue()
             if !ok { break; }
@@ -165,7 +120,7 @@ func (self *SendMachine) PerformSends(comm agent.Comm) {
     }
 }
 
-func (self *SendMachine) PerformListens(comm agent.Comm) *Message {
+func (self *SendMachine) PerformListens(comm agent.Comm) *DataGram {
     switch self.state {
         case 1:
             return nil
@@ -179,9 +134,9 @@ func (self *SendMachine) PerformListens(comm agent.Comm) *Message {
             myaddr := uint32(self.agent.Id())
             to := pkt.IdField()
             body := pkt.GetBody(PacketBodySize)
-            self.log("info", self.agent.Time(), "heard", to, "pkt", pkt, MakeMessage(body))
+            self.log("info", self.agent.Time(), "heard", to, "pkt", pkt, MakeDataGram(body))
             if to == myaddr {
-                msg := MakeMessage(body)
+                msg := MakeDataGram(body)
                 if msg.ValidateChecksum() {
                     if msg.DestAddr == myaddr {
                         return msg

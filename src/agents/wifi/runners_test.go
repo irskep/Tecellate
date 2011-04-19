@@ -12,11 +12,11 @@ import "coord"
 
 type AgentFactory func(uint32, int, int, int) agent.Agent
 
-func AgentFactories(gameconf *coord.GameConfig) map[string]AgentFactory {
+func AgentFactories(gameconf *coord.GameConfig, first, last uint32) map[string]AgentFactory {
     return map[string]AgentFactory {
     "Static":
         func(id uint32, x, y, energy int) agent.Agent {
-            bot := NewStaticBot(id)
+            bot := NewStaticBot(id, first, last)
             gameconf.AddAgent(id, x, y, energy)
             return bot
         },
@@ -38,10 +38,10 @@ func AgentFactories(gameconf *coord.GameConfig) map[string]AgentFactory {
 
 func run_static(time int) (uint32, uint32, []*StaticBot) {
     gameconf := coord.NewGameConfig(int(time), "noise", true, 100, 100)
-    f := AgentFactories(gameconf)
-
     var first uint32 = 1
     var last uint32 = 8
+
+    f := AgentFactories(gameconf, first, last)
 
     var bots []*StaticBot = []*StaticBot{
         f["Static"](first, 0, 0, time).(*StaticBot),
