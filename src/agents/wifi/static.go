@@ -51,6 +51,8 @@ func (self *StaticBot) Id() uint32 {
 func (self *StaticBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
 
+//     self.log("Time = ", self.time)
+
     if self.Id() == 8 && self.Time() == 500 {
         self.send.Send([]byte("Hello there Number 1."), 1)
     }

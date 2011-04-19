@@ -32,12 +32,12 @@ func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
     return self
 }
 
-func RunAgentLocal(a agent.Agent, x, y int) *AgentProxy {
+func RunAgentLocal(a agent.Agent, x, y, energy int) *AgentProxy {
     p2a := make(chan link.Message, 10)
     a2p := make(chan link.Message, 10)
 
     proxy := NewAgentProxy(p2a, a2p)
-    proxy.SetState(cagent.NewAgentState(a.Id(), 0, *geo.NewPoint(x, y), 0))
+    proxy.SetState(cagent.NewAgentState(a.Id(), 0, *geo.NewPoint(x, y), Energy(energy)))
     go func() {
         agent.Run(a, a2p, p2a)
     }()
