@@ -80,16 +80,6 @@ func (self *Coordinator) Close() {
     if self.listener != nil {
         self.log.Print("Closing channels")
         self.listener.Close()
-        for _, ch := range(self.rpcSendChannels) {
-            if !closed(ch) {
-                //close(ch)
-            }
-        }
-        for _, ch := range(self.rpcRecvChannels) {
-            if !closed(ch) {
-                //close(ch)
-            }
-        }
         for _, p := range(self.peers) {
             if !closed(p.sendChannel) {
                 close(p.sendChannel)
