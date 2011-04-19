@@ -7,7 +7,7 @@ import . "byteslice"
 import . "agents/wifi/lib/packet"
 
 type TTL uint16
-const DEFAULT_TTL = 128
+const DEFAULT_TTL = 512
 // const SEND_TTL = 10
 
 //                                      TTL  CRC32  ADDRS

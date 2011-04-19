@@ -25,6 +25,7 @@ type StaticBot struct {
     hello *HelloMachine
     route *RouteMachine
     send  *SendMachine
+    recieved []uint32
 }
 
 func NewStaticBot(id, first, last uint32) *StaticBot {
@@ -34,6 +35,7 @@ func NewStaticBot(id, first, last uint32) *StaticBot {
         last:last,
         next:first,
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/static/%d", id)),
+        recieved:make([]uint32, 0, int(last-first)),
     }
     self.hello = NewHelloMachine(1, self)
     self.route = NewRouteMachine(15, self)
@@ -59,8 +61,10 @@ func (self *StaticBot) Turn(comm agent.Comm) {
 
 //     self.log("Time = ", self.time)
 
-    if self.Id() == 8 && self.Time() == 1000 {
-        self.send.Send([]byte("Hello there Number 1."), 1)
+    if self.Id() == 8 && self.Time() > 750 && self.next <= self.last {
+        self.send.Send([]byte(fmt.Sprintf("Hello there Number %v.", self.next)), self.next)
+        self.next += 1
+        if self.next == self.Id() { self.next += 1 }
     }
 
     self.hello.Run(comm)
@@ -70,6 +74,8 @@ func (self *StaticBot) Turn(comm agent.Comm) {
 
     if m != nil {
         self.log("info", self.Time(), "got a message", string([]byte(m.Body())))
+//         self.send.Send([]byte(fmt.Sprintf("Thanks for the message %v", m.FromAddr)), m.FromAddr)
+        self.recieved = append(self.recieved, m.FromAddr)
     }
     if self.Time()%100 == 9 {
 //         self.log("info", self.Time(), "neighbors", self.hello.Neighbors())

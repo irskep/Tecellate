@@ -9,6 +9,8 @@ import . "byteslice"
 import . "agents/wifi/lib/datagram"
 import . "agents/wifi/lib/packet"
 
+const SEND_HOLDTIME = 10
+
 type SendMachine struct {
     freq uint8
     agent agent.Agent
@@ -48,6 +50,7 @@ func (self *SendMachine) Run(routes RoutingTable, comm agent.Comm) *DataGram {
 
 func (self *SendMachine) Send(msg ByteSlice, dest uint32) {
     self.sendq.Queue(NewDataGram(msg, uint32(self.agent.Id()), dest))
+    self.log("info", self.agent.Time(), "Put message on sendq", msg)
 }
 
 func (self *SendMachine) log(level logflow.LogLevel, v ...interface{}) {
@@ -67,7 +70,7 @@ func (self *SendMachine) send_message(comm agent.Comm) bool {
             msg, ok := self.sendq.Dequeue()
             if !ok { break; }
             if _, has := self.routes[msg.DestAddr]; !has {
-                self.sendq.Queue(msg)
+                self.sendq.QueueFront(msg)
             } else {
                 return msg, true
             }
@@ -76,6 +79,11 @@ func (self *SendMachine) send_message(comm agent.Comm) bool {
     }
     msg, found := find()
     if !found { return false }
+
+    if self.agent.Id() == 8 {
+        self.log("info", self.agent.Time(), "sending", msg)
+    }
+
     next := self.routes[msg.DestAddr].NextAddr
     pkt := NewPacket(Commands["MESSAGE"], next)
     pkt.SetBody(msg.Bytes())
@@ -99,7 +107,7 @@ func (self *SendMachine) PerformSends(comm agent.Comm) {
                 self.state = 2
                 self.next_state = 3
                 self.backoff = BACKOFF
-                self.wait = HOLDTIME
+                self.wait = SEND_HOLDTIME
             } else {
                 self.state = 2
                 self.next_state = 0
@@ -134,7 +142,7 @@ func (self *SendMachine) PerformListens(comm agent.Comm) *DataGram {
             myaddr := uint32(self.agent.Id())
             to := pkt.IdField()
             body := pkt.GetBody(PacketBodySize)
-//             self.log("info", self.agent.Time(), "heard", to, "pkt", pkt, MakeDataGram(body))
+            self.log("info", self.agent.Time(), "heard", to, "pkt", pkt, MakeDataGram(body))
             if to == myaddr {
                 msg := MakeDataGram(body)
                 if msg.ValidateChecksum() {

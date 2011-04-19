@@ -22,6 +22,7 @@ func (self Neighbors) In(id uint32) bool {
 }
 
 func TestStatic_run8(t *testing.T) {
+    return
     defer testerlib.InitLogs("TestStatic_run8", t)()
 
     run_static(200)
@@ -36,6 +37,7 @@ func check(id, i uint32, neighbors Neighbors) (string, bool) {
 }
 
 func TestStatic_Neighbors(t *testing.T) {
+    return
     defer testerlib.InitLogs("TestStatic_Neighbors", t)()
 
     first, last, bots := run_static(200)
@@ -58,6 +60,7 @@ func TestStatic_Neighbors(t *testing.T) {
 }
 
 func TestStatic_Reachable(t *testing.T) {
+    return
     defer testerlib.InitLogs("TestStatic_Reachable", t)()
 
     var msgs []string
@@ -106,6 +109,9 @@ func TestStatic_Reachable(t *testing.T) {
 func TestStatic_SendAck(t *testing.T) {
     defer testerlib.InitLogs("TestStatic_SendAck", t)()
 
-    run_static(2000)
+    _, _, bots := run_static(1500)
+    for _, bot := range bots {
+        t.Logf("Bot %v recieved %v", bot.Id(), bot.recieved)
+    }
     t.Fatal("lala")
 }
