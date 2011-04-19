@@ -23,8 +23,8 @@ func NewGameConfig(maxTurns int, msgStyle string, food bool, w, h int) *GameConf
     }
 }
 
-func (self *GameConfig) AddAgent(id int, x, y int) {
-    self.Agents = append(self.Agents, config.NewAgentDefinition(id, x, y))
+func (self *GameConfig) AddAgent(id int, x, y, energy int) {
+    self.Agents = append(self.Agents, config.NewAgentDefinition(id, x, y, energy))
 }
 
 func (self *GameConfig) CoordConfig(id int, bl *geo.Point, tr *geo.Point) *config.Config {
