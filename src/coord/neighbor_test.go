@@ -64,7 +64,7 @@ func TestTCPInfoPass(t *testing.T) {
     defer initLogs("TCP info", t)()
 
     logflow.FileSink("logs/neighbor_test/agents", true, "test|agent/.*")
-//     logflow.StdoutSink(".*")
+    logflow.StdoutSink(".*/(info|debug)")
 
     gameconf := NewGameConfig(3, "noise", false, 20, 10)
 
