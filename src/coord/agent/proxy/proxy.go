@@ -35,7 +35,7 @@ func NewAgentProxy(send link.SendLink, recv link.RecvLink) *AgentProxy {
 func RunAgentLocal(a agent.Agent, x, y int) *AgentProxy {
     p2a := make(chan link.Message, 10)
     a2p := make(chan link.Message, 10)
-    
+
     proxy := NewAgentProxy(p2a, a2p)
     proxy.SetState(cagent.NewAgentState(0, *geo.NewPoint(x, y), 0))
     go func() {
@@ -88,7 +88,7 @@ func (self *AgentProxy) Turn() bool {
             }),
         link.Commands["Move"]:
             argnum(1, func(msg *link.Message) bool {
-                mv := msg.Args[0].(link.Move).Move()
+                mv := geo.MakePoint(msg.Args[0])
                 if self.state.Mv(mv) {
                     self.ack_cmd(msg.Cmd)
                 } else {
@@ -103,14 +103,14 @@ func (self *AgentProxy) Turn() bool {
             }),
         link.Commands["Listen"]:
             argnum(1, func(msg *link.Message) bool {
-                freq := msg.Args[0].(link.Listen).Listen()
+                freq := agent.MakeListen(msg.Args[0]).Listen()
                 heard := self.game.Listen(self.state.Position, freq)
                 self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, heard))
                 return false
             }),
         link.Commands["Broadcast"]:
             argnum(1, func(msg *link.Message) bool {
-                freq, pkt := msg.Args[0].(link.Broadcast).Message()
+                freq, pkt := agent.MakeBroadcast(msg.Args[0]).Message()
                 if self.state.Broadcast(freq, pkt) {
                     self.ack_cmd(msg.Cmd)
                 } else {
@@ -134,7 +134,7 @@ func (self *AgentProxy) Turn() bool {
             }),
         link.Commands["PrevResult"]:
             argnum(0, func(msg *link.Message) bool {
-                self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, self.state.PrevResult()))
+//                 self.send(link.NewMessage(link.Commands["Ack"], msg.Cmd, self.state.PrevResult()))
                 return false
             }),
     }
@@ -149,7 +149,6 @@ func (self *AgentProxy) Turn() bool {
     complete := make(chan bool)
     if self.game == nil {panic("(agentproxy) self.game == nil")}
     self.state.NewMove()
-    self.getid()
     if !self.state.Alive { return false }
 //     self.log.Println("Starting Turn", self.state.Turn)
 //     self.log.Println(self.state)
@@ -173,25 +172,6 @@ func (self *AgentProxy) Turn() bool {
     c := <-complete
 //     self.log.Println("Ending Turn", self.state.Turn)
     return c
-}
-
-func (self *AgentProxy) getid() {
-    if self.state.Id == -1 {
-        self.send(link.NewMessage(link.Commands["Id"]))
-        if ok, msg := self.recv(); ok {
-            if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 2 {
-                cmd := msg.Args[0].(link.Command)
-                if cmd == link.Commands["Id"] {
-                    id := msg.Args[1].(uint)
-                    if int(id) != self.state.Id {
-                        self.log = logflow.NewSource(fmt.Sprintf("agentproxy/%v", id))
-                        self.state.Id = int(id)
-                        self.log.Println("My id is:", id)
-                    }
-                }
-            }
-        }
-    }
 }
 
 func (self *AgentProxy) start_turn() bool {
@@ -242,11 +222,8 @@ func (self *AgentProxy) acked_send(msg *link.Message) bool {
 func (self *AgentProxy) await_cmd_ack(cmd link.Command) bool {
     if ok, msg := self.recv(); ok {
         if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
-            switch acked := msg.Args[0].(type) {
-            case link.Command:
-                if acked == cmd {
-                    return true
-                }
+            if acked := link.MakeCommand(msg.Args[0]); acked == cmd {
+                return true
             }
         }
     }

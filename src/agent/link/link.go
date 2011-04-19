@@ -2,6 +2,7 @@ package link
 
 import "fmt"
 import "strings"
+import . "byteslice"
 
 const Timeout = 10e9
 
@@ -12,8 +13,11 @@ type Command uint8
 var Commands map[string]Command
 var cmdsr []string
 
-type Argument interface{}
-type Arguments []Argument
+type Arguments []ByteSlice
+
+type Argument interface {
+    Bytes() ByteSlice
+}
 
 func init() {
     Commands = make(map[string]Command)
@@ -31,8 +35,20 @@ type Message struct {
     Args Arguments
 }
 
+func (self Command) Bytes() ByteSlice {
+    return ByteSlice8(uint8(self))
+}
+
+func MakeCommand(bytes ByteSlice) Command {
+    return Command(bytes.Int8())
+}
+
 func NewMessage(cmd Command, args ... Argument) *Message {
-    return &Message{Cmd: cmd, Args: args}
+    arguments := make(Arguments, 0, len(args))
+    for _, arg := range args {
+        arguments = append(arguments, arg.Bytes())
+    }
+    return &Message{Cmd: cmd, Args: arguments}
 }
 
 func (self Message) String() string {

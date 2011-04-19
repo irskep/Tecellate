@@ -8,6 +8,7 @@ import geo "coord/geometry"
 import cagent "coord/agent"
 import "logflow"
 import "sync"
+import . "byteslice"
 
 const MessageLength = 64
 const HearingRange = 10.0
@@ -105,7 +106,7 @@ func (self *Messages) Add(msg cagent.Message) {
     self.Msgs[f] = append(self.Msgs[f], msg)
 }
 
-func (self *Messages) Hear(loc geo.Point, freq uint8) (msg []byte) {
+func (self *Messages) Hear(loc geo.Point, freq uint8) (msg ByteSlice) {
 
     self.mu.Lock()
     if freqs, has := self.Cache[loc.Complex()]; has {
@@ -116,7 +117,7 @@ func (self *Messages) Hear(loc geo.Point, freq uint8) (msg []byte) {
     }
     self.mu.Unlock()
 
-    msg = make([]byte, MessageLength)
+    msg = make(ByteSlice, MessageLength)
     if messages, has := self.Msgs[freq]; has {
 //         log.Logln(logflow.DEBUG, "have a message on freq ", freq)
         msgs := newSortableMessages(len(messages), loc)

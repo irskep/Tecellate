@@ -214,20 +214,20 @@ func (self *Coordinator) PrepareAgentProxies() {
     for _, ad := range(self.conf.Agents) {
         p2a := make(chan link.Message, 10)
         a2p := make(chan link.Message, 10)
-        
+
         self.log.Print("Exporting ", fmt.Sprintf("agent_rsp_%d", ad.Id))
-        
+
         err := self.exporter.Export(fmt.Sprintf("agent_rsp_%d", ad.Id), p2a, netchan.Send)
-    	if err != nil {
-    	    self.log.Fatal(err)
-    	}
-    	
+        if err != nil {
+            self.log.Fatal(err)
+        }
+
         self.log.Print("Exporting ", fmt.Sprintf("agent_req_%d", ad.Id))
-        
+
         err = self.exporter.Export(fmt.Sprintf("agent_req_%d", ad.Id), a2p, netchan.Recv)
         if err != nil {
-    	    self.log.Fatal(err)
-    	}
+            self.log.Fatal(err)
+        }
 
         proxy := aproxy.NewAgentProxy(p2a, a2p)
         s := cagent.NewAgentState(0, *geo.NewPoint(ad.X, ad.Y), cagent.Energy(ad.Energy))

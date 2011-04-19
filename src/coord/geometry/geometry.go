@@ -3,6 +3,7 @@ package geometry
 import (
     "fmt"
     "math"
+    . "byteslice"
 )
 
 type Point struct {
@@ -12,6 +13,12 @@ type Point struct {
 
 func NewPoint(x, y int) *Point {
     return &Point{X:x, Y:y}
+}
+
+func MakePoint(bytes ByteSlice) *Point {
+    x     := bytes[0:8]
+    y     := bytes[8:16]
+    return NewPoint(int(x.Int64()), int(y.Int64()))
 }
 
 func (self *Point) Add(other Point) *Point {
@@ -41,4 +48,13 @@ func (self *Point) String() string {
         return "<nil>"
     }
     return fmt.Sprintf("(%d, %d)", self.X, self.Y)
+}
+
+func (self *Point) Bytes() ByteSlice {
+    bytes := make(ByteSlice, 16)
+    x     := bytes[0:8]
+    y     := bytes[8:16]
+    copy(x, ByteSlice64(uint64(self.X)))
+    copy(y, ByteSlice64(uint64(self.Y)))
+    return bytes
 }

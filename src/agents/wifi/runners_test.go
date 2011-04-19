@@ -2,7 +2,7 @@ package wifi
 
 // import "testing"
 // import "fmt"
-
+/*
 import "agent"
 import "agent/link"
 import "coord"
@@ -64,4 +64,4 @@ func run_static(time cagent.Energy) (uint32, uint32, []*StaticBot) {
     coords.Run()
 
     return first, last, bots
-}
+}*/

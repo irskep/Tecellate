@@ -8,6 +8,7 @@ import (
     geo "coord/geometry"
     cagent "coord/agent"
     "coord/config"
+    . "byteslice"
 )
 
 
@@ -59,7 +60,7 @@ func (self *GameState) MakeRPCResponse() GameStateResponse {
     return GameStateResponse{self.Turn, self.AgentStates(), self.myMessages.Msgs}
 }
 
-func (self *GameState) Listen(loc geo.Point, freq uint8) []byte {
+func (self *GameState) Listen(loc geo.Point, freq uint8) ByteSlice {
     return self.messages.Hear(loc, freq)
 }
 

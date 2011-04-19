@@ -35,16 +35,11 @@ func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
             agent.Turn(comm)
             comm.complete()
         }
-        id := func() {
-            comm.id(agent.Id())
-        }
 
         for {
             switch msg := comm.recv_forever(); {
             case msg.Cmd == link.Commands["Start"]:
                 start()
-            case msg.Cmd == link.Commands["Id"]:
-                id()
             case msg.Cmd == link.Commands["Exit"]:
                 break
             default:
@@ -86,20 +81,20 @@ func RunWithCoordinator(agent Agent, addr string) {
     ch_recv := make(chan link.Message)
 
     imp := makeImporterWithRetry("tcp", addr)
-    
+
     logflow.Print("agent", "Importing ", fmt.Sprintf("agent_req_%d", agent.Id()))
-    
+
 	err := imp.Import(fmt.Sprintf("agent_req_%d", agent.Id()), ch_send, netchan.Send, 1)
 	if err != nil {
 	    logflow.Fatal("agent", err)
 	}
-	
+
     logflow.Print("agent", "Importing ", fmt.Sprintf("agent_rsp_%d", agent.Id()))
 
 	err = imp.Import(fmt.Sprintf("agent_rsp_%d", agent.Id()), ch_recv, netchan.Recv, 1)
 	if err != nil {
 	    logflow.Fatal("agent", err)
 	}
-	
+
 	Run(agent, ch_send, ch_recv)
 }
