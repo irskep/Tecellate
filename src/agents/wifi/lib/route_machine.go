@@ -9,8 +9,8 @@ import . "byteslice"
 import . "agents/wifi/lib/route"
 import . "agents/wifi/lib/packet"
 
-const ROUTE_HOLDTIME = 15
-const ROUTE_PAUSE = 5
+const ROUTE_HOLDTIME = 30
+const ROUTE_PAUSE = 7
 
 type RoutingTable map[uint32]*Route
 
@@ -20,12 +20,14 @@ type RouteMachine struct {
     logger logflow.Logger
     last ByteSlice
     state uint32
-    backoff uint32
+    backoff float64
     wait uint32
     next_state uint32
     routes RoutingTable
     route_keys []uint32
     next_route int
+    confirmed uint32
+    not_confirmed uint32
 }
 
 func NewRouteMachine(freq uint8, agent agent.Agent) *RouteMachine {
@@ -34,7 +36,7 @@ func NewRouteMachine(freq uint8, agent agent.Agent) *RouteMachine {
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/route/%d", agent.Id())),
         agent:agent,
         backoff:BACKOFF,
-        wait:ROUTE_HOLDTIME,
+        wait:uint32(float64(ROUTE_HOLDTIME)*(pseudo_rand.Float64() + 1.5)),
         state:2,
         next_state:0,
         next_route:0,
@@ -63,6 +65,10 @@ func (self *RouteMachine) Run(neighbors []uint32, comm agent.Comm) {
     self.PerformSends(comm)
 }
 
+func (self *RouteMachine) ConfirmRate() float64 {
+    return float64(self.confirmed)/float64(self.confirmed+self.not_confirmed)
+}
+
 func (self *RouteMachine) log(level logflow.LogLevel, v ...interface{}) {
     self.logger.Logln(level, v...)
 }
@@ -78,6 +84,7 @@ func (self *RouteMachine) clean_table() {
     self.set_route_keys()
     for _, k := range self.route_keys {
         route := self.routes[k]
+        if route.DestAddr == uint32(self.agent.Id()) { continue }
         route.DecTTL()
         if route.TTL == 0 {
             self.routes[k] = nil, false
@@ -90,6 +97,7 @@ func (self *RouteMachine) confirm_last(comm agent.Comm) (confirm bool) {
     bytes := comm.Listen(self.freq)
     confirm = self.last.Eq(bytes)
 //     self.log("info", self.agent.Time(), "confirm_last", confirm)
+    if confirm { self.confirmed += 1} else { self.not_confirmed += 1}
     return
 }
 
@@ -122,14 +130,14 @@ func (self *RouteMachine) PerformSends(comm agent.Comm) {
                 self.state = 2
                 if self.next_route >= len(self.route_keys) {
                     self.next_route = 0
-                    self.wait = ROUTE_HOLDTIME
+                    self.wait = uint32(float64(ROUTE_HOLDTIME)*(pseudo_rand.Float64() + 1.5))
                 } else {
-                    self.wait = ROUTE_PAUSE
+                    self.wait = uint32(float64(ROUTE_PAUSE)*(pseudo_rand.Float64() + 1.5))
                 }
             } else {
                 self.state = 2
-                self.backoff = uint32(float64(self.backoff)*(pseudo_rand.Float64() + 1.5))
-                self.wait = self.backoff
+                self.backoff = self.backoff*(pseudo_rand.Float64()*2 + 1)
+                self.wait = uint32(self.backoff)
             }
         case 2:
 //             self.log("debug", self.agent.Time(), "wait", self.wait, "backoff", self.backoff)
@@ -162,6 +170,8 @@ func (self *RouteMachine) PerformListens(comm agent.Comm) {
 
             if cur, has := self.routes[route.DestAddr]; has {
                 if route.Hops < cur.Hops {
+                    self.routes[route.DestAddr] = route
+                } else if route.Hops == cur.Hops {
                     self.routes[route.DestAddr] = route
                 }
             } else {

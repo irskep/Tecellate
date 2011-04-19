@@ -2,22 +2,22 @@ package agent
 
 import "fmt"
 
-type broadcast struct {
-    freq uint8
-    msg []byte
+type Broadcast struct {
+    Freq uint8
+    Msg []byte
 }
 
-func newBroadcast(freq uint8, msg []byte) *broadcast {
-    self := new(broadcast)
-    self.freq = freq
-    self.msg = msg
-    return self
+func NewBroadcast(freq uint8, msg []byte) Broadcast {
+    self := new(Broadcast)
+    self.Freq = freq
+    self.Msg = msg
+    return *self
 }
 
-func (self *broadcast) Message() (uint8, []byte) {
-    return self.freq, self.msg
+func (self Broadcast) Message() (uint8, []byte) {
+    return self.Freq, self.Msg
 }
 
-func (self *broadcast) String() string {
-    return fmt.Sprintf("on %d message '%s'", self.freq, self.msg)
+func (self Broadcast) String() string {
+    return fmt.Sprintf("on %d message '%s'", self.Freq, self.Msg)
 }

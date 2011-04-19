@@ -1,11 +1,7 @@
 package coord
 
-import "agent"
-import "agent/link"
 import "agents/configurable"
-import cagent "coord/agent"
-import aproxy "coord/agent/proxy"
-import geo "coord/geometry"
+import "agent"
 
 import (
     "fmt"
@@ -36,33 +32,27 @@ func initLogs(name string, t *testing.T) func() {
     Start Testing %v
 `, name))
     return func() {
-        logflow.Println("test", fmt.Sprintf(` --------------------------------------------------------------------------------
+        logflow.Println("test", fmt.Sprintf(` 
+--------------------------------------------------------------------------------
         End Testing %v
     `, name))
         logflow.RemoveAllSinks()
     }
 }
 
-func makeAgent(id uint, x, y, xVelocity, yVelocity int) *aproxy.AgentProxy {
-    p2a := make(chan link.Message, 10)
-    a2p := make(chan link.Message, 10)
+func makeAgent(id uint, xVelocity, yVelocity int) agent.Agent {
     a := configurable.New(id)
     a.XVelocity = xVelocity
     a.YVelocity = yVelocity
     a.LogMove = true
-    proxy := aproxy.NewAgentProxy(p2a, a2p)
-    proxy.SetState(cagent.NewAgentState(0, *geo.NewPoint(x, y), 0))
-    go func() {
-        agent.Run(a, a2p, p2a)
-    }()
-    return proxy
+    return a
 }
 
 func TestLocalInfoPass(t *testing.T) {
     // initLogs("Local info", t)
     //
     // gameconf := NewGameConfig(11, "noise", false, true, 20, 10)
-    // gameconf.AddAgent(makeAgent(1, 0, 0))
+    // gameconf.AddAgent(makeAgentLocal(1, 0, 0))
     //
     // coords := gameconf.InitWithChainedLocalCoordinators(2, 10)
     // coords.Run()
@@ -74,10 +64,24 @@ func TestTCPInfoPass(t *testing.T) {
     defer initLogs("TCP info", t)()
     
     logflow.FileSink("logs/neighbor_test/agents", true, "test|agent/.*")
+    logflow.StdoutSink(".*")
     
-    gameconf := NewGameConfig(3, "noise", false, true, 20, 10)
-    gameconf.AddAgent(makeAgent(1, 0, 0, 1, 0))
-    gameconf.AddAgent(makeAgent(2, 5, 0, -1, 0))
+    gameconf := NewGameConfig(3, "noise", false, 20, 10)
     
-    gameconf.InitWithTCPChainedLocalCoordinators(2, 10).Run()
+    // gameconf.AddAgent(id, x, y)
+    gameconf.AddAgent(1, 0, 0)
+    gameconf.AddAgent(2, 5, 0)
+    
+    agents := map[int]agent.Agent{1: makeAgent(1, 1, 0), 2: makeAgent(2, -1, 0)}
+    
+    coords := gameconf.InitWithTCPChainedLocalCoordinators(2, agents)
+    // Start/connect the agents
+    for _, c := range(coords) {
+        for _, ad := range(c.conf.Agents) {
+            logflow.Print("Starting agent ", ad.Id, " in ", c.conf)
+            go agent.RunWithCoordinator(agents[ad.Id], c.Address())
+        }
+    }
+    // Run the coordinators
+    coords.Run()
 }

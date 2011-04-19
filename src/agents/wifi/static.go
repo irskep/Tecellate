@@ -30,7 +30,7 @@ func NewStaticBot(id uint) *StaticBot {
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/static/%d", id)),
     }
     self.hello = NewHelloMachine(1, self)
-    self.route = NewRouteMachine(2, self)
+    self.route = NewRouteMachine(15, self)
     self.send = NewSendMachine(3, self)
 //     logflow.FileSink("logs/wifi/all", true, ".*")
     return self

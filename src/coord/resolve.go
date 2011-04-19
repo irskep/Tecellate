@@ -44,7 +44,7 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
             moves[st.Position.Complex()] = 1
             if st.Move.Valid {
                 requestedPosition := st.Move.Position.Add(st.Position)
-                moves[st.Move.Position.Complex()] = 1
+                moves[requestedPosition.Complex()] = 1
             }
         }
     }

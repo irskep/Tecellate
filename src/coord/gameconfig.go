@@ -2,7 +2,7 @@
 
 package coord
 
-import "coord/agent"
+import "agent"
 import "coord/config"
 import geo "coord/geometry"
 
@@ -10,32 +10,29 @@ type GameConfig struct {
     MaxTurns int
     MessageStyle string
     UseFood bool
-    RandomlyDelayProcessing bool
     Size geo.Point
-    Agents []agent.Agent
+    Agents []*config.AgentDefinition
 }
 
-func NewGameConfig(maxTurns int, msgStyle string, food bool, delay bool, w, h int) *GameConfig {
+func NewGameConfig(maxTurns int, msgStyle string, food bool, w, h int) *GameConfig {
     return &GameConfig{MaxTurns: maxTurns,
                        MessageStyle: msgStyle,
                        UseFood: food,
-                       RandomlyDelayProcessing: delay,
                        Size: *geo.NewPoint(w, h),
-                       Agents: make([]agent.Agent, 0),
+                       Agents: make([]*config.AgentDefinition, 0),
     }
 }
 
-func (self *GameConfig) AddAgent(a agent.Agent) {
-    self.Agents = append(self.Agents, a)
+func (self *GameConfig) AddAgent(id int, x, y int) {
+    self.Agents = append(self.Agents, config.NewAgentDefinition(id, x, y))
 }
 
 func (self *GameConfig) CoordConfig(id int, bl *geo.Point, tr *geo.Point) *config.Config {
-    thisCoordsAgents := make([]agent.Agent, 0)
+    thisCoordsAgents := make([]*config.AgentDefinition, 0)
     
-    for _, a := range self.Agents {
-        p := a.State().Position
-        if bl.X <= p.X && p.X < tr.X && bl.Y <= p.Y && p.Y < tr.Y {
-            thisCoordsAgents = append(thisCoordsAgents, a)
+    for _, ad := range self.Agents {
+        if bl.X <= ad.X && ad.X < tr.X && bl.Y <= ad.Y && ad.Y < tr.Y {
+            thisCoordsAgents = append(thisCoordsAgents, ad)
         }
     }
     
@@ -44,25 +41,20 @@ func (self *GameConfig) CoordConfig(id int, bl *geo.Point, tr *geo.Point) *confi
                             thisCoordsAgents, 
                             self.MessageStyle, 
                             self.UseFood, 
-                            self.RandomlyDelayProcessing, 
                             bl, 
                             tr)
 }
 
-func (self *GameConfig) InitWithSingleLocalCoordinator() *Coordinator {
-    c := NewCoordinator()
-    c.Configure(self.CoordConfig(0, geo.NewPoint(0, 0), geo.NewPoint(self.Size.X, self.Size.Y)))
-    return c
-}
-
-func (self *GameConfig) InitWithChainedLocalCoordinators(k int, w int) CoordinatorSlice {
-    coords := self.SideBySideCoordinators(k, w, self.Size.Y)
+func (self *GameConfig) InitWithChainedLocalCoordinators(k int, agents map[int]agent.Agent) CoordinatorSlice {
+    coords := self.SideBySideCoordinators(k, self.Size.X/k, self.Size.Y)
+    coords.ConnectToLocalAgents(agents)
     coords.Chain()
     return coords
 }
 
-func (self *GameConfig) InitWithTCPChainedLocalCoordinators(k int, w int) CoordinatorSlice {
-    coords := self.SideBySideCoordinators(k, w, self.Size.Y)
+func (self *GameConfig) InitWithTCPChainedLocalCoordinators(k int, agents map[int]agent.Agent) CoordinatorSlice {
+    coords := self.SideBySideCoordinators(k, self.Size.X/k, self.Size.Y)
+    coords.PrepareAgentProxies()
     coords.ChainTCP()
     return coords
 }

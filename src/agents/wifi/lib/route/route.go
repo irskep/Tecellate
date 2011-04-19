@@ -48,5 +48,5 @@ func (self *Route) Bytes() ByteSlice {
 }
 
 func (self *Route) String() string {
-    return fmt.Sprintf("<Route hops:%v dest:%v next:%v>", self.Hops, self.DestAddr, self.NextAddr)
+    return fmt.Sprintf("<Route hops:%v dest:%v next:%v TTL:%v>", self.Hops, self.DestAddr, self.NextAddr, self.TTL)
 }
