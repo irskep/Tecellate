@@ -80,7 +80,7 @@ func (self *AgentProxy) Turn() bool {
         }
     }
 
-    var handlers = map[uint8]handler {
+    var handlers = map[link.Command]handler {
         link.Commands["Complete"]:
             argnum(0, func(msg *link.Message) bool {
                 self.ack_cmd(msg.Cmd)
@@ -180,7 +180,7 @@ func (self *AgentProxy) getid() {
         self.send(link.NewMessage(link.Commands["Id"]))
         if ok, msg := self.recv(); ok {
             if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 2 {
-                cmd := msg.Args[0].(uint8)
+                cmd := msg.Args[0].(link.Command)
                 if cmd == link.Commands["Id"] {
                     id := msg.Args[1].(uint)
                     if int(id) != self.state.Id {
@@ -198,11 +198,11 @@ func (self *AgentProxy) start_turn() bool {
     return self.acked_send(link.NewMessage(link.Commands["Start"], self.state.Turn))
 }
 
-func (self *AgentProxy) ack_cmd(cmd uint8) {
+func (self *AgentProxy) ack_cmd(cmd link.Command) {
     self.send(link.NewMessage(link.Commands["Ack"], cmd))
 }
 
-func (self *AgentProxy) nak_cmd(cmd uint8) {
+func (self *AgentProxy) nak_cmd(cmd link.Command) {
     self.send(link.NewMessage(link.Commands["Nak"], cmd))
 }
 
@@ -239,11 +239,11 @@ func (self *AgentProxy) acked_send(msg *link.Message) bool {
     return self.await_cmd_ack(msg.Cmd)
 }
 
-func (self *AgentProxy) await_cmd_ack(cmd uint8) bool {
+func (self *AgentProxy) await_cmd_ack(cmd link.Command) bool {
     if ok, msg := self.recv(); ok {
         if msg.Cmd == link.Commands["Ack"] && len(msg.Args) == 1 {
             switch acked := msg.Args[0].(type) {
-            case uint8:
+            case link.Command:
                 if acked == cmd {
                     return true
                 }
