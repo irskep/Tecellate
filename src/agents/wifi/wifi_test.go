@@ -102,3 +102,10 @@ func TestStatic_Reachable(t *testing.T) {
     }
 }
 
+
+func TestStatic_SendAck(t *testing.T) {
+    defer testerlib.InitLogs("TestStatic_SendAck", t)()
+
+    run_static(2000)
+    t.Fatal("lala")
+}

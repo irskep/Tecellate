@@ -16,15 +16,18 @@ type Message struct {
     Sequence SEQUENCE
     Acknowledge SEQUENCE
     checksum ByteSlice
+    Sent bool
+    DestAddr uint32
 }
 
-func NewMessage(msg ByteSlice, seq, ack SEQUENCE) *Message {
+func NewMessage(msg ByteSlice, seq, ack SEQUENCE, DestAddr uint32) *Message {
     bytes := make(ByteSlice, MessageBodySize)
     copy(bytes, msg)
     return &Message{
         Message:msg,
         Sequence:seq,
         Acknowledge:ack,
+        DestAddr:DestAddr,
     }
 }
 

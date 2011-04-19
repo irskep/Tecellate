@@ -33,6 +33,7 @@ func InitLogs(name string, t *testing.T) (closer func()) {
     defer func() {
        logflow.WriteToSinksFunction = func(keypath, s string) {
             if strings.HasPrefix(keypath, "agent/wifi") {
+                fmt.Println(keypath, s)
                 snk.Write(keypath, s)
             } else if strings.HasPrefix(keypath, fmt.Sprintf("test/%v", name)) {
                 snk.Write(keypath, s)

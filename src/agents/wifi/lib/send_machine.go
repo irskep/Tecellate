@@ -82,7 +82,7 @@ func (self *SendMachine) send_message(comm agent.Comm) bool {
     bytes := pkt.Bytes()
     comm.Broadcast(self.freq, bytes)
     self.last = bytes
-    self.log("info", self.agent.Time(), "sent", pkt, msg)
+//     self.log("info", self.agent.Time(), "sent", pkt, msg)
     return true
 }
 
@@ -134,7 +134,7 @@ func (self *SendMachine) PerformListens(comm agent.Comm) *DataGram {
             myaddr := uint32(self.agent.Id())
             to := pkt.IdField()
             body := pkt.GetBody(PacketBodySize)
-            self.log("info", self.agent.Time(), "heard", to, "pkt", pkt, MakeDataGram(body))
+//             self.log("info", self.agent.Time(), "heard", to, "pkt", pkt, MakeDataGram(body))
             if to == myaddr {
                 msg := MakeDataGram(body)
                 if msg.ValidateChecksum() {

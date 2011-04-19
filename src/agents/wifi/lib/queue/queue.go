@@ -35,3 +35,9 @@ func (self *Queue) Dequeue() (interface{}, bool) {
     self.List.Remove(front)
     return m, true
 }
+
+func (self *Queue) Peek() interface{} {
+    front := self.List.Front()
+    m := front.Value
+    return m
+}

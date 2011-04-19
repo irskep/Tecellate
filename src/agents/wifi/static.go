@@ -24,7 +24,7 @@ type StaticBot struct {
     time uint
     hello *HelloMachine
     route *RouteMachine
-    send  *SendMachine
+    send  *ReliableSendMachine
 }
 
 func NewStaticBot(id, first, last uint32) *StaticBot {
@@ -37,7 +37,7 @@ func NewStaticBot(id, first, last uint32) *StaticBot {
     }
     self.hello = NewHelloMachine(1, self)
     self.route = NewRouteMachine(15, self)
-    self.send = NewSendMachine(3, self)
+    self.send = NewReliableSendMachine(NewSendMachine(3, self), self)
 //     logflow.FileSink("logs/wifi/all", true, ".*")
     return self
 }
@@ -59,9 +59,9 @@ func (self *StaticBot) Turn(comm agent.Comm) {
 
 //     self.log("Time = ", self.time)
 
-//     if self.Id() == 8 && self.Time() == 500 {
-//         self.send.Send([]byte("Hello there Number 1."), 1)
-//     }
+    if self.Id() == 8 && self.Time() == 1000 {
+        self.send.Send([]byte("Hello there Number 1."), 1)
+    }
 
     self.hello.Run(comm)
     self.route.Run(self.hello.Neighbors(), comm)
