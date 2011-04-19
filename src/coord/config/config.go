@@ -9,8 +9,8 @@ type AgentDefinition struct {
     Energy int
 }
 
-func NewAgentDefinition(id int, x, y energy int) *AgentDefinition {
-    return &AgentDefinition{Id: id, X: x, Y: y}
+func NewAgentDefinition(id, x, y, energy int) *AgentDefinition {
+    return &AgentDefinition{Id: id, X: x, Y: y, Energy: energy}
 }
 
 type Config struct {
