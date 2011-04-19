@@ -52,12 +52,12 @@ func (self *comm) complete() bool {
     return r
 }
 
-func (self *comm) await_cmd_ack(cmd link.Command) (bool, link.Arguments) {
+func (self *comm) await_cmd_ack(cmd uint8) (bool, link.Arguments) {
     msg := self.recv()
 
     proc := func(ack bool) (bool, link.Arguments) {
         switch acked := msg.Args[0].(type) {
-        case link.Command:
+        case uint8:
             if acked == cmd {
                 if ack == true {
                     return ack, msg.Args
@@ -149,7 +149,7 @@ func (self *comm) Listen(freq uint8) []byte {
 }
 
 func (self *comm) Broadcast(freq uint8, msg []byte) bool {
-    r, _ := self.acked_send(link.NewMessage(link.Commands["Broadcast"], newBroadcast(freq, msg)))
+    r, _ := self.acked_send(link.NewMessage(link.Commands["Broadcast"], NewBroadcast(freq, msg)))
     return r
 }
 

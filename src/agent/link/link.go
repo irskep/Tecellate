@@ -9,29 +9,29 @@ type SendLink chan<- Message
 type RecvLink <-chan Message
 
 type Command uint8
-var Commands map[string]Command
+var Commands map[string]uint8
 var cmdsr []string
 
 type Argument interface{}
 type Arguments []Argument
 
 func init() {
-    Commands = make(map[string]Command)
+    Commands = make(map[string]uint8)
     cmdsr = []string{
         "Ack", "Nak", "Move", "Look", "Collect", "Listen", "Broadcast",
         "Complete", "Start", "Exit", "PrevResult", "Id", "Energy",
     }
     for i, cmd := range cmdsr {
-        Commands[cmd] = Command(i)
+        Commands[cmd] = uint8(i)
     }
 }
 
 type Message struct {
-    Cmd Command
+    Cmd uint8
     Args Arguments
 }
 
-func NewMessage(cmd Command, args ... Argument) *Message {
+func NewMessage(cmd uint8, args ... Argument) *Message {
     return &Message{Cmd: cmd, Args: args}
 }
 
