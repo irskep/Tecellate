@@ -36,6 +36,8 @@ func InitLogs(name string, t *testing.T) (closer func()) {
                 snk.Write(keypath, s)
             } else if strings.HasPrefix(keypath, fmt.Sprintf("test/%v", name)) {
                 snk.Write(keypath, s)
+            } else if strings.HasPrefix(keypath, "coord") {
+//                 snk.Write(keypath, s)
             }
        }
        writer.Write([]byte(fmt.Sprintf(`

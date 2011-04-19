@@ -58,7 +58,6 @@ func run_static(time int) (uint32, uint32, []*StaticBot) {
         agents[bot.Id()] = agent.Agent(bot)
     }
     coords := gameconf.InitWithChainedLocalCoordinators(1, agents)
-    coords.ConnectToLocalAgents(agents)
     coords.Run()
 
     return first, last, bots
