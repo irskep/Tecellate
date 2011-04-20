@@ -19,12 +19,14 @@ type CoordRunner struct {
 }
 
 func New(c *coord.Coordinator, address string) *CoordRunner {
-    return &CoordRunner{
+    r := &CoordRunner{
         myCoord: c,
         masterReq: make(CoordComm),
         masterRsp: make(CoordComm),
         log: logflow.NewSource(fmt.Sprintf("coordrunner/%v", address)),
     }
+    c.Config().Address = address
+    return r
 }
 
 func (self *CoordRunner) ExportNetchans() {
@@ -33,7 +35,8 @@ func (self *CoordRunner) ExportNetchans() {
 }
 
 func (self *CoordRunner) RunExporter() {
-    self.myCoord.RunExporterInitial()
+    self.log.Print("Running exporter...")
+    go self.myCoord.RunExporterBlocking(self.myCoord.NumInitialConns()+1)
 }
 
 func (self *CoordRunner) ReadConfig() {

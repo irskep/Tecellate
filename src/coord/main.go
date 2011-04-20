@@ -12,10 +12,12 @@ package main
 import (
     "coord"
     "coord/runner"
+    "logflow"
     "os"
 )
 
 func main() {
+    logflow.StdoutSink(".*")
     c := coord.NewCoordinator()
     r := runner.New(c, os.Args[1])
     r.ExportNetchans()

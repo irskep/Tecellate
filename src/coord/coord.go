@@ -132,8 +132,12 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
 
 // REMOTE/PRODUCTION
 
+func (self *Coordinator) NumInitialConns() int {
+    return len(self.rpcSendChannels)+len(self.conf.Agents)
+}
+
 func (self *Coordinator) RunExporterInitial() {
-    go self.RunExporterBlocking(len(self.rpcSendChannels)+len(self.conf.Agents))
+    go self.RunExporterBlocking(self.NumInitialConns())
 }
 
 func (self *Coordinator) RunExporterBlocking(n int) {
