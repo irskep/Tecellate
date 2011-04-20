@@ -1,7 +1,7 @@
 package lib
 
 import "fmt"
-// import pseudo_rand "rand"
+import pseudo_rand "rand"
 import "agent"
 import "logflow"
 import . "byteslice"
@@ -9,7 +9,7 @@ import . "byteslice"
 import . "agents/wifi/lib/datagram"
 import . "agents/wifi/lib/packet"
 
-const SEND_HOLDTIME = 10
+const SEND_HOLDTIME = 5
 const ACK_WAIT = 20
 
 type SendMachine struct {
@@ -17,6 +17,7 @@ type SendMachine struct {
     agent agent.Agent
     logger logflow.Logger
     last_checksum ByteSlice
+    last ByteSlice
     state uint32
     backoff float64
     wait uint32
@@ -51,15 +52,24 @@ func (self *SendMachine) Run(routes RoutingTable, comm agent.Comm) *DataGram {
 }
 
 func (self *SendMachine) Send(msg ByteSlice, dest uint32) {
-    self.sendq.Queue(NewDataGram(msg, uint32(self.agent.Id()), dest))
-    self.log("info", self.agent.Time(), "Put message on sendq", string([]byte(msg)))
+    gram := NewDataGram(msg, uint32(self.agent.Id()), dest)
+    self.sendq.Queue(gram)
+    self.log("info", self.agent.Time(), "Put message on sendq", string([]byte(msg)), gram)
 }
 
 func (self *SendMachine) log(level logflow.LogLevel, v ...interface{}) {
     self.logger.Logln(level, v...)
 }
 
+
 func (self *SendMachine) confirm_last(comm agent.Comm) (confirm bool) {
+    bytes := comm.Listen(self.freq)
+    confirm = self.last.Eq(bytes)
+    self.log("info", self.agent.Time(), "confirm_last", confirm)
+    return
+}
+
+func (self *SendMachine) confirm_acked(comm agent.Comm) (confirm bool) {
 
     self.ack_wait -= 1
     if self.ack_wait == 0 {
@@ -133,7 +143,11 @@ func (self *SendMachine) send_message(comm agent.Comm) (sent, isack bool) {
     pkt.SetBody(msg.Bytes())
     bytes := pkt.Bytes()
     comm.Broadcast(self.freq, bytes)
-    if !msg.IsAck() { self.last_checksum = msg.ComputeChecksum() }
+    if !msg.IsAck() {
+        self.last_checksum = msg.ComputeChecksum()
+    } else {
+        self.last = bytes
+    }
     self.log("info", self.agent.Time(), "sent", pkt, msg)
     return true, msg.IsAck()
 }
@@ -149,20 +163,18 @@ func (self *SendMachine) PerformSends(comm agent.Comm) {
                 self.state = 1
                 self.ack_wait = ACK_WAIT
             } else if sent {
-                self.sendq.Dequeue()
-                self.state = 3
+                self.state = 4
             } else {
                 self.state = 3
             }
         case 1:
-            if self.confirm_last(comm) {
+            if self.confirm_acked(comm) {
                 m, _ := self.sendq.Dequeue()
                 self.log("info", self.agent.Time(), "dequeued msg", m)
                 self.state = 2
                 self.next_state = 3
                 self.backoff = BACKOFF
                 self.wait = SEND_HOLDTIME
-            } else {
             }
         case 2:
             self.wait -= 1
@@ -172,6 +184,18 @@ func (self *SendMachine) PerformSends(comm agent.Comm) {
         case 3:
             if !self.sendq.Empty() {
                 self.state = 0
+            }
+        case 4:
+            self.next_state = 3
+            if self.confirm_last(comm) {
+                self.sendq.Dequeue()
+                self.backoff = BACKOFF
+                self.state = 2
+                self.wait = 1
+            } else {
+                self.state = 2
+                self.backoff = self.backoff*(pseudo_rand.Float64()*2 + 1)
+                self.wait = uint32(self.backoff)
             }
         default:
 //             self.log("debug", self.agent.Time(), "nop")

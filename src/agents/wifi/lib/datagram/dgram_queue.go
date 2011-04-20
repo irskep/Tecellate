@@ -9,6 +9,9 @@ func (self *DataGramQueue) Len() int { return ((*queue.Queue)(self)).Len() }
 func (self *DataGramQueue) Empty() bool { return ((*queue.Queue)(self)).Empty() }
 func (self *DataGramQueue) Queue(m *DataGram) { ((*queue.Queue)(self)).Queue(m) }
 func (self *DataGramQueue) QueueFront(m *DataGram) { ((*queue.Queue)(self)).QueueFront(m) }
+func (self *DataGramQueue) Peek() *DataGram {
+    return ((*queue.Queue)(self)).Peek().(*DataGram)
+}
 func (self *DataGramQueue) Dequeue() (*DataGram, bool) {
     q := (*queue.Queue)(self)
     dg, ok := q.Dequeue()
