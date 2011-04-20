@@ -21,8 +21,8 @@ import (
 // Config types
 
 type CoordConfig struct {
-    BottomLeft geo.Point
-    TopRight geo.Point
+    BottomLeft *geo.Point
+    TopRight *geo.Point
     Peers []*string
     Logs coordconf.LogConfigList
     Agents []*coordconf.AgentDefinition
@@ -39,7 +39,7 @@ type MasterConfig struct {
     Logs coordconf.LogConfigList
     Coordinators map[string]CoordConfig
     Agents map[string]AgentConfig
-    MaxTurns uint
+    MaxTurns int
     MessageStyle string
     UseFood bool
     Size geo.Point
@@ -117,8 +117,21 @@ func (self *Master) importCoordChannels() {
 }
 
 func (self *Master) sendCoordConfigs() {
+    var currentId int = 0
     for address, ch_send := range(self.coordSendChannels) {
-        bytes, err := json.Marshal(self.conf.Coordinators[address])
+        currentId += 1
+        
+        cc := self.conf.Coordinators[address]
+        thisConf := coordconf.NewConfig(currentId,
+                                        address,
+                                        self.conf.MaxTurns,
+                                        cc.Agents,
+                                        self.conf.MessageStyle,
+                                        self.conf.UseFood,
+                                        cc.BottomLeft,
+                                        cc.TopRight)
+        
+        bytes, err := json.Marshal(thisConf)
         if err != nil {
             self.log.Fatal(err)
         }
