@@ -28,7 +28,7 @@ type Coordinator struct {
     rpcSendChannels []chan game.GameStateResponse
     rpcRecvChannels []chan game.GameStateRequest
     conf *config.Config
-    exporter *netchan.Exporter
+    Exporter *netchan.Exporter
     listener *net.TCPListener
 
     // RPC server threads send an ints down this channel representing
@@ -55,7 +55,8 @@ func NewCoordinator() *Coordinator {
                         peers: make([]*CoordinatorProxy, 0),
                         rpcSendChannels: make([]chan game.GameStateResponse, 0),
                         rpcRecvChannels: make([]chan game.GameStateRequest, 0),
-                        exporter: netchan.NewExporter(),
+                        conf: &config.Config{},
+                        Exporter: netchan.NewExporter(),
                         rpcRequestsReceivedConfirmation: make(chan int),
                         nextTurnAvailableSignals: make([]chan int, 0),
                         log: logflow.NewSource("coord/?")}
@@ -66,6 +67,10 @@ func (self *Coordinator) Configure(conf *config.Config) {
     self.availableGameState.Configure(conf)
     self.log = logflow.NewSource(fmt.Sprintf("coord/%d", conf.Identifier))
     self.log.Printf("Configured")
+}
+
+func (self *Coordinator) Config() *config.Config {
+    return self.conf
 }
 
 func (self *Coordinator) Run() {
@@ -127,8 +132,8 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
 
 // REMOTE/PRODUCTION
 
-func (self *Coordinator) RunExporter(n int) {
-    go self.RunExporterBlocking(n)
+func (self *Coordinator) RunExporterInitial() {
+    go self.RunExporterBlocking(len(self.rpcSendChannels)+len(self.conf.Agents))
 }
 
 func (self *Coordinator) RunExporterBlocking(n int) {
@@ -147,7 +152,7 @@ func (self *Coordinator) RunExporterBlocking(n int) {
             self.log.Fatal("listen:", err)
         }
         conn.SetLinger(0)
-        go self.exporter.ServeConn(conn)
+        go self.Exporter.ServeConn(conn)
     }
     self.log.Print("Closing listener")
     self.listener.Close()
@@ -159,14 +164,14 @@ func (self *Coordinator) NewProxy(s *cagent.AgentState) cagent.Agent {
 
     self.log.Print("Exporting ", fmt.Sprintf("agent_rsp_%d", s.Id))
 
-    err := self.exporter.Export(fmt.Sprintf("agent_rsp_%d", s.Id), p2a, netchan.Send)
+    err := self.Exporter.Export(fmt.Sprintf("agent_rsp_%d", s.Id), p2a, netchan.Send)
     if err != nil {
         self.log.Fatal(err)
     }
 
     self.log.Print("Exporting ", fmt.Sprintf("agent_req_%d", s.Id))
 
-    err = self.exporter.Export(fmt.Sprintf("agent_req_%d", s.Id), a2p, netchan.Recv)
+    err = self.Exporter.Export(fmt.Sprintf("agent_req_%d", s.Id), a2p, netchan.Recv)
     if err != nil {
         self.log.Fatal(err)
     }
@@ -191,12 +196,12 @@ func (self *Coordinator) ExportRemote(otherID int) {
     ch_recv := make(chan game.GameStateRequest)
     ch_send := make(chan game.GameStateResponse)
 
-    err := self.exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
+    err := self.Exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
     if err != nil {
 	    self.log.Fatal(err)
 	}
 
-    err = self.exporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
+    err = self.Exporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
 	if err != nil {
 	    self.log.Fatal(err)
 	}

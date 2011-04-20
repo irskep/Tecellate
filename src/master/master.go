@@ -9,6 +9,7 @@ package master
 
 import (
     coordconf "coord/config"
+    coordrunner "coord/runner"
     geo "coord/geometry"
     "io/ioutil"
     "json"
@@ -47,13 +48,11 @@ type MasterConfig struct {
 
 // Master
 
-type CoordComm chan []byte
-
 type Master struct {
     conf *MasterConfig
     log logflow.Logger
-    coordSendChannels map[string]CoordComm
-    coordRecvChannels map[string]CoordComm
+    coordSendChannels map[string]coordrunner.CoordComm
+    coordRecvChannels map[string]coordrunner.CoordComm
 }
 
 func New(args []string) *Master {
@@ -89,11 +88,11 @@ func (self *Master) ConnectToCoords() {
 }
 
 func (self *Master) importCoordChannels() {
-    self.coordSendChannels = make(map[string]CoordComm, len(self.conf.Coordinators))
-    self.coordRecvChannels = make(map[string]CoordComm, len(self.conf.Coordinators))
+    self.coordSendChannels = make(map[string]coordrunner.CoordComm, len(self.conf.Coordinators))
+    self.coordRecvChannels = make(map[string]coordrunner.CoordComm, len(self.conf.Coordinators))
     for address, _ := range(self.conf.Coordinators) {
-        ch_send := make(CoordComm)
-        ch_recv := make(CoordComm)
+        ch_send := make(coordrunner.CoordComm)
+        ch_recv := make(coordrunner.CoordComm)
 
         imp := util.MakeImporterWithRetry("tcp", address, 10, self.log)
 

@@ -10,17 +10,15 @@ COORD MAIN
 package main
 
 import (
-    // "coord"
-    // "logflow"
+    "coord"
+    "coord/runner"
+    "os"
 )
 
 func main() {
-    
-    // Initialize
-    // gameconf := coord.NewGameConfig(3, "none", false, true, 60, 20)
-    // coords := gameconf.InitWithChainedLocalCoordinators(3, 20)
-    // coords.Run()
-    
-    // Yo ho, me hearties, yo ho!
-    // logflow.Println("main", "Done")
+    c := coord.NewCoordinator()
+    r := runner.New(c, os.Args[1])
+    r.ExportNetchans()
+    r.RunExporter()
+    r.ReadConfig()
 }
