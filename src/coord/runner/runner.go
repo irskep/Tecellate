@@ -18,6 +18,17 @@ type CoordRunner struct {
     log logflow.Logger
 }
 
+func RunAtAddress(address string) {
+    c := coord.NewCoordinator()
+    r := New(c, address)
+    r.ExportNetchans()
+    r.RunExporter()
+    r.ReadConfig()
+    r.WaitForGo()
+    r.log.Print("Done")
+    r.Close()
+}
+
 func New(c *coord.Coordinator, address string) *CoordRunner {
     r := &CoordRunner{
         myCoord: c,
@@ -31,7 +42,7 @@ func New(c *coord.Coordinator, address string) *CoordRunner {
 
 func (self *CoordRunner) ExportNetchans() {
     self.myCoord.Exporter.Export("master_req", self.masterReq, netchan.Recv)
-    self.myCoord.Exporter.Export("master_rsp", self.masterReq, netchan.Send)
+    self.myCoord.Exporter.Export("master_rsp", self.masterRsp, netchan.Send)
 }
 
 func (self *CoordRunner) RunExporter() {
@@ -48,4 +59,16 @@ func (self *CoordRunner) ReadConfig() {
         self.log.Print("Configured with ", configObj)
     }
     self.myCoord.Configure(configObj)
+    self.masterRsp <- []byte("configured")
+}
+
+func (self *CoordRunner) WaitForGo() {
+    <- self.masterReq
+    self.log.Print("Go received")
+}
+
+func (self *CoordRunner) Close() {
+    self.myCoord.Close()
+    close(self.masterReq)
+    close(self.masterRsp)
 }

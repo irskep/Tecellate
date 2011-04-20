@@ -16,6 +16,7 @@ import (
     "log"
     "logflow"
     "netchan"
+    "time"
     "util"
 )
 
@@ -83,8 +84,9 @@ func (self *Master) ConnectToCoords() {
     self.conf.fillInAgentLists()
     self.importCoordChannels()
     self.sendCoordConfigs()
-    self.ackCoordConfigs()
     self.sendGo()
+    self.log.Print("Done")
+    time.Sleep(1e9/2)
 }
 
 func (self *Master) importCoordChannels() {
@@ -117,10 +119,11 @@ func (self *Master) importCoordChannels() {
 
 func (self *Master) sendCoordConfigs() {
     var currentId int = 0
-    for address, ch_send := range(self.coordSendChannels) {
+    for address, cc := range(self.conf.Coordinators) {
         currentId += 1
         
-        cc := self.conf.Coordinators[address]
+        self.log.Print("Configuring ", address)
+        
         thisConf := coordconf.NewConfig(currentId,
                                         address,
                                         self.conf.MaxTurns,
@@ -134,21 +137,19 @@ func (self *Master) sendCoordConfigs() {
         if err != nil {
             self.log.Fatal(err)
         }
-        ch_send <- bytes
-    }
-}
-
-func (self *Master) ackCoordConfigs() {
-    for address, ch_recv := range(self.coordSendChannels) {
-        bytes := <- ch_recv
-        if string(bytes) != "configured" {
+        self.coordSendChannels[address] <- bytes
+        
+        self.log.Println("Waiting for response")
+        rsp := <- self.coordRecvChannels[address]
+        if string(rsp) != "configured" {
             self.log.Fatal("Coordinator at ", address, " failed: ", string(bytes))
         }
     }
 }
 
 func (self *Master) sendGo() {
-    for _, ch_send := range(self.coordSendChannels) {
+    for addr, ch_send := range(self.coordSendChannels) {
+        self.log.Print("Sending go to ", addr)
         ch_send <- []byte("go")
     }
 }

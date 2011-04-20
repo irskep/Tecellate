@@ -10,7 +10,6 @@ COORD MAIN
 package main
 
 import (
-    "coord"
     "coord/runner"
     "logflow"
     "os"
@@ -18,9 +17,5 @@ import (
 
 func main() {
     logflow.StdoutSink(".*")
-    c := coord.NewCoordinator()
-    r := runner.New(c, os.Args[1])
-    r.ExportNetchans()
-    r.RunExporter()
-    r.ReadConfig()
+    runner.RunAtAddress(os.Args[1])
 }
