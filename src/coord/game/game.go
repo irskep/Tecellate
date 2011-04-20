@@ -103,6 +103,7 @@ func (self *GameState) AgentStatesToExport(req GameStateRequest) []cagent.AgentS
         p := agent.State().Position
         if bl.X <= p.X && bl.Y <= p.Y && p.X < tr.X && p.Y < tr.Y {
             upForAdoption = append(upForAdoption, *agent.State())
+            agent.MigrateTo(self.conf.Address)
         }
     }
     if len(upForAdoption) > 0 {

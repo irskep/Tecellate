@@ -46,6 +46,10 @@ func (self *comm) ack_start() {
     self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Start"]))
 }
 
+func (self *comm) ack_migrate() {
+    self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Migrate"]))
+}
+
 func (self *comm) complete() bool {
     r, _ := self.acked_send(link.NewMessage(link.Commands["Complete"]))
     return r

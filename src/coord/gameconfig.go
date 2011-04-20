@@ -2,9 +2,12 @@
 
 package coord
 
-import "agent"
-import "coord/config"
-import geo "coord/geometry"
+import (
+    "agent"
+    "coord/config"
+    geo "coord/geometry"
+    "fmt"
+)
 
 type GameConfig struct {
     MaxTurns int
@@ -37,6 +40,7 @@ func (self *GameConfig) CoordConfig(id int, bl *geo.Point, tr *geo.Point) *confi
     }
 
     return config.NewConfig(id,
+                            fmt.Sprintf("127.0.0.1:%d", 8000+id),
                             self.MaxTurns,
                             thisCoordsAgents,
                             self.MessageStyle,

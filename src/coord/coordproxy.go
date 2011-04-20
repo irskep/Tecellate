@@ -14,14 +14,19 @@ var timeout int64 = 5*1e9
 type CoordinatorProxy struct {
     Identifier int
     parentIdentifier int
+    address string
     sendChannel chan game.GameStateRequest
     recvChannel chan game.GameStateResponse
     log logflow.Logger
 }
 
-func NewCoordProxy(identifier int, parentIdentifier int, sendChan chan game.GameStateRequest, recvChan chan game.GameStateResponse) *CoordinatorProxy {
+func NewCoordProxy(identifier int, parentIdentifier int, 
+                   address string,
+                   sendChan chan game.GameStateRequest, 
+                   recvChan chan game.GameStateResponse) *CoordinatorProxy {
     return &CoordinatorProxy{identifier, 
                              parentIdentifier, 
+                             address,
                              sendChan, 
                              recvChan, 
                              logflow.NewSource(fmt.Sprintf("coordproxy/%d/%d: ", parentIdentifier, identifier))}

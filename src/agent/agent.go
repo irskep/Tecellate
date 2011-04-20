@@ -42,7 +42,9 @@ func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
                 start()
             case msg.Cmd == link.Commands["Exit"]:
                 break
-            case msg.Cmd == link.Commands["Reconnect"]:
+            case msg.Cmd == link.Commands["Migrate"]:
+                logflow.Print("agent/?/info", "I have been ordered to migrate to ", string([]byte(msg.Args[0])))
+                comm.ack_migrate()
                 //thingy()
                 //comm.SwapChannels(newSend, newRecv)
             default:

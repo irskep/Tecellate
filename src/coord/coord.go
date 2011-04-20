@@ -116,7 +116,10 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
     newRecvChannel := make(chan game.GameStateRequest)
 
     // Add a proxy for new peer
-    self.peers = append(self.peers, NewCoordProxy(other.conf.Identifier, self.conf.Identifier, newRecvChannel, newSendChannel))
+    self.peers = append(self.peers, 
+                        NewCoordProxy(other.conf.Identifier, self.conf.Identifier, 
+                                      other.conf.Address,
+                                      newRecvChannel, newSendChannel))
 
     // Tell peer to listen for RPC requests from me
     other.AddRPCChannel(newSendChannel, newRecvChannel)
@@ -124,14 +127,10 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
 
 // REMOTE/PRODUCTION
 
-func (self *Coordinator) Address() string {
-    return fmt.Sprintf("127.0.0.1:%d", 8000+self.conf.Identifier)
-}
-
 func (self *Coordinator) RunExporter() {
     go func() {
-        self.log.Println("Listening at", self.Address())
-        addr, _ := net.ResolveTCPAddr(self.Address())
+        self.log.Println("Listening at", self.conf.Address)
+        addr, _ := net.ResolveTCPAddr(self.conf.Address)
         var err os.Error
         self.listener, err = net.ListenTCP(addr.Network(), addr)
         if err != nil {
@@ -229,11 +228,11 @@ func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string
     return nil
 }
 
-func (self *Coordinator) ConnectToRPCServer(otherID int) {
+func (self *Coordinator) ConnectToRPCServer(otherID int, otherAddress string) {
     ch_send := make(chan game.GameStateRequest)
     ch_recv := make(chan game.GameStateResponse)
-
-    imp := self.makeImporterWithRetry("tcp", fmt.Sprintf("127.0.0.1:%d", 8000+otherID))
+    
+    imp := self.makeImporterWithRetry("tcp", otherAddress)
 
 	err := imp.Import(fmt.Sprintf("coord_req_%d", self.conf.Identifier), ch_send, netchan.Send, 1)
 	if err != nil {
@@ -244,6 +243,7 @@ func (self *Coordinator) ConnectToRPCServer(otherID int) {
 	if err != nil {
 	    self.log.Fatal(err)
 	}
-
-    self.peers = append(self.peers, NewCoordProxy(otherID, self.conf.Identifier, ch_send, ch_recv))
+    
+    np := NewCoordProxy(otherID, self.conf.Identifier, otherAddress, ch_send, ch_recv)
+    self.peers = append(self.peers, np)
 }
