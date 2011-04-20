@@ -23,6 +23,7 @@ type GameState struct {
 
 type GameStateRequest struct {
     SenderIdentifier int
+    SenderAddress string
     Turn int
     BottomLeft geo.Point
     TopRight geo.Point
@@ -103,7 +104,7 @@ func (self *GameState) AgentStatesToExport(req GameStateRequest) []cagent.AgentS
         p := agent.State().Position
         if bl.X <= p.X && bl.Y <= p.Y && p.X < tr.X && p.Y < tr.Y {
             upForAdoption = append(upForAdoption, *agent.State())
-            agent.MigrateTo(self.conf.Address)
+            agent.MigrateTo(req.SenderAddress)
         }
     }
     if len(upForAdoption) > 0 {

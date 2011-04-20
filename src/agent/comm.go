@@ -37,7 +37,12 @@ func StartComm(send link.SendLink, recv link.RecvLink, log logflow.Logger) *comm
     return self
 }
 
-// func (self *comm) SwapChannels(newSnd...) {}
+func (self *comm) SwapChannels(newSend link.SendLink, newRecv link.RecvLink) {
+    close(self.snd)
+    close(self.rcv)
+    self.snd = newSend
+    self.rcv = newRecv
+}
 
 func (self *comm) Log(v ...interface{}) { self.log.Println(v...) }
 func (self *comm) Logf(format string, v ...interface{}) { self.log.Printf(format, v...) }

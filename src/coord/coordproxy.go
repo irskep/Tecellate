@@ -14,7 +14,7 @@ var timeout int64 = 5*1e9
 type CoordinatorProxy struct {
     Identifier int
     parentIdentifier int
-    address string
+    parentAddress string
     sendChannel chan game.GameStateRequest
     recvChannel chan game.GameStateResponse
     log logflow.Logger
@@ -49,7 +49,8 @@ func (self *CoordinatorProxy) request(request game.GameStateRequest) game.GameSt
 func (self *CoordinatorProxy) RequestStatesInBox(turn int,
                                                  bottomLeft geo.Point,
                                                  topRight geo.Point) *game.GameStateResponse {
-    request := game.GameStateRequest{self.parentIdentifier, turn, bottomLeft, topRight}
+    request := game.GameStateRequest{self.parentIdentifier, self.parentAddress, 
+                                     turn, bottomLeft, topRight}
     self.log.Printf("req: %v", request)
     response := self.request(request)
     self.log.Printf("rsp: %v", response)

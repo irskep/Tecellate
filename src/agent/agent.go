@@ -43,10 +43,11 @@ func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
             case msg.Cmd == link.Commands["Exit"]:
                 break
             case msg.Cmd == link.Commands["Migrate"]:
-                logflow.Print("agent/?/info", "I have been ordered to migrate to ", string([]byte(msg.Args[0])))
+                addr := string([]byte(msg.Args[0]))
+                logflow.Print("agent/?/info", "I have been ordered to migrate to ", addr)
                 comm.ack_migrate()
-                //thingy()
-                //comm.SwapChannels(newSend, newRecv)
+                ch_send, ch_recv := channelsForCoordinator(agent.Id(), addr)
+                comm.SwapChannels(ch_send, ch_recv)
             default:
                 s := fmt.Sprintf("Command %s not valid for current state.", msg.Cmd)
                 panic(s)
@@ -61,14 +62,8 @@ func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
 }
 
 func makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
-    // This method is actually entirely futile because the race condition we're trying
-    // to account for happens between listener creation and exporter.ServeConn().
-    // An error is only thrown if the listener does not exist, but we must already
-    // have a listener to call ServeConn().
-    // To really fix this, you have to try sending a message down the pipe and see
-    // if it panics.
     var err os.Error
-    for i := 0; i < 3; i++ {
+    for i := 0; i < 10; i++ {
         conn, err := net.Dial(network, "", remoteaddr)
         if err == nil {
             return netchan.NewImporter(conn)
@@ -76,30 +71,34 @@ func makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer 
         logflow.Print("agent", "Netchan import failed, retrying")
         time.Sleep(1e9/2)
     }
-    logflow.Print("agent", "Netchan import failed three times. Bailing out.")
+    logflow.Print("agent", "Netchan import failed ten times. Bailing out.")
     logflow.Fatal("agent", err)
     return nil
 }
 
-func RunWithCoordinator(agent Agent, addr string) {
+func channelsForCoordinator(id uint32, addr string) (chan link.Message, chan link.Message) {
     ch_send := make(chan link.Message)
     ch_recv := make(chan link.Message)
 
     imp := makeImporterWithRetry("tcp", addr)
 
-    logflow.Print("agent", "Importing ", fmt.Sprintf("agent_req_%d", agent.Id()))
+    logflow.Print("agent", "Importing ", fmt.Sprintf("agent_req_%d", id))
 
-	err := imp.Import(fmt.Sprintf("agent_req_%d", agent.Id()), ch_send, netchan.Send, 1)
+	err := imp.Import(fmt.Sprintf("agent_req_%d", id), ch_send, netchan.Send, 1)
 	if err != nil {
 	    logflow.Fatal("agent", err)
 	}
 
-    logflow.Print("agent", "Importing ", fmt.Sprintf("agent_rsp_%d", agent.Id()))
+    logflow.Print("agent", "Importing ", fmt.Sprintf("agent_rsp_%d", id))
 
-	err = imp.Import(fmt.Sprintf("agent_rsp_%d", agent.Id()), ch_recv, netchan.Recv, 1)
+	err = imp.Import(fmt.Sprintf("agent_rsp_%d", id), ch_recv, netchan.Recv, 1)
 	if err != nil {
 	    logflow.Fatal("agent", err)
 	}
+	return ch_send, ch_recv
+}
 
+func RunWithCoordinator(agent Agent, addr string) {
+    ch_send, ch_recv := channelsForCoordinator(agent.Id(), addr)
 	Run(agent, ch_send, ch_recv)
 }

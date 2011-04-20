@@ -43,12 +43,12 @@ func (self *Coordinator) doTurns(agents []cagent.Agent) {
 }
 
 func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) ([]cagent.Transform, *game.Messages, *game.Messages, []cagent.Agent) {
-    agents := self.availableGameState.Agents
-    transforms := make([]cagent.Transform, len(agents))
     messages := game.NewMessages(peers)
     myMessages := game.NewMessages(nil)
     
     newAgents := self.getNewAgents(peers)
+    agents := self.availableGameState.Agents
+    transforms := make([]cagent.Transform, len(agents))
     
     self.doTurns(agents)
 
@@ -111,7 +111,6 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
 
         transforms[i] = t
     }
-
 
     self.log.Println("\n---------- Ending Resolve -----------\n\n")
     return transforms, messages, myMessages, newAgents

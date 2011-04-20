@@ -205,14 +205,8 @@ func (self *Coordinator) ExportRemote(otherID int) {
 }
 
 func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
-    // This method is actually entirely futile because the race condition we're trying
-    // to account for happens between listener creation and exporter.ServeConn().
-    // An error is only thrown if the listener does not exist, but we must already
-    // have a listener to call ServeConn().
-    // To really fix this, you have to try sending a message down the pipe and see
-    // if it panics.
     var err os.Error
-    for i := 0; i < 3; i++ {
+    for i := 0; i < 10; i++ {
         conn, err := net.Dial(network, "", remoteaddr)
         if err == nil {
             return netchan.NewImporter(conn)
@@ -220,7 +214,7 @@ func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string
         self.log.Print("Netchan import failed, retrying")
         time.Sleep(1e9/2)
     }
-    self.log.Print("Netchan import failed three times. Bailing out.")
+    self.log.Print("Netchan import failed ten times. Bailing out.")
     self.log.Fatal(err)
     return nil
 }
@@ -241,6 +235,6 @@ func (self *Coordinator) ConnectToRPCServer(otherID int, otherAddress string) {
 	    self.log.Fatal(err)
 	}
     
-    np := NewCoordProxy(otherID, self.conf.Identifier, otherAddress, ch_send, ch_recv)
+    np := NewCoordProxy(otherID, self.conf.Identifier, self.conf.Address, ch_send, ch_recv)
     self.peers = append(self.peers, np)
 }
