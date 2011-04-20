@@ -93,7 +93,7 @@ func (self *Master) importCoordChannels() {
         ch_send := make(CoordComm)
         ch_recv := make(CoordComm)
 
-        imp := util.MakeImporterWithRetry("tcp", address, 10)
+        imp := util.MakeImporterWithRetry("tcp", address, 10, self.log)
 
         self.log.Print("Importing master_req")
 

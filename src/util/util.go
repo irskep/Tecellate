@@ -8,17 +8,20 @@ import (
     "time"
 )
 
-func MakeImporterWithRetry(network string, remoteaddr string, n int) *netchan.Importer {
+func MakeImporterWithRetry(network string, remoteaddr string, n int, log logflow.Logger) *netchan.Importer {
+    if log == nil {
+        log = logflow.NewSource("util")
+    }
     var err os.Error
     for i := 0; i < n; i++ {
         conn, err := net.Dial(network, "", remoteaddr)
         if err == nil {
             return netchan.NewImporter(conn)
         }
-        logflow.Print("agent", "Netchan import failed, retrying")
+        log.Print("Netchan import failed, retrying")
         time.Sleep(1e9/2)
     }
-    logflow.Print("agent", "Netchan import failed ", n, " times. Bailing out.")
-    logflow.Fatal("agent", err)
+    log.Print("Netchan import failed ", n, " times. Bailing out.")
+    log.Fatal(err)
     return nil
 }
