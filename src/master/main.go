@@ -15,5 +15,6 @@ import (
 )
 
 func main() {
-    master.New(os.Args)
+    m := master.New(os.Args)
+    m.ConnectToCoords()
 }

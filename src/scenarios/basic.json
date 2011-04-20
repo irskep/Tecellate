@@ -1,17 +1,37 @@
 {
-    "Address": "127.0.0.1:8000",
     "Logs": [
         ["stdout", ".*"],
         ["file", "results.txt", ".*"]
     ],
     "Coordinators": {
-        "127.0.0.1:8001": [
-            ["file", "c1.txt"]
-        ]
+        "127.0.0.1:8001": {
+            "BottomLeft": [0, 0],
+            "TopRight": [20, 20],
+            "Peers": [
+                "127.0.0.1:8002"
+            ],
+            "Logs": [
+                ["file", "c1.txt"]
+            ]
+        },
+        "127.0.0.1:8002": {
+            "BottomLeft": [10, 0],
+            "TopRight": [20, 10],
+            "Peers": [
+                "127.0.0.1:8001"
+            ],
+            "Logs": [
+                ["file", "c2.txt"]
+            ]
+        }
     },
     "Agents": {
-        "127.0.0.1:8002": [
-            ["file", "a1.txt"]
-        ]
+        "127.0.0.1:8100": {
+            "Position": [9, 0],
+            "Energy": 100,
+            "Logs": [
+                ["file", "a1.txt"]
+            ]
+        }
     }
 }
