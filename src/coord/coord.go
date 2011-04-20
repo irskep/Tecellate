@@ -127,33 +127,30 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
 
 // REMOTE/PRODUCTION
 
-func (self *Coordinator) RunExporter() {
-    go func() {
-        self.log.Println("Listening at", self.conf.Address)
-        addr, _ := net.ResolveTCPAddr(self.conf.Address)
-        var err os.Error
-        self.listener, err = net.ListenTCP(addr.Network(), addr)
+func (self *Coordinator) RunExporter(n int) {
+    go self.RunExporterBlocking(n)
+}
+
+func (self *Coordinator) RunExporterBlocking(n int) {
+    self.log.Print("Listening at ", self.conf.Address, " for " , n)
+    addr, _ := net.ResolveTCPAddr(self.conf.Address)
+    var err os.Error
+    self.listener, err = net.ListenTCP(addr.Network(), addr)
+    if err != nil {
+        self.log.Fatal(err)
+    }
+    // RACE CONDITION!
+    for i := 0; i<n; i++ {
+        conn, err := self.listener.AcceptTCP()
+        self.log.Print("Serving netchan export ", i, " of ", n)
         if err != nil {
-            self.log.Fatal(err)
+            self.log.Fatal("listen:", err)
         }
-        // There is a race condition here. There is a very slim chance that the
-        // main thread will unblock (it is waiting for ready) and yet the call to
-        // lstn.Accept() will not have been executed yet, which will cause the
-        // client's netchan import to fail.
-        // However, the chance is extremely slim.
-        n := len(self.rpcSendChannels)+len(self.conf.Agents)
-        for i := 0; i<n; i++ {
-            conn, err := self.listener.AcceptTCP()
-            self.log.Print("Serving netchan export ", i, " of ", n)
-            if err != nil {
-                self.log.Fatal("listen:", err)
-            }
-            conn.SetLinger(0)
-            go self.exporter.ServeConn(conn)
-        }
-        self.log.Print("Closing listener")
-        self.listener.Close()
-    }()
+        conn.SetLinger(0)
+        go self.exporter.ServeConn(conn)
+    }
+    self.log.Print("Closing listener")
+    self.listener.Close()
 }
 
 func (self *Coordinator) NewProxy(s *cagent.AgentState) cagent.Agent {

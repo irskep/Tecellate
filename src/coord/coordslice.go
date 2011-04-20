@@ -52,7 +52,6 @@ func (self CoordinatorSlice) Chain() {
 
 func (self CoordinatorSlice) PrepareAgentProxies() {
     for _, c := range(self) {
-        c.RunExporter()
         c.PrepareAgentProxies()
     }
 }
@@ -66,6 +65,7 @@ func (self CoordinatorSlice) ChainTCP() {
         if i > 0 {
             c.ExportRemote(i-1)
         }
+        c.RunExporter(len(c.rpcSendChannels)+len(c.conf.Agents))
     }
     logflow.Println("main", "Connecting coordinators")
     for i, c := range(self) {

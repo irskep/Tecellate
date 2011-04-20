@@ -6,15 +6,19 @@ import game "coord/game"
 // import geo "coord/geometry"
 
 func (self *Coordinator) getNewAgents(peers []*game.GameStateResponse) []cagent.Agent {
+    newAgents := make([]cagent.Agent, 0)
     for _, rsp := range(peers) {
         if len(rsp.AgentsToAdopt) > 0 {
             self.log.Print("Got new agents from ", rsp.Identifier)
             for _, as := range(rsp.AgentsToAdopt) {
                 self.log.Print("One of them is ", as)
+                // newAgents = append(newAgents, self.NewProxy(as))
+                self.AddNewProxyFromState(&as)
             }
+            self.RunExporterBlocking(len(rsp.AgentsToAdopt))
         }
     }
-    return nil
+    return newAgents
 }
 
 func (self *Coordinator) doTurns(agents []cagent.Agent) {
