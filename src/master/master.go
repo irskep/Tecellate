@@ -9,6 +9,7 @@ package master
 
 import (
     coordconf "coord/config"
+    geo "coord/geometry"
     "io/ioutil"
     "json"
     "log"
@@ -19,28 +20,29 @@ import (
 
 // Config types
 
-type LogConfig []string
-type LogConfigList []LogConfig
-
 type CoordConfig struct {
-    BottomLeft []int
-    TopRight []int
-    Peers []string
-    Logs LogConfigList
+    BottomLeft geo.Point
+    TopRight geo.Point
+    Peers []*string
+    Logs coordconf.LogConfigList
     Agents []*coordconf.AgentDefinition
 }
 
 type AgentConfig struct {
     Id uint32
-    Position []int
+    Position geo.Point
     Energy int
-    Logs LogConfigList
+    Logs coordconf.LogConfigList
 }
 
 type MasterConfig struct {
-    Logs LogConfigList
+    Logs coordconf.LogConfigList
     Coordinators map[string]CoordConfig
     Agents map[string]AgentConfig
+    MaxTurns uint
+    MessageStyle string
+    UseFood bool
+    Size geo.Point
 }
 
 // Master
@@ -142,37 +144,17 @@ func (self *Master) sendGo() {
 func (self *MasterConfig) fillInAgentLists() {
     for _, coordConf := range(self.Coordinators) {
         coordConf.Agents = make([]*coordconf.AgentDefinition, 0)
-        blx := coordConf.BottomLeft[0]
-        bly := coordConf.BottomLeft[1]
-        trx := coordConf.TopRight[0]
-        try := coordConf.TopRight[1]
+        bl := coordConf.BottomLeft
+        tr := coordConf.TopRight
         var currentId uint32 = 0
         for _, agentConf := range(self.Agents) {
             currentId += 1
             agentConf.Id = currentId
-            ax := agentConf.Position[0]
-            ay := agentConf.Position[1]
-            if blx <= ax && ax < trx && bly <= ay && ay < try {
-                ad := coordconf.NewAgentDefinition(agentConf.Id, ax, ay, agentConf.Energy)
+            ap := agentConf.Position
+            if bl.X <= ap.X && ap.X < tr.X && bl.Y <= ap.Y && ap.Y < tr.Y {
+                ad := coordconf.NewAgentDefinition(agentConf.Id, ap.X, ap.Y, agentConf.Energy)
                 coordConf.Agents = append(coordConf.Agents, ad)
             }
         }
-    }
-}
-
-// Logs
-
-func (self LogConfigList) Apply() {
-    for _, l := range(self) {
-        l.Apply()
-    }
-}
-
-func (self LogConfig) Apply() {
-    switch self[0] {
-    case "stdout":
-        logflow.StdoutSink(self[1])
-    case "file":
-        logflow.FileSink(self[1], true, self[2:]...)
     }
 }

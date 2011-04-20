@@ -5,8 +5,8 @@
     ],
     "Coordinators": {
         "127.0.0.1:8001": {
-            "BottomLeft": [0, 0],
-            "TopRight": [20, 20],
+            "BottomLeft": {"X": 0, "Y": 0},
+            "TopRight": {"X": 20, "Y": 20},
             "Peers": [
                 "127.0.0.1:8002"
             ],
@@ -15,8 +15,8 @@
             ]
         },
         "127.0.0.1:8002": {
-            "BottomLeft": [10, 0],
-            "TopRight": [20, 10],
+            "BottomLeft": {"X": 10, "Y": 0},
+            "TopRight": {"X": 20, "Y": 10},
             "Peers": [
                 "127.0.0.1:8001"
             ],
@@ -27,11 +27,15 @@
     },
     "Agents": {
         "127.0.0.1:8100": {
-            "Position": [9, 0],
+            "Position": {"X": 9, "Y": 0},
             "Energy": 100,
             "Logs": [
                 ["file", "a1.txt"]
             ]
         }
-    }
+    },
+    "MaxTurns": 3,
+    "MessageStyle": "noise",
+    "UseFood": false,
+    "Size": {"X": 20, "Y": 10}
 }

@@ -1,6 +1,12 @@
 package config
 
-import geo "coord/geometry"
+import (
+    geo "coord/geometry"
+    "logflow"
+)
+
+type LogConfig []string
+type LogConfigList []LogConfig
 
 type AgentDefinition struct {
     Id uint32
@@ -20,6 +26,7 @@ type Config struct {
     Agents []*AgentDefinition
     MessageStyle string     // boolean|noise|none
     UseFood bool
+    Logs LogConfigList
 
     BottomLeft *geo.Point
     TopRight *geo.Point
@@ -32,7 +39,25 @@ func NewConfig(id int, addr string, maxTurns int, agents []*AgentDefinition, sty
                    Agents: agents,
                    MessageStyle: style,
                    UseFood: food,
+                   Logs: make(LogConfigList, 0),
                    BottomLeft: bl,
                    TopRight: tr,
+    }
+}
+
+// Logs
+
+func (self LogConfigList) Apply() {
+    for _, l := range(self) {
+        l.Apply()
+    }
+}
+
+func (self LogConfig) Apply() {
+    switch self[0] {
+    case "stdout":
+        logflow.StdoutSink(self[1])
+    case "file":
+        logflow.FileSink(self[1], true, self[2:]...)
     }
 }
