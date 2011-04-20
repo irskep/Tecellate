@@ -15,6 +15,7 @@ func NewAgentDefinition(id uint32, x, y, energy int) *AgentDefinition {
 
 type Config struct {
     Identifier int
+    Address string
     MaxTurns int
     Agents []*AgentDefinition
     MessageStyle string     // boolean|noise|none
@@ -24,8 +25,9 @@ type Config struct {
     TopRight *geo.Point
 }
 
-func NewConfig(id int, maxTurns int, agents []*AgentDefinition, style string, food bool, bl, tr *geo.Point) *Config {
+func NewConfig(id int, addr string, maxTurns int, agents []*AgentDefinition, style string, food bool, bl, tr *geo.Point) *Config {
     return &Config{Identifier: id,
+                   Address: addr,
                    MaxTurns: maxTurns,
                    Agents: agents,
                    MessageStyle: style,

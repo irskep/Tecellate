@@ -3,6 +3,7 @@ package coord
 import (
     agent "agent"
     aproxy "coord/agent/proxy"
+    "fmt"
     "logflow"
 )
 
@@ -51,7 +52,6 @@ func (self CoordinatorSlice) Chain() {
 
 func (self CoordinatorSlice) PrepareAgentProxies() {
     for _, c := range(self) {
-        c.RunExporter()
         c.PrepareAgentProxies()
     }
 }
@@ -65,16 +65,17 @@ func (self CoordinatorSlice) ChainTCP() {
         if i > 0 {
             c.ExportRemote(i-1)
         }
+        c.RunExporter(len(c.rpcSendChannels)+len(c.conf.Agents))
     }
     logflow.Println("main", "Connecting coordinators")
     for i, c := range(self) {
         if i < len(self)-1 {
             logflow.Printf("main", "Connect %d to %d over TCP", i, i+1)
-            c.ConnectToRPCServer(i+1)
+            c.ConnectToRPCServer(i+1, fmt.Sprintf("127.0.0.1:%d", 8000+i+1))
         }
         if i > 0 {
             logflow.Printf("main", "Connect %d to %d over TCP", i, i-1)
-            c.ConnectToRPCServer(i-1)
+            c.ConnectToRPCServer(i-1, fmt.Sprintf("127.0.0.1:%d", 8000+i-1))
         }
     }
 }
@@ -83,7 +84,7 @@ func (self CoordinatorSlice) StartAndConnectAgents(agents map[uint32]agent.Agent
     for _, coord := range(self) {
         for _, agent_desc := range(coord.conf.Agents) {
             logflow.Print("Starting agent ", agent_desc.Id, " in ", coord.conf)
-            go agent.RunWithCoordinator(agents[agent_desc.Id], coord.Address())
+            go agent.RunWithCoordinator(agents[agent_desc.Id], coord.conf.Address)
         }
     }
 }

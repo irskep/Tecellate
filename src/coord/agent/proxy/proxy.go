@@ -175,6 +175,10 @@ func (self *AgentProxy) Turn() bool {
     return c
 }
 
+func (self *AgentProxy) MigrateTo(address string) {
+    self.acked_send(link.NewMessage(link.Commands["Migrate"], agent.NewMigrate([]byte(address))))
+}
+
 func (self *AgentProxy) start_turn() bool {
     return self.acked_send(link.NewMessage(link.Commands["Start"], self.state.Turn))
 }

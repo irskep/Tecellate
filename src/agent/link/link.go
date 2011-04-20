@@ -23,7 +23,7 @@ func init() {
     Commands = make(map[string]Command)
     cmdsr = []string{
         "Ack", "Nak", "Move", "Look", "Collect", "Listen", "Broadcast",
-        "Complete", "Start", "Exit", "PrevResult", "Id", "Energy",
+        "Complete", "Start", "Exit", "PrevResult", "Id", "Energy", "Migrate", 
     }
     for i, cmd := range cmdsr {
         Commands[cmd] = Command(i)

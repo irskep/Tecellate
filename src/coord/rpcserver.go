@@ -12,10 +12,10 @@ func (self *Coordinator) StartRPCServer() {
 }
 
 func (self *Coordinator) serveRPCRequestsOnChannels(identifier int,
-                                                    requestChannel chan GameStateRequest,
+                                                    requestChannel chan game.GameStateRequest,
                                                     responseChannel chan game.GameStateResponse,
                                                     nextTurnAvailable chan int) {
-    for i := 0 ; ; i++ {    // Spin forever. Process will exit without our help.
+    for i := 0 ; i < self.conf.MaxTurns; i++ {
         self.log.Printf("(%d) Waiting for turn %d", identifier, i)
         // Wait for turn i to become available
         <- nextTurnAvailable
@@ -26,7 +26,7 @@ func (self *Coordinator) serveRPCRequestsOnChannels(identifier int,
         request := <- requestChannel
         
         // Send the response
-        responseChannel <- self.availableGameState.MakeRPCResponse()
+        responseChannel <- self.availableGameState.MakeRPCResponse(request)
         
         // Send an RPC request confirmation down the pipes so the
         // processing loop knows when it is allowed to proceed

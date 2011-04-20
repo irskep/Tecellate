@@ -37,11 +37,22 @@ func StartComm(send link.SendLink, recv link.RecvLink, log logflow.Logger) *comm
     return self
 }
 
+func (self *comm) SwapChannels(newSend link.SendLink, newRecv link.RecvLink) {
+    close(self.snd)
+    close(self.rcv)
+    self.snd = newSend
+    self.rcv = newRecv
+}
+
 func (self *comm) Log(v ...interface{}) { self.log.Println(v...) }
 func (self *comm) Logf(format string, v ...interface{}) { self.log.Printf(format, v...) }
 
 func (self *comm) ack_start() {
     self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Start"]))
+}
+
+func (self *comm) ack_migrate() {
+    self.send(link.NewMessage(link.Commands["Ack"], link.Commands["Migrate"]))
 }
 
 func (self *comm) complete() bool {
