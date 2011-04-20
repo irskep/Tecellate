@@ -33,7 +33,7 @@ func NewStaticBot(id, first, last uint32) *StaticBot {
         id:id,
         first:first,
         last:last,
-        next:first,
+        next:first-1,
         logger:logflow.NewSource(fmt.Sprintf("agent/wifi/static/%d", id)),
         recieved:make([]uint32, 0, int(last-first)),
     }
@@ -61,10 +61,11 @@ func (self *StaticBot) Turn(comm agent.Comm) {
 
 //     self.log("Time = ", self.time)
 
-    if self.Id() == 8 && self.Time() > 750 && self.next <= self.last {
-        self.send.Send([]byte(fmt.Sprintf("Hello there Number %v.", self.next)), self.next)
+    if self.Time()/uint(self.Id()) > 750 && self.next < self.last {
         self.next += 1
-        if self.next == self.Id() { self.next += 1 }
+        if self.next == self.Id() { return }
+        self.send.Send([]byte(fmt.Sprintf("Hello there Number %v.", self.next)), self.next)
+//         self.next = self.last
     }
 
     self.hello.Run(comm)

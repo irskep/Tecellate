@@ -21,6 +21,7 @@ type DataGram struct {
     SendTTL TTL
     checksum ByteSlice
     ack bool
+    sent bool
 }
 
 func NewDataGram(msg ByteSlice, from, dest uint32) *DataGram {

@@ -105,11 +105,10 @@ func TestStatic_Reachable(t *testing.T) {
     }
 }
 
-
 func TestStatic_SendAck(t *testing.T) {
     defer testerlib.InitLogs("TestStatic_SendAck", t)()
 
-    _, _, bots := run_static(1500)
+    _, _, bots := run_static(4000)
     for _, bot := range bots {
         t.Logf("Bot %v recieved %v", bot.Id(), bot.recieved)
     }
