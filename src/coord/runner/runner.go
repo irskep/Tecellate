@@ -35,8 +35,7 @@ func (self *CoordRunner) ExportNetchans() {
 }
 
 func (self *CoordRunner) RunExporter() {
-    self.log.Print("Running exporter...")
-    go self.myCoord.RunExporterBlocking(self.myCoord.NumInitialConns()+1)
+    self.myCoord.RunExporterBlocking(self.myCoord.NumInitialConns()+1)
 }
 
 func (self *CoordRunner) ReadConfig() {

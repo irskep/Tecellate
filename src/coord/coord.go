@@ -64,6 +64,7 @@ func NewCoordinator() *Coordinator {
 
 func (self *Coordinator) Configure(conf *config.Config) {
     self.conf = conf
+    self.conf.Logs.Apply()
     self.availableGameState.Configure(conf)
     self.log = logflow.NewSource(fmt.Sprintf("coord/%d", conf.Identifier))
     self.log.Printf("Configured")
