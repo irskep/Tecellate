@@ -81,6 +81,8 @@ func (self *Master) ConnectToCoords() {
     self.conf.fillInAgentLists()
     self.importCoordChannels()
     self.sendCoordConfigs()
+    self.ackCoordConfigs()
+    self.sendGo()
 }
 
 func (self *Master) importCoordChannels() {
@@ -104,6 +106,21 @@ func (self *Master) sendCoordConfigs() {
             self.log.Fatal(err)
         }
         ch_send <- bytes
+    }
+}
+
+func (self *Master) ackCoordConfigs() {
+    for address, ch_recv := range(self.coordSendChannels) {
+        bytes := <- ch_recv
+        if string(bytes) != "configured" {
+            self.log.Fatal("Coordinator at ", address, " failed: ", string(bytes))
+        }
+    }
+}
+
+func (self *Master) sendGo() {
+    for _, ch_send := range(self.coordSendChannels) {
+        ch_send <- []byte("go")
     }
 }
 
