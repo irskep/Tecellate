@@ -8,12 +8,13 @@ File: master/master.go
 package master
 
 import (
-    // geo "coord/geometry"
     coordconf "coord/config"
     "io/ioutil"
     "json"
     "log"
     "logflow"
+    "netchan"
+    "util"
 )
 
 // Config types
@@ -91,8 +92,22 @@ func (self *Master) importCoordChannels() {
     for address, _ := range(self.conf.Coordinators) {
         ch_send := make(CoordComm)
         ch_recv := make(CoordComm)
-        
-        // Netchan-import the channels from the coordinator's address over TCP
+
+        imp := util.MakeImporterWithRetry("tcp", address, 10)
+
+        self.log.Print("Importing master_req")
+
+    	err := imp.Import("master_req", ch_send, netchan.Send, 1)
+    	if err != nil {
+    	    self.log.Fatal(err)
+    	}
+
+        self.log.Print("Importing master_rsp")
+
+    	err = imp.Import("master_rsp", ch_recv, netchan.Recv, 1)
+    	if err != nil {
+    	    self.log.Fatal(err)
+    	}
         
         self.coordSendChannels[address] = ch_send
         self.coordRecvChannels[address] = ch_recv

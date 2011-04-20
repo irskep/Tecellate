@@ -4,6 +4,7 @@ import (
     "logflow"
     "net"
     "netchan"
+    "os"
     "time"
 )
 
