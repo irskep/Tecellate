@@ -56,19 +56,19 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
     //     construct a StateTransform
     self.log.Println("\n\n---------- Starting Resolve -----------\n")
     
-    moves := make(map[complex128]int, len(agents))
+    moves := make(map[complex128]uint32, len(agents))
     for _, peerGameState := range(peers) {
         for _, st := range peerGameState.AgentStates {
-            moves[st.Position.Complex()] = 1
+            moves[st.Position.Complex()] = st.Id
             if st.Move.Valid {
                 requestedPosition := st.Move.Position.Add(st.Position)
-                moves[requestedPosition.Complex()] = 1
+                moves[requestedPosition.Complex()] = st.Id
             }
         }
     }
     
     for _, agent := range(agents) {
-        moves[agent.State().Position.Complex()] = 1
+        moves[agent.State().Position.Complex()] = agent.State().Id
     }
     
     for i, agent := range(agents) {
@@ -94,12 +94,12 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
 
         if state.Alive && state.Move.Valid {
             requestedPosition := *state.Move.Position.Add(state.Position)
-            if _, has := moves[requestedPosition.Complex()]; has {
+            if occupant, has := moves[requestedPosition.Complex()]; occupant != state.Id && has {
                 self.log.Print("Agent ", state.Id, " fails move ", state.Position, " - ", requestedPosition)
                 t.pos = state.Position
             } else {
                 self.log.Print("Agent ", state.Id, " performs move ", state.Position, " - ", requestedPosition)
-                moves[requestedPosition.Complex()] = 1
+                moves[requestedPosition.Complex()] = state.Id
                 t.pos = requestedPosition
             }
             
