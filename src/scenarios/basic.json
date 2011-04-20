@@ -1,0 +1,17 @@
+{
+    "Address": "127.0.0.1:8000",
+    "Logs": [
+        ["stdout", ".*"],
+        ["file", "results.txt", ".*"]
+    ],
+    "Coordinators": {
+        "127.0.0.1:8001": [
+            ["file", "c1.txt"]
+        ]
+    },
+    "Agents": {
+        "127.0.0.1:8002": [
+            ["file", "a1.txt"]
+        ]
+    }
+}

@@ -111,7 +111,7 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
 
         transforms[i] = t
     }
-
+    
     self.log.Println("\n---------- Ending Resolve -----------\n\n")
     return transforms, messages, myMessages, newAgents
 }

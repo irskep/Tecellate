@@ -9,8 +9,11 @@ MASTER MAIN
 
 package main
 
-import "fmt"
+import (
+    "master"
+    "os"
+)
 
 func main() {
-    fmt.Println("master/main.go")
+    master.New(os.Args)
 }
