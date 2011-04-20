@@ -26,7 +26,9 @@ type Config struct {
     Agents []*AgentDefinition
     MessageStyle string     // boolean|noise|none
     UseFood bool
+    
     Logs LogConfigList
+    Peers map[string]int
 
     BottomLeft *geo.Point
     TopRight *geo.Point
@@ -40,6 +42,7 @@ func NewConfig(id int, addr string, maxTurns int, agents []*AgentDefinition, sty
                    MessageStyle: style,
                    UseFood: food,
                    Logs: make(LogConfigList, 0),
+                   Peers: make(map[string]int),
                    BottomLeft: bl,
                    TopRight: tr,
     }

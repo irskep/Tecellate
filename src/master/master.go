@@ -23,9 +23,10 @@ import (
 // Config types
 
 type CoordConfig struct {
+    Identifier int
     BottomLeft *geo.Point
     TopRight *geo.Point
-    Peers []*string
+    Peers []string
     Logs coordconf.LogConfigList
     Agents []*coordconf.AgentDefinition
 }
@@ -39,8 +40,8 @@ type AgentConfig struct {
 
 type MasterConfig struct {
     Logs coordconf.LogConfigList
-    Coordinators map[string]CoordConfig
-    Agents map[string]AgentConfig
+    Coordinators map[string]*CoordConfig
+    Agents map[string]*AgentConfig
     MaxTurns int
     MessageStyle string
     UseFood bool
@@ -81,7 +82,8 @@ func New(args []string) *Master {
 }
 
 func (self *Master) ConnectToCoords() {
-    self.conf.fillInAgentLists()
+    self.conf.fillInData()
+    self.log.Print(self.conf.Coordinators)
     self.importCoordChannels()
     self.sendCoordConfigs()
     self.sendGo()
@@ -118,13 +120,15 @@ func (self *Master) importCoordChannels() {
 }
 
 func (self *Master) sendCoordConfigs() {
-    var currentId int = 0
     for address, cc := range(self.conf.Coordinators) {
-        currentId += 1
-        
         self.log.Print("Configuring ", address)
         
-        thisConf := coordconf.NewConfig(currentId,
+        peers := make(map[string]int)
+        for _, peerAddress := range(cc.Peers) {
+            peerConf := self.conf.Coordinators[peerAddress]
+            peers[peerAddress] = peerConf.Identifier
+        }
+        thisConf := coordconf.NewConfig(cc.Identifier,
                                         address,
                                         self.conf.MaxTurns,
                                         cc.Agents,
@@ -132,6 +136,8 @@ func (self *Master) sendCoordConfigs() {
                                         self.conf.UseFood,
                                         cc.BottomLeft,
                                         cc.TopRight)
+        thisConf.Logs = cc.Logs
+        thisConf.Peers = peers
         
         bytes, err := json.Marshal(thisConf)
         if err != nil {
@@ -154,15 +160,18 @@ func (self *Master) sendGo() {
     }
 }
 
-func (self *MasterConfig) fillInAgentLists() {
+func (self *MasterConfig) fillInData() {
+    currentCoordId := 0
     for _, coordConf := range(self.Coordinators) {
+        currentCoordId += 1
+        coordConf.Identifier = currentCoordId
         coordConf.Agents = make([]*coordconf.AgentDefinition, 0)
         bl := coordConf.BottomLeft
         tr := coordConf.TopRight
-        var currentId uint32 = 0
+        var currentAgentId uint32 = 0
         for _, agentConf := range(self.Agents) {
-            currentId += 1
-            agentConf.Id = currentId
+            currentAgentId += 1
+            agentConf.Id = currentAgentId
             ap := agentConf.Position
             if bl.X <= ap.X && ap.X < tr.X && bl.Y <= ap.Y && ap.Y < tr.Y {
                 ad := coordconf.NewAgentDefinition(agentConf.Id, ap.X, ap.Y, agentConf.Energy)
