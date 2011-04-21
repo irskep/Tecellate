@@ -49,6 +49,8 @@ type Master struct {
     log logflow.Logger
     coordSendChannels map[string]coordrunner.CoordComm
     coordRecvChannels map[string]coordrunner.CoordComm
+    agentSendChannels map[string]agent.AgentComm
+    agentRecvChannels map[string]agent.AgentComm
 }
 
 func New(args []string) *Master {
@@ -79,7 +81,9 @@ func (self *Master) ConnectToCoords() {
     self.conf.fillInData()
     self.log.Print(self.conf.Coordinators)
     self.importCoordChannels()
+    self.importAgentChannels()
     self.sendCoordConfigs()
+    self.sendAgentConfigs()
     self.sendConnect()
     self.sendGo()
     self.log.Print("Done")
@@ -95,14 +99,14 @@ func (self *Master) importCoordChannels() {
 
         imp := util.MakeImporterWithRetry("tcp", address, 10, self.log)
 
-        self.log.Print("Importing master_req")
+        self.log.Print("Importing coord master_req")
 
     	err := imp.Import("master_req", ch_send, netchan.Send, 1)
     	if err != nil {
     	    self.log.Fatal(err)
     	}
 
-        self.log.Print("Importing master_rsp")
+        self.log.Print("Importing coord master_rsp")
 
     	err = imp.Import("master_rsp", ch_recv, netchan.Recv, 1)
     	if err != nil {
@@ -111,6 +115,34 @@ func (self *Master) importCoordChannels() {
         
         self.coordSendChannels[address] = ch_send
         self.coordRecvChannels[address] = ch_recv
+    }
+}
+
+func (self *Master) importAgentChannels() {
+    self.agentSendChannels = make(map[string]agent.AgentComm, len(self.conf.Agents))
+    self.agentRecvChannels = make(map[string]agent.AgentComm, len(self.conf.Agents))
+    for address, _ := range(self.conf.Agents) {
+        ch_send := make(agent.AgentComm)
+        ch_recv := make(agent.AgentComm)
+
+        imp := util.MakeImporterWithRetry("tcp", address, 10, self.log)
+
+        self.log.Print("Importing agent master_req")
+
+    	err := imp.Import("master_req", ch_send, netchan.Send, 1)
+    	if err != nil {
+    	    self.log.Fatal(err)
+    	}
+
+        self.log.Print("Importing agent master_rsp")
+
+    	err = imp.Import("master_rsp", ch_recv, netchan.Recv, 1)
+    	if err != nil {
+    	    self.log.Fatal(err)
+    	}
+        
+        self.agentSendChannels[address] = ch_send
+        self.agentRecvChannels[address] = ch_recv
     }
 }
 
@@ -148,6 +180,24 @@ func (self *Master) sendCoordConfigs() {
     }
 }
 
+func (self *Master) sendAgentConfigs() {
+    for address, ac := range(self.conf.Agents) {
+        self.log.Print("Configuring ", address)
+        
+        bytes, err := json.Marshal(ac)
+        if err != nil {
+            self.log.Fatal(err)
+        }
+        self.agentSendChannels[address] <- bytes
+        
+        self.log.Println("Waiting for response")
+        rsp := <- self.coordRecvChannels[address]   // "ok"
+        if string(rsp) != "configured" {
+            self.log.Fatal("Coordinator at ", address, " failed: ", string(bytes))
+        }
+    }
+}
+
 func (self *Master) sendConnect() {
     for address, _ := range(self.coordSendChannels) {
         self.log.Print("Sending connect to ", address)
@@ -160,6 +210,10 @@ func (self *Master) sendConnect() {
 }
 
 func (self *Master) sendGo() {
+    for addr, ch_send := range(self.agentSendChannels) {
+        self.log.Print("Sending go to ", addr)
+        ch_send <- []byte("go")
+    }
     for addr, ch_send := range(self.coordSendChannels) {
         self.log.Print("Sending go to ", addr)
         ch_send <- []byte("go")

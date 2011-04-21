@@ -145,6 +145,7 @@ func RunStandalone(myAddr string, agent Agent) {
     }
     
     masterRsp <- []byte("ok")
+    <- masterReq // "go"
     
     // Ignore position and energy
     agent.SetId(aconf.Id)
