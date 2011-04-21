@@ -12,14 +12,14 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         }
 
         responses := self.peerDataForTurn(i)
-        transforms, messages, myMessages, newAgents := self.transformsForNextTurn(responses)
+        transforms, messages, myMessages := self.transformsForNextTurn(responses)
 
         // Wait for all RPC requests from peers to go through the other goroutine
         for _, _ = range(self.peers) {
             <- self.rpcRequestsReceivedConfirmation
         }
 
-        self.availableGameState.Advance(transforms, messages, myMessages, newAgents)
+        self.availableGameState.Advance(transforms, messages, myMessages)
     }
 
     self.log.Printf("Sending complete")
