@@ -133,8 +133,14 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
 // REMOTE/PRODUCTION
 
 func (self *Coordinator) NumInitialConns() int {
-    // self.log.Print(len(self.conf.Peers), ", ", len(self.conf.Agents))
-    return len(self.conf.Peers)+len(self.conf.Agents)
+    // If set up separate-process, Peers will be populated.
+    numPeers := len(self.conf.Peers)
+    // If set up in-process, rpcSendChannels will be populated.
+    // I'M SO SORRY
+    if len(self.rpcSendChannels) > numPeers {
+        numPeers = len(self.rpcSendChannels)
+    }
+    return numPeers + len(self.conf.Agents)
 }
 
 func (self *Coordinator) RunExporterInitial() {
