@@ -14,11 +14,6 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
         responses := self.peerDataForTurn(i)
         transforms, messages, myMessages, newAgents := self.transformsForNextTurn(responses)
 
-//         // Stress test to discover race conditions
-//         if (self.conf.RandomlyDelayProcessing) {
-//             time.Sleep(int64(float64(1e9)*rand.Float64()))
-//         }
-
         // Wait for all RPC requests from peers to go through the other goroutine
         for _, _ = range(self.peers) {
             <- self.rpcRequestsReceivedConfirmation
