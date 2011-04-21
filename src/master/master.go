@@ -79,7 +79,6 @@ func New(args []string) *Master {
 
 func (self *Master) ConnectToCoords() {
     self.conf.fillInData()
-    self.log.Print(self.conf.Coordinators)
     self.importCoordChannels()
     self.importAgentChannels()
     self.sendCoordConfigs()
@@ -97,7 +96,7 @@ func (self *Master) importCoordChannels() {
         ch_send := make(coordrunner.CoordComm)
         ch_recv := make(coordrunner.CoordComm)
 
-        self.log.Print("Importing coord master_req")
+        self.log.Print("Importing coord master_req from ", address)
         
         imp := util.MakeImporterWithRetry("tcp", address, 10, self.log)
         
@@ -121,6 +120,7 @@ func (self *Master) importCoordChannels() {
 func (self *Master) importAgentChannels() {
     self.agentSendChannels = make(map[string]agent.AgentComm, len(self.conf.Agents))
     self.agentRecvChannels = make(map[string]agent.AgentComm, len(self.conf.Agents))
+    self.log.Print(self.conf.Agents)
     for address, _ := range(self.conf.Agents) {
         ch_send := make(agent.AgentComm)
         ch_recv := make(agent.AgentComm)

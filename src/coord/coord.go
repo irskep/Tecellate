@@ -133,7 +133,8 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
 // REMOTE/PRODUCTION
 
 func (self *Coordinator) NumInitialConns() int {
-    return len(self.rpcSendChannels)+len(self.conf.Agents)
+    // self.log.Print(len(self.conf.Peers), ", ", len(self.conf.Agents))
+    return len(self.conf.Peers)+len(self.conf.Agents)
 }
 
 func (self *Coordinator) RunExporterInitial() {
@@ -207,6 +208,7 @@ func (self *Coordinator) PrepareCoordProxies() {
 }
 
 func (self *Coordinator) ConnectCoordProxies() {
+    self.log.Print(self.conf.Peers)
     for address, id := range(self.conf.Peers) {
         self.ConnectToRPCServer(id, address)
     }
@@ -232,6 +234,8 @@ func (self *Coordinator) ExportRemote(otherID int) {
 func (self *Coordinator) ConnectToRPCServer(otherID int, otherAddress string) {
     ch_send := make(chan game.GameStateRequest)
     ch_recv := make(chan game.GameStateResponse)
+
+    self.log.Printf("Importing coord_req_%d from %v", otherID, otherAddress)
     
     imp := util.MakeImporterWithRetry("tcp", otherAddress, 10, self.log)
 
