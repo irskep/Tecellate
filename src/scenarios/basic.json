@@ -6,7 +6,7 @@
     "Coordinators": {
         "127.0.0.1:8001": {
             "BottomLeft": {"X": 0, "Y": 0},
-            "TopRight": {"X": 20, "Y": 20},
+            "TopRight": {"X": 10, "Y": 20},
             "Peers": [
                 "127.0.0.1:8002"
             ],

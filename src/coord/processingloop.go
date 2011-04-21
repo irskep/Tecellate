@@ -28,6 +28,10 @@ func (self *Coordinator) ProcessTurns(complete chan bool) {
     }
 
     self.log.Printf("Sending complete")
+    
+    for _, a := range(self.availableGameState.Agents) {
+        a.Stop()
+    }
 
     if complete != nil {
         complete <- true

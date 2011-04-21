@@ -183,6 +183,10 @@ func (self *AgentProxy) start_turn() bool {
     return self.acked_send(link.NewMessage(link.Commands["Start"], self.state.Turn))
 }
 
+func (self *AgentProxy) Stop() {
+    self.send(link.NewMessage(link.Commands["Exit"]))
+}
+
 func (self *AgentProxy) ack_cmd(cmd link.Command) {
     self.send(link.NewMessage(link.Commands["Ack"], cmd))
 }

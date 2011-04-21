@@ -22,8 +22,8 @@ type Argument interface {
 func init() {
     Commands = make(map[string]Command)
     cmdsr = []string{
-        "Ack", "Nak", "Move", "Look", "Collect", "Listen", "Broadcast",
-        "Complete", "Start", "Exit", "PrevResult", "Id", "Energy", "Migrate", 
+        "Exit", "Ack", "Nak", "Move", "Look", "Collect", "Listen", "Broadcast",
+        "Complete", "Start", "PrevResult", "Id", "Energy", "Migrate", 
     }
     for i, cmd := range cmdsr {
         Commands[cmd] = Command(i)
