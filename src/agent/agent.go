@@ -144,7 +144,7 @@ func RunStandalone(myAddr string, agent Agent) {
         log.Fatal(err)
     }
     
-    masterRsp <- []byte("ok")
+    masterRsp <- []byte("configured")
     <- masterReq // "go"
     
     // Ignore position and energy

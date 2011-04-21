@@ -9,5 +9,7 @@ import (
 
 func main() {
     logflow.StdoutSink(".*")
-    agent.RunStandalone(os.Args[1], configurable.New(0))
+    a := configurable.New(0)
+    a.XVelocity = 1
+    agent.RunStandalone(os.Args[1], a)
 }

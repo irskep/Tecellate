@@ -97,10 +97,10 @@ func (self *Master) importCoordChannels() {
         ch_send := make(coordrunner.CoordComm)
         ch_recv := make(coordrunner.CoordComm)
 
-        imp := util.MakeImporterWithRetry("tcp", address, 10, self.log)
-
         self.log.Print("Importing coord master_req")
-
+        
+        imp := util.MakeImporterWithRetry("tcp", address, 10, self.log)
+        
     	err := imp.Import("master_req", ch_send, netchan.Send, 1)
     	if err != nil {
     	    self.log.Fatal(err)
@@ -125,9 +125,9 @@ func (self *Master) importAgentChannels() {
         ch_send := make(agent.AgentComm)
         ch_recv := make(agent.AgentComm)
 
+        self.log.Print("Importing agent master_req from ", address)
+        
         imp := util.MakeImporterWithRetry("tcp", address, 10, self.log)
-
-        self.log.Print("Importing agent master_req")
 
     	err := imp.Import("master_req", ch_send, netchan.Send, 1)
     	if err != nil {
@@ -191,9 +191,9 @@ func (self *Master) sendAgentConfigs() {
         self.agentSendChannels[address] <- bytes
         
         self.log.Println("Waiting for response")
-        rsp := <- self.coordRecvChannels[address]   // "ok"
+        rsp := <- self.agentRecvChannels[address]
         if string(rsp) != "configured" {
-            self.log.Fatal("Coordinator at ", address, " failed: ", string(bytes))
+            self.log.Fatal("Agent at ", address, " failed: ", string(bytes))
         }
     }
 }
