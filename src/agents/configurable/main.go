@@ -1,13 +1,13 @@
 package main
 
-import "logflow"
-import "agents/configurable"
-// import "agent"
+import (
+    "agent"
+    "agents/configurable"
+    "logflow"
+    "os"
+)
 
 func main() {
     logflow.StdoutSink(".*")
-    logflow.Println("main", "agents/simple/main.go")
-    cf := configurable.New(0)
-    logflow.Println("main", cf)
-    // agent.Run(cf)
+    agent.RunStandalone(os.Args[1], configurable.New(0))
 }

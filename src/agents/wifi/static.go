@@ -54,6 +54,10 @@ func (self *StaticBot) Id() uint32 {
     return self.id
 }
 
+func (self *StaticBot) SetId(i uint32) {
+    self.id = i
+}
+
 func (self *StaticBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
 

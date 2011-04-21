@@ -18,7 +18,6 @@ import (
     "logflow"
     "net"
     "netchan"
-    "os"
     "util"
 )
 
@@ -143,14 +142,18 @@ func (self *Coordinator) RunExporterInitial() {
 
 func (self *Coordinator) RunExporterBlocking(n int) {
     self.log.Print("Listening at ", self.conf.Address, " for " , n)
-    addr, _ := net.ResolveTCPAddr(self.conf.Address)
-    var err os.Error
+    
+    addr, err := net.ResolveTCPAddr(self.conf.Address)
+    if err != nil {
+        self.log.Fatal(err)
+    }
+    
     self.listener, err = net.ListenTCP(addr.Network(), addr)
     if err != nil {
         self.log.Fatal(err)
     }
     // RACE CONDITION!
-    for i := 0; i<n; i++ {
+    for i := 0; i < n; i++ {
         conn, err := self.listener.AcceptTCP()
         self.log.Print("Serving netchan export ", i, " of ", n)
         if err != nil {
@@ -198,7 +201,6 @@ func (self *Coordinator) PrepareAgentProxies() {
 }
 
 func (self *Coordinator) PrepareCoordProxies() {
-    self.log.Print("My peers are ", self.conf.Peers)
     for _, id := range(self.conf.Peers) {
         self.ExportRemote(id)
     }
@@ -213,8 +215,6 @@ func (self *Coordinator) ConnectCoordProxies() {
 func (self *Coordinator) ExportRemote(otherID int) {
     ch_recv := make(chan game.GameStateRequest)
     ch_send := make(chan game.GameStateResponse)
-    
-    self.log.Printf("Exporing to %d", otherID)
     
     err := self.Exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
     if err != nil {

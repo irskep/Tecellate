@@ -9,19 +9,32 @@ package agent
 
 import (
     "fmt"
+    "json"
     "logflow"
     "net"
     "netchan"
-    "os"
-    "time"
+    "util"
 )
 import (
     "agent/link"
+    geo "coord/geometry"
+    coordconf "coord/config"
 )
+
+type AgentComm chan []byte
+
+type AgentConfig struct {
+    Id uint32
+    Position geo.Point
+    Energy int
+    Logs coordconf.LogConfigList
+    CoordAddress string
+}
 
 type Agent interface {
     Turn(Comm)
     Id() uint32
+    SetId(uint32)
     Time() uint
 }
 
@@ -61,26 +74,11 @@ func Run(agent Agent, send link.SendLink, recv link.RecvLink) {
     panic("we had an issue.")
 }
 
-func makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
-    var err os.Error
-    for i := 0; i < 10; i++ {
-        conn, err := net.Dial(network, "", remoteaddr)
-        if err == nil {
-            return netchan.NewImporter(conn)
-        }
-        logflow.Print("agent", "Netchan import failed, retrying")
-        time.Sleep(1e9/2)
-    }
-    logflow.Print("agent", "Netchan import failed ten times. Bailing out.")
-    logflow.Fatal("agent", err)
-    return nil
-}
-
 func channelsForCoordinator(id uint32, addr string) (chan link.Message, chan link.Message) {
     ch_send := make(chan link.Message)
     ch_recv := make(chan link.Message)
 
-    imp := makeImporterWithRetry("tcp", addr)
+    imp := util.MakeImporterWithRetry("tcp", addr, 10, logflow.NewSource("agent"))
 
     logflow.Print("agent", "Importing ", fmt.Sprintf("agent_req_%d", id))
 
@@ -101,4 +99,55 @@ func channelsForCoordinator(id uint32, addr string) (chan link.Message, chan lin
 func RunWithCoordinator(agent Agent, addr string) {
     ch_send, ch_recv := channelsForCoordinator(agent.Id(), addr)
 	Run(agent, ch_send, ch_recv)
+}
+
+func RunStandalone(myAddr string, agent Agent) {
+    e := netchan.NewExporter()
+    masterReq := make(AgentComm)
+    masterRsp := make(AgentComm)
+    e.Export("master_req", masterReq, netchan.Recv)
+    e.Export("master_rsp", masterRsp, netchan.Send)
+    
+    log := logflow.NewSource("agent")
+    
+    log.Print("Listening at ", myAddr)
+    
+    addr, err := net.ResolveTCPAddr(myAddr)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    listener, err := net.ListenTCP(addr.Network(), addr)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    // RACE CONDITION!
+    conn, err := listener.AcceptTCP()
+    log.Print("Serving netchan master export")
+    if err != nil {
+        log.Fatal("listen:", err)
+    }
+    
+    conn.SetLinger(0)
+    go e.ServeConn(conn)
+    
+    log.Print("Closing listener")
+    listener.Close()
+    
+    aconf := new(AgentConfig)
+    
+    bytes := <- masterReq
+    
+    err = json.Unmarshal(bytes, aconf)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    masterRsp <- []byte("ok")
+    
+    // Ignore position and energy
+    agent.SetId(aconf.Id)
+    aconf.Logs.Apply()
+    RunWithCoordinator(agent, aconf.CoordAddress)
 }

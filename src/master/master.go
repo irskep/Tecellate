@@ -8,6 +8,7 @@ File: master/master.go
 package master
 
 import (
+    "agent"
     coordconf "coord/config"
     coordrunner "coord/runner"
     geo "coord/geometry"
@@ -31,17 +32,10 @@ type CoordConfig struct {
     Agents []*coordconf.AgentDefinition
 }
 
-type AgentConfig struct {
-    Id uint32
-    Position geo.Point
-    Energy int
-    Logs coordconf.LogConfigList
-}
-
 type MasterConfig struct {
     Logs coordconf.LogConfigList
     Coordinators map[string]*CoordConfig
-    Agents map[string]*AgentConfig
+    Agents map[string]*agent.AgentConfig
     MaxTurns int
     MessageStyle string
     UseFood bool
@@ -174,7 +168,7 @@ func (self *Master) sendGo() {
 
 func (self *MasterConfig) fillInData() {
     currentCoordId := 0
-    for _, coordConf := range(self.Coordinators) {
+    for coordAddress, coordConf := range(self.Coordinators) {
         currentCoordId += 1
         coordConf.Identifier = currentCoordId
         coordConf.Agents = make([]*coordconf.AgentDefinition, 0)
@@ -187,6 +181,7 @@ func (self *MasterConfig) fillInData() {
             ap := agentConf.Position
             if bl.X <= ap.X && ap.X < tr.X && bl.Y <= ap.Y && ap.Y < tr.Y {
                 ad := coordconf.NewAgentDefinition(agentConf.Id, ap.X, ap.Y, agentConf.Energy)
+                agentConf.CoordAddress = coordAddress
                 coordConf.Agents = append(coordConf.Agents, ad)
             }
         }

@@ -49,6 +49,10 @@ func (self *Simple) Id() uint32 {
     return self.id
 }
 
+func (self *Simple) SetId(i uint32) {
+    self.id = i
+}
+
 func (self *Simple) Time() uint {
     return 0
 }
