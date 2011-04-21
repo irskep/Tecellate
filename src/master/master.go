@@ -86,6 +86,7 @@ func (self *Master) ConnectToCoords() {
     self.log.Print(self.conf.Coordinators)
     self.importCoordChannels()
     self.sendCoordConfigs()
+    self.sendConnect()
     self.sendGo()
     self.log.Print("Done")
     time.Sleep(1e9/2)
@@ -150,6 +151,17 @@ func (self *Master) sendCoordConfigs() {
         if string(rsp) != "configured" {
             self.log.Fatal("Coordinator at ", address, " failed: ", string(bytes))
         }
+    }
+}
+
+func (self *Master) sendConnect() {
+    for address, _ := range(self.coordSendChannels) {
+        self.log.Print("Sending connect to ", address)
+        self.coordSendChannels[address] <- []byte("connect")
+    }
+    for address, _ := range(self.coordSendChannels) {
+        self.log.Print("Waiting for ", address)
+        <- self.coordRecvChannels[address]  // "ok"
     }
 }
 

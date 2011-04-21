@@ -24,6 +24,10 @@ func RunAtAddress(address string) {
     r.ExportNetchans()
     r.RunExporter()
     r.ReadConfig()
+    go r.myCoord.RunExporterBlocking(len(r.myCoord.Config().Peers))
+    <- r.masterReq // "connect"
+    r.myCoord.ConnectCoordProxies()
+    r.masterRsp <- []byte("ok")
     r.WaitForGo()
     r.log.Print("Done")
     r.Close()
@@ -59,6 +63,8 @@ func (self *CoordRunner) ReadConfig() {
         self.log.Print("Configured with ", configObj)
     }
     self.myCoord.Configure(configObj)
+    self.myCoord.PrepareAgentProxies()
+    self.myCoord.PrepareCoordProxies()
     self.masterRsp <- []byte("configured")
 }
 

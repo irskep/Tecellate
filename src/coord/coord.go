@@ -19,7 +19,7 @@ import (
     "net"
     "netchan"
     "os"
-    "time"
+    "util"
 )
 
 type Coordinator struct {
@@ -197,10 +197,25 @@ func (self *Coordinator) PrepareAgentProxies() {
     }
 }
 
+func (self *Coordinator) PrepareCoordProxies() {
+    self.log.Print("My peers are ", self.conf.Peers)
+    for _, id := range(self.conf.Peers) {
+        self.ExportRemote(id)
+    }
+}
+
+func (self *Coordinator) ConnectCoordProxies() {
+    for address, id := range(self.conf.Peers) {
+        self.ConnectToRPCServer(id, address)
+    }
+}
+
 func (self *Coordinator) ExportRemote(otherID int) {
     ch_recv := make(chan game.GameStateRequest)
     ch_send := make(chan game.GameStateResponse)
-
+    
+    self.log.Printf("Exporing to %d", otherID)
+    
     err := self.Exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
     if err != nil {
 	    self.log.Fatal(err)
@@ -214,26 +229,11 @@ func (self *Coordinator) ExportRemote(otherID int) {
 	self.AddRPCChannel(ch_send, ch_recv)
 }
 
-func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
-    var err os.Error
-    for i := 0; i < 10; i++ {
-        conn, err := net.Dial(network, "", remoteaddr)
-        if err == nil {
-            return netchan.NewImporter(conn)
-        }
-        self.log.Print("Netchan import failed, retrying")
-        time.Sleep(1e9/2)
-    }
-    self.log.Print("Netchan import failed ten times. Bailing out.")
-    self.log.Fatal(err)
-    return nil
-}
-
 func (self *Coordinator) ConnectToRPCServer(otherID int, otherAddress string) {
     ch_send := make(chan game.GameStateRequest)
     ch_recv := make(chan game.GameStateResponse)
     
-    imp := self.makeImporterWithRetry("tcp", otherAddress)
+    imp := util.MakeImporterWithRetry("tcp", otherAddress, 10, self.log)
 
 	err := imp.Import(fmt.Sprintf("coord_req_%d", self.conf.Identifier), ch_send, netchan.Send, 1)
 	if err != nil {
