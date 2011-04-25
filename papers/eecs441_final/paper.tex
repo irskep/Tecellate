@@ -25,36 +25,40 @@
     allow for very large simulations. The system allows researchers to test various wireless network
     protocols and algorithms under arbitrarily harsh conditions.
     
-     The usefulness of the simulation was tested using an approximated IP stack. Our initial results
+    The usefulness of the simulation was tested using an approximated IP stack. Our initial results
     show that the simulation produces useful information, though more work is required to improve
     its accuracy.
 \end{abstract}
 
 \section{Introduction}
 
-Network simulations have become important tools for researching mobile networks. Most research
-groups do not have the ability to purchase and use thousands of mobile devices for research and have
-thus turned to simulation. However, as many previous simulation authors have noted, simulations will
-always sacrifice some element of realism. We have decided to take a novel approach to these
-sacrifices, introducing a new way to test wireless mobile networks.
+Computer network modeling and simulation has become an important tool in the arsenal of any computer
+networks researcher. It has only become more important as increasingly research into mobile
+and autonomous devices matures. Large scale simulations of thousands to hundreds of thousands of
+devices become increasingly crucial to validate techniques without having to spend thousands of
+dollars on costly equipment. To support such simulations we present Tecellate, a horizontally
+scalable distributed network simulator.
 
 Tecellate simulates the physical layer of the network. All \textbf{agents} (actors in the
-simulation) have a ``radio'' that sends and receives byte strings. These byte strings may be
-corrupted, so agents must ensure that their link level connectivity is accurate. The simulation
-includes complications like interference from other sources and exponential drop-off of power as
-agents move away from the source of a transmission.
+simulation) have a ``radio'' to send and receive byte strings. To approximate the real world, these
+byte strings may be probabilistically corrupted as a function of distance and interference. To
+provide reliable communication between arbitrary agents, users must implement the link, IP, and
+transport layers. As a resource to users wishing to model the traditional TCP/IP stack the authors
+provide a partial implementation up to the IP layer.\footnote{
+  We hope to expand this implementation to include the TCP and UDP transport layers as well.
+}
 
 In the physical world, devices move around with purpose and transmit with purpose. We assert that
 the same should be true in a simulation. However, modeling the purpose of actual people is not
-feasible. Instead, we propose to give the agents an alternative purpose: to stay alive. Each agent
-has to ``eat'' to survive. Each turn, it may eat a unit of food if its current location contains
-food. If it runs out of energy, it dies. The goal of the agents is to stay alive as long as
-possible. Thus, it must find sources of food within the simulation. This game-like element provides
-the agents with goals and a purpose for communication.
+possible. Therefore, the simulation gives the agents an alternative purpose: to stay alive. Each
+agent has to ``eat'' in order to survive. Each turn, each agent may eat a unit of food if its
+current location contains food. If it runs out of food, it dies. The goal of the agents is to stay
+alive as long as possible. Thus, it must find sources of food within the simulation. This game-like
+element provides the agents with goals and a purpose for communication.
 
 As wireless networks become more widespread, the number of participants in a given network will
 grow. Simulations that are not scalable may become too slow to simulate important test cases. For
-this reason, Tecellate is designed to scale neatly across many machines.
+this reason, Tecellate is designed to scale horizontally across many machines.
 
 By modeling the communication at the physical layer and adding game-like elements to our simulation,
 we hope to provide an interesting test bed for networking and AI algorithms. The game-like element
