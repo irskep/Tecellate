@@ -92,13 +92,18 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
         if state.Alive && state.Move.Valid {
             if state.Wait == 0 && !state.Move.Position.IsZero() {
                 requestedPosition := *state.Move.Position.Add(state.Position)
-                if occ, has := moves[requestedPosition.Complex()]; occ != state.Id && has {
+                impassible := (self.availableGameState.Terrain.ValueAt(requestedPosition) == -1)
+                occ, has := moves[requestedPosition.Complex()]
+                if impassible || (occ != state.Id && has) {
                     self.log.Print("Agent ", state.Id, " fails move ", state.Position, " - ", requestedPosition)
                     t.pos = state.Position
                 } else {
                     self.log.Print("Agent ", state.Id, " performs move ", state.Position, " - ", requestedPosition)
                     moves[requestedPosition.Complex()] = state.Id
                     t.pos = requestedPosition
+                }
+                if !impassible {
+                    t.wait = uint16(self.availableGameState.Terrain.ValueAt(t.pos))
                 }
             }
             
