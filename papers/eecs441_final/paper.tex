@@ -1,0 +1,51 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{url}
+
+\title{Tecellate: A Distributed Environment for Ad Hoc Wireless Network Simulations}
+\author{
+        Steve Johnson (srj15@case.edu)\\
+        Case Western Reserve University\\
+        \and Tim Henderson (tah35@case.edu)\\
+        Case Western Reserve University
+}
+\date{\today}
+
+\begin{document}
+\doublespacing
+\maketitle
+
+% \begin{multicols}{2}
+
+\begin{abstract}
+    We want to build a simulation of a world in which autonomous agents can communicate using semi-realistic radio signals. The simulation itself can be distributed over multiple machines to allow for very large simulations. The purpose will be to test wireless ad-hoc network routing algorithms under arbitrarily harsh conditions.
+    This project will be based on work done in the fall of 2010 in EECS 423 (Distributed Systems). The current implementation allows for very rudimentary setup and movement but not much else.
+\end{abstract}
+
+\section{Introduction}
+
+Network simulations have become important tools for researching mobile networks. Most research groups do not have the ability to purchase and use thousands of mobile devices for research and have thus turned to simulation. However, as many previous simulation authors have noted, simulations will always sacrifice some element of realism. We have decided to take a novel approach in these sacrifices adding a new way to test wireless mobile networks.
+
+The simulation we propose to develop would operate at the link layer. All \textbf{agents}, the actors in the simulation, have a radio that sends and receives bytes. Thus, unlike the real world where the radio would have to convert the radio waves to a digital signal, in the simulation this is assumed to be done for you. However, it is up the agents to ensure that their link level connectivity is accurate. The simulation includes complications like interference from other sources and exponential drop-off of power as agents move away from the source of a transmission.
+
+In the physical world, devices move around with purpose and transmit with purpose. We assert that the same should be true in a simulation. However, modeling the purpose of actual people is not feasible. Instead, we propose to give the agents an alternative purpose: to stay alive. Each agent has to ``eat'' to survive. Each turn, it eats a unit of food. If it runs of food, it dies. The goal of the agents is to stay alive as long as possible. Thus, it must find sources of food within the simulation. This game-like element provides the agents with goals and a purpose for communication.
+
+By modeling the communication at the link layer and adding game like elements to our simulation, we hope to provide an interesting test bed for networking and AI algorithms. The game-like element in our simulation will help ensure the agents move around purposefully in the simulation grid. The link layer simulation ensures that the communication problems which must be overcome for reliable communication are similar to real world problems. While, we do not think our simulation approach would be the final word in networks simulation, it should provide a useful platform for experimentation.
+
+\input{litsurvey}
+
+\input{world}
+
+\input{current}
+
+\input{distributed}
+
+\input{conclusion}
+
+\nocite{*}
+\bibliographystyle{acm}
+\bibliography{bibliography}
+
+\end{document}

@@ -1,10 +1,5 @@
-*.backup
-*.swp
 *.aux
 *.bbl
 *.blg
 *.log
 paper.pdf
-*.6
-*.8
-*.a
