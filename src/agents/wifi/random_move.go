@@ -49,6 +49,10 @@ func (self *RandomBot) Id() uint32 {
     return self.id
 }
 
+func (self *RandomBot) SetId(i uint32) {
+    self.id = i
+}
+
 func (self *RandomBot) Turn(comm agent.Comm) {
     defer func(){self.time += 1}()
 

@@ -9,8 +9,12 @@ MASTER MAIN
 
 package main
 
-import "fmt"
+import (
+    "master"
+    "os"
+)
 
 func main() {
-    fmt.Println("master/main.go")
+    m := master.New(os.Args)
+    m.ConnectToCoords()
 }

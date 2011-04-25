@@ -18,8 +18,7 @@ import (
     "logflow"
     "net"
     "netchan"
-    "os"
-    "time"
+    "util"
 )
 
 type Coordinator struct {
@@ -28,7 +27,7 @@ type Coordinator struct {
     rpcSendChannels []chan game.GameStateResponse
     rpcRecvChannels []chan game.GameStateRequest
     conf *config.Config
-    exporter *netchan.Exporter
+    Exporter *netchan.Exporter
     listener *net.TCPListener
 
     // RPC server threads send an ints down this channel representing
@@ -55,7 +54,8 @@ func NewCoordinator() *Coordinator {
                         peers: make([]*CoordinatorProxy, 0),
                         rpcSendChannels: make([]chan game.GameStateResponse, 0),
                         rpcRecvChannels: make([]chan game.GameStateRequest, 0),
-                        exporter: netchan.NewExporter(),
+                        conf: &config.Config{},
+                        Exporter: netchan.NewExporter(),
                         rpcRequestsReceivedConfirmation: make(chan int),
                         nextTurnAvailableSignals: make([]chan int, 0),
                         log: logflow.NewSource("coord/?")}
@@ -63,9 +63,14 @@ func NewCoordinator() *Coordinator {
 
 func (self *Coordinator) Configure(conf *config.Config) {
     self.conf = conf
+    self.conf.Logs.Apply()
     self.availableGameState.Configure(conf)
     self.log = logflow.NewSource(fmt.Sprintf("coord/%d", conf.Identifier))
     self.log.Printf("Configured")
+}
+
+func (self *Coordinator) Config() *config.Config {
+    return self.conf
 }
 
 func (self *Coordinator) Run() {
@@ -127,27 +132,42 @@ func (self *Coordinator) ConnectToLocal(other *Coordinator) {
 
 // REMOTE/PRODUCTION
 
-func (self *Coordinator) RunExporter(n int) {
-    go self.RunExporterBlocking(n)
+func (self *Coordinator) NumInitialConns() int {
+    // If set up separate-process, Peers will be populated.
+    numPeers := len(self.conf.Peers)
+    // If set up in-process, rpcSendChannels will be populated.
+    // I'M SO SORRY
+    if len(self.rpcSendChannels) > numPeers {
+        numPeers = len(self.rpcSendChannels)
+    }
+    return numPeers + len(self.conf.Agents)
+}
+
+func (self *Coordinator) RunExporterInitial() {
+    go self.RunExporterBlocking(self.NumInitialConns())
 }
 
 func (self *Coordinator) RunExporterBlocking(n int) {
     self.log.Print("Listening at ", self.conf.Address, " for " , n)
-    addr, _ := net.ResolveTCPAddr(self.conf.Address)
-    var err os.Error
+    
+    addr, err := net.ResolveTCPAddr(self.conf.Address)
+    if err != nil {
+        self.log.Fatal(err)
+    }
+    
     self.listener, err = net.ListenTCP(addr.Network(), addr)
     if err != nil {
         self.log.Fatal(err)
     }
     // RACE CONDITION!
-    for i := 0; i<n; i++ {
+    for i := 0; i < n; i++ {
         conn, err := self.listener.AcceptTCP()
         self.log.Print("Serving netchan export ", i, " of ", n)
         if err != nil {
             self.log.Fatal("listen:", err)
         }
         conn.SetLinger(0)
-        go self.exporter.ServeConn(conn)
+        go self.Exporter.ServeConn(conn)
     }
     self.log.Print("Closing listener")
     self.listener.Close()
@@ -159,14 +179,14 @@ func (self *Coordinator) NewProxy(s *cagent.AgentState) cagent.Agent {
 
     self.log.Print("Exporting ", fmt.Sprintf("agent_rsp_%d", s.Id))
 
-    err := self.exporter.Export(fmt.Sprintf("agent_rsp_%d", s.Id), p2a, netchan.Send)
+    err := self.Exporter.Export(fmt.Sprintf("agent_rsp_%d", s.Id), p2a, netchan.Send)
     if err != nil {
         self.log.Fatal(err)
     }
 
     self.log.Print("Exporting ", fmt.Sprintf("agent_req_%d", s.Id))
 
-    err = self.exporter.Export(fmt.Sprintf("agent_req_%d", s.Id), a2p, netchan.Recv)
+    err = self.Exporter.Export(fmt.Sprintf("agent_req_%d", s.Id), a2p, netchan.Recv)
     if err != nil {
         self.log.Fatal(err)
     }
@@ -187,16 +207,29 @@ func (self *Coordinator) PrepareAgentProxies() {
     }
 }
 
+func (self *Coordinator) PrepareCoordProxies() {
+    for _, id := range(self.conf.Peers) {
+        self.ExportRemote(id)
+    }
+}
+
+func (self *Coordinator) ConnectCoordProxies() {
+    self.log.Print(self.conf.Peers)
+    for address, id := range(self.conf.Peers) {
+        self.ConnectToRPCServer(id, address)
+    }
+}
+
 func (self *Coordinator) ExportRemote(otherID int) {
     ch_recv := make(chan game.GameStateRequest)
     ch_send := make(chan game.GameStateResponse)
-
-    err := self.exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
+    
+    err := self.Exporter.Export(fmt.Sprintf("coord_req_%d", otherID), ch_recv, netchan.Recv)
     if err != nil {
 	    self.log.Fatal(err)
 	}
 
-    err = self.exporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
+    err = self.Exporter.Export(fmt.Sprintf("coord_rsp_%d", otherID), ch_send, netchan.Send)
 	if err != nil {
 	    self.log.Fatal(err)
 	}
@@ -204,26 +237,13 @@ func (self *Coordinator) ExportRemote(otherID int) {
 	self.AddRPCChannel(ch_send, ch_recv)
 }
 
-func (self *Coordinator) makeImporterWithRetry(network string, remoteaddr string) *netchan.Importer {
-    var err os.Error
-    for i := 0; i < 10; i++ {
-        conn, err := net.Dial(network, "", remoteaddr)
-        if err == nil {
-            return netchan.NewImporter(conn)
-        }
-        self.log.Print("Netchan import failed, retrying")
-        time.Sleep(1e9/2)
-    }
-    self.log.Print("Netchan import failed ten times. Bailing out.")
-    self.log.Fatal(err)
-    return nil
-}
-
 func (self *Coordinator) ConnectToRPCServer(otherID int, otherAddress string) {
     ch_send := make(chan game.GameStateRequest)
     ch_recv := make(chan game.GameStateResponse)
+
+    self.log.Printf("Importing coord_req_%d from %v", otherID, otherAddress)
     
-    imp := self.makeImporterWithRetry("tcp", otherAddress)
+    imp := util.MakeImporterWithRetry("tcp", otherAddress, 10, self.log)
 
 	err := imp.Import(fmt.Sprintf("coord_req_%d", self.conf.Identifier), ch_send, netchan.Send, 1)
 	if err != nil {

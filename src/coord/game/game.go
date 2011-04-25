@@ -55,7 +55,7 @@ func NewGameState() *GameState {
     }
 }
 
-func (self *GameState) Advance(transforms []cagent.Transform, messages *Messages, myMessages *Messages, newAgents []cagent.Agent) {
+func (self *GameState) Advance(transforms []cagent.Transform, messages *Messages, myMessages *Messages) {
     self.Turn += 1
     
     for i, agent := range(self.Agents) {
@@ -78,9 +78,6 @@ func (self *GameState) Advance(transforms []cagent.Transform, messages *Messages
         } else {
             self.upForAdoption = append(self.upForAdoption, agent)
         }
-    }
-    for _, agent := range(newAgents) {
-        allNewAgents = append(allNewAgents, agent)
     }
     
     self.Agents = allNewAgents

@@ -50,6 +50,10 @@ func (self *Configurable) Id() uint32 {
     return self.id
 }
 
+func (self *Configurable) SetId(i uint32) {
+    self.id = i
+}
+
 func (self *Configurable) Time() uint {
     return 0
 }
