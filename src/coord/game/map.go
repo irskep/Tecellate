@@ -1,5 +1,9 @@
 package game
 
+import (
+    geo "coord/geometry"
+)
+
 type Map struct {
     Values [][]int
     Width uint
@@ -18,4 +22,8 @@ func (self *Map) Copy() *Map {
         }
     }
     return newMap
+}
+
+func (self *Map) ValueAt(p geo.Point) int {
+    return 20   // chosen by random dice roll
 }

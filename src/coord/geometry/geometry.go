@@ -28,6 +28,10 @@ func (self *Point) Add(other Point) *Point {
     }
 }
 
+func (self *Point) IsZero() bool {
+    return (self.X == 0 && self.Y == 0)
+}
+
 func (self *Point) Distance(other Point) float64 {
     dx := float64(self.X - other.X)
     dy := float64(self.Y - other.Y)

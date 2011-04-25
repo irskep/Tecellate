@@ -90,14 +90,16 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
         }
 
         if state.Alive && state.Move.Valid {
-            requestedPosition := *state.Move.Position.Add(state.Position)
-            if occupant, has := moves[requestedPosition.Complex()]; occupant != state.Id && has {
-                self.log.Print("Agent ", state.Id, " fails move ", state.Position, " - ", requestedPosition)
-                t.pos = state.Position
-            } else {
-                self.log.Print("Agent ", state.Id, " performs move ", state.Position, " - ", requestedPosition)
-                moves[requestedPosition.Complex()] = state.Id
-                t.pos = requestedPosition
+            if state.Wait == 0 && !state.Move.Position.IsZero() {
+                requestedPosition := *state.Move.Position.Add(state.Position)
+                if occ, has := moves[requestedPosition.Complex()]; occ != state.Id && has {
+                    self.log.Print("Agent ", state.Id, " fails move ", state.Position, " - ", requestedPosition)
+                    t.pos = state.Position
+                } else {
+                    self.log.Print("Agent ", state.Id, " performs move ", state.Position, " - ", requestedPosition)
+                    moves[requestedPosition.Complex()] = state.Id
+                    t.pos = requestedPosition
+                }
             }
             
             for _, msg := range state.Move.Messages {
