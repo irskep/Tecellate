@@ -25,56 +25,42 @@ These cases are shown in figure \ref{mvt}.
     \label{mvt}
 \end{figure*}
 
-It may seem more intuitive for both moves in case 3 to succeed, i.e. a move $Z\rightarrow Y$ should
-succeed if agent $A$ moves $X\rightarrow Y$. However, allowing this case would introduce large
-dependency graphs that would span a large geographical area. This kind of dependency graph would
-greatly reduce the effectiveness of our horizontal scaling scheme based on geographical partitioning
-described later in this paper.
+It may seem more intuitive for both moves in case 3 to succeed, i.e. a move $Z\rightarrow Y$ by $A$
+should succeed if agent $B$ moves $X\rightarrow Y$. However, allowing this case would introduce
+large dependency graphs that would span a large geographical area. This kind of dependency graph
+would greatly reduce the effectiveness of our horizontal scaling scheme based on geographical
+partitioning described later in this paper.
 
 \subsection{Messages}
 
-The broadcast messages agents can send are a simpilification of radio communication. There are $N$
-frequencies an agent can broadcast on or listen too. An agent may broadcast a message of 1024 bytes
-on a single frequency. The agent may also listen for messages on $M$ frequencies each turn where $M
-\leq N$.
+Tecellate simulates radio communication. There are $N$ frequencies an agent can broadcast on or
+listen too. An agent may broadcast a fixed number of bytes on a frequency and/or listen on a
+frequency. If an agent listens to the same frequency it broadcasts to and no interference is
+introduced, the agent will hear its own broadcast at the beginning of the next turn.
 
 Like radio communication, the messages broadcast decay over distance. When an agent listens to a
 frequency, the agent always recieves data. However, if no one is broadcasting on that frequency, the
-agent will recieve random data. Since the message decays over distance, even if an agent hears it
+agent will recieve random data. Since the message decays over distance, even if an agent hears it,
 some parts of the message may be corrupted. The farther away a listener is from a sender, the more
 corruption is in the message.
 
-Finally, if more than one message can be heard from the same position, the messages will be combined
+Finally, if more than one message can be heard from the same position, the messages are combined
 probabilistically.
 
-% Finally, if messages cross each other the following algorithm will be used to resolve the
-% conflict. First, for each message the message will be corrupted based on its distance to its source,
-% just as in the single broadcaster senario. Then, for each bit in each message their will be a
-% probability K that the bit will be heard. The probablity will also be based on the distance to the
-% source of the message. All of the bits that are heard are XORed together creating a composite
-% message. If not bit are heard for a particular bit location a random value is chosen for that bit.
+\subsection{Energy and Death}
 
-\subsection{Perception}
+An agent spends 1 unit of energy per turn. If it runs out of energy, it dies. It remains on the
+field but cannot take any actions.
 
-Agents may or may not be informed of their global position in the world. They also have some way of
-``seeing'' nearby agents.
+Energy gathering has not been implemented but will be an important feature in the future. It was
+skipped for this stage of the project because it is simple to implement.
 
-\subsection{Food}
+\subsection{Planned Features}
 
-Agents must search the grid to find food. If their coordinator calculates that their food counter is
-below zero, they disappear from the grid.
+In general, agents are unable to perceive the world. In particular, agents cannot ``see'' terrain or
+other agents. We are investigating ways to provide perceptions to agents in a way that match
+artificial intelligence expectations well, but felt that the specifics were out of scope for this
+project.
 
-\section{Usefulness of the Simulation}
-
-The simulation provides a close enough approximation of the real world to allow testing of
-high-level coordination algorithms to be tested using a very simple API.
-
-The rules for movement (1 delayed turn per cell height difference) and perception provide an
-opportunity to experiment with pathfinding algorithms in an environment where little information
-outside a limited area is available, similar to the conditions of the DARPA autonomous vehicle
-events.
-
-The rules for communication force agents to communicate with distant agents by passing messages
-through nearby agents, creating ad-hoc wireless networks. Our messaging system is meant to model the
-difficulties of real world radio communication. This will make our simulation a useful tool for
-simulating adhoc wireless networks allowing protocol research to be conducted without hardware.
+As mentioned earlier, energy cannot be gathered, only spent. Agents begin the simulation with fixed
+and equal amounts of energy, which makes the energy feature useless in its current state.
