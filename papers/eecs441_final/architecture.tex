@@ -86,3 +86,51 @@ problem of assigning many application instances to many servers, but in addition
 distribute CPU and memory load evenly, we are also trying keep traffic between coordinators to a
 minimum. It would take another paper to describe an effective algorithm to accomplish this goal, and
 probably a simulator-simulator to test it.
+
+\subsection{Use of the Go Programming Language}
+
+This project would have been much more difficult without the use of the new programming language Go.
+First released by Google in November 2009 \cite{go_new}, Go is a systems programming language with
+C-like syntax, garbage collection, concurrency primitives, basic object orientation, and lightweight
+threads. This code example shows the unique features of Go that made Tecellate easier to write:
+
+\begin{tscode}
+\begin{verbatim}
+package main
+
+import "fmt"
+
+func main() {
+    // Declare two "channels", one for strings (for communication) and 
+    //      another one to serve as a mutex to allow the main thread 
+    //      to wait until the other threads finish before exiting
+    comm := make(chan string)
+    can_exit := make(chan bool)
+    
+    // Start a thread that sends a message down the communication channel
+    go func(send_chan chan string) {
+        send_chan <- "hello"
+    }(comm)
+    
+    // Start another thread that receives the message and tells the
+    //      main thread to exit
+    go func(recv_chan chan string, done chan bool) {
+        val := <- recv_chan
+        fmt.Printf("Received from sender: '%v'\n", val)
+        done <- true
+    }(comm, can_exit)
+    
+    // Wait for the receive thread to signal exit
+    <- can_exit
+}
+\end{verbatim}
+\end{tscode}
+
+This code snippet demonstrates \textbf{goroutines} and \textbf{channels}. A goroutine is a
+lightweight thread that is scheduled by the runtime. A channel is a thread-safe way to pass data
+from one point to another. The code snippet demonstrates the use of one channel to pass a string to
+display, and another channel to act as a mutex to stop the main thread from exiting before all work
+is complete.
+
+The standard library provides a way to attach a channel to a TCP connection. This library is what
+allows us to easily switch between local and distributed modes of operation.
