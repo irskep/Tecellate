@@ -43,11 +43,21 @@ another, the agent connects to the coordinator responsible for the new section.
 
 \subsection{Coordinator Implementation Details}
 
-There are two main types of threads associated with each coordinator. One kind of thread (A-thread) requests agent data from neighbors, and then applies the simulation rules to the agents's previous states based on their requested actions and the states of the agents at the neighbor coordinators. There is only one of these threads. The other kind of thread (B-thread) serves requests for agent information from neighbors, and there is one of these for each neighbor ($|N|$).
+There are two main types of threads associated with each coordinator. One kind of thread (A-thread)
+requests agent data from neighbors, and then applies the simulation rules to the agents's previous
+states based on their requested actions and the states of the agents at the neighbor coordinators.
+There is only one of these threads. The other kind of thread (B-thread) serves requests for agent
+information from neighbors, and there is one of these for each neighbor ($|N|$).
 
-The A-thread and the B-threads communicate using two semaphores, \textbf{turnAvailable} and \textbf{requestsServed}. The A-thread signals \textbf{turnAvailable} $|N|$ times when a turn has been processed, and the B-threads each wait on it before serving a new request. When a B-thread has served a request, it signals \textbf{requestsServed}. The A-thread waits on \textbf{requestsServed} before it begins processing a new turn to avoid overwriting data that B-threads are still serving. The system starts with \textbf{turnAvailable} unlocked for the B-threads.
+The A-thread and the B-threads communicate using two semaphores, \textbf{turnAvailable} and
+\textbf{requestsServed}. The A-thread signals \textbf{turnAvailable} $|N|$ times when a turn has
+been processed, and the B-threads each wait on it before serving a new request. When a B-thread has
+served a request, it signals \textbf{requestsServed}. The A-thread waits on \textbf{requestsServed}
+before it begins processing a new turn to avoid overwriting data that B-threads are still serving.
+The system starts with \textbf{turnAvailable} unlocked for the B-threads.
 
-This system allows processing and RPC serving to run in parallel, with processing running one step ahead of RPC serving.
+This system allows processing and RPC serving to run in parallel, with processing running one step
+ahead of RPC serving.
 
 \subsection{Issues and Possible Improvements}
 
