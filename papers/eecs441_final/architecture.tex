@@ -59,10 +59,28 @@ The system starts with \textbf{turnAvailable} unlocked for the B-threads.
 This system allows processing and RPC serving to run in parallel, with processing running one step
 ahead of RPC serving.
 
+Processing a turn (in the A-thread) involves exchanging messages with each agent to get its moves
+for the next turn. This may happen over TCP or in-memory communication channels depending on the
+mode of operation.
+
 \subsection{Issues and Possible Improvements}
 
-This problem could be solved by allowing the master process to dynamically reallocate the space
-assigned to each coordinator. \textbf{This dynamic reassignment is very similar to the problem of
-assigning many application instances to many servers,} but in addition to simply trying to
-distribute CPU and memory load evenly, we are also trying to reduce the traffic between servers
-which must pass data to each other (agent broadcasts) for the simulation to be correct.
+The biggest issue with the current implementation is that distributed communication via TCP is
+orders of magnitude slower than communication in memory. While this limiation is not surprising, it
+is probably possible to improve communication speed by switching to a UDP-based protocol.
+
+The application is highly multithreaded even within individual components. A modest run will have 40
+or more threads. These are not OS-level threads but rather lightweight runtime-level threads.
+Despite their lightweight nature, a large proportion are waiting for input most of the time, for
+example to serve an RPC request. Our educated guess is that 60\% of threads are in this state at any
+given moment. These threads may be wasting more CPU cycles than necessary when they are scheduled.
+
+Performance improves when the language runtime is instructed to split the threads across multiple
+CPU cores, but when this is done, a major memory leak manifests which makes the system unusable.
+This memory leak may be caused by the language runtime, but we are still investigating the issue.
+
+If agents cluster in one geographic area, one coordinator may have a significantly higher burden
+than the others. This problem could be solved by allowing the master process to dynamically
+reallocate the space assigned to each coordinator. This dynamic reassignment is very similar
+to the problem of assigning many application instances to many servers, but in addition to simply
+trying to distribute CPU and memory load evenly, we are also trying keep traffic between coordinators to a minimum. It would take another paper to describe an effective algorithm to accomplish this goal, and probably a simulator-simulator to test it.
