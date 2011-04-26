@@ -1,6 +1,11 @@
 \section{System Architecture}
 
-\begin{figure*}[h!]
+The system can operate in one of two modes. In local mode, the simulation runs in one process with a
+scenario defined in code. The remote mode is described below.
+
+\subsection{Distributed Architecture}
+
+\begin{figure*}
     \begin{center}
         \includegraphics[width=3in]{figures/arch0.pdf}
     \end{center}
@@ -8,16 +13,11 @@
     \label{arch}
 \end{figure*}
 
-Part of this project will include dynamically balancing the load of communication between agents and
-coordinators. There are at least three possible approaches to this problem in the context of this
-simulation.
+In order to support simulations on the scale of millions of agents, Tecellate can be run in a
+distributed mode on many machines. Individual components communicate via TCP. The architecture of
+this distributed version is shown in figure \ref{arch}.
 
-The simplest way to assign agents to coordinators is to assign a constant number of agents to each
-agent coordinator at random or based on some positioning heuristic. No agents will ever change their
-coordinators. This strategy would create significant overhead from passing messages between agents
-on separate coordinators.
-
-\begin{figure*}[h!]
+\begin{figure*}
     \begin{center}
         \includegraphics[width=3in]{figures/arch1.png}
     \end{center}
@@ -25,11 +25,31 @@ on separate coordinators.
     \label{geoarch}
 \end{figure*}
 
-A more efficient strategy would be to assign each coordinator a section of the grid and have
-coordinators hand off responsibility for agents at the borders between coordinators. This way,
-coordinators would only need to exchange agent messages when the agents are near coordinator
-borders. One downside of this strategy is that some coordinators may be responsible for many more
-agents than others if agents cluster in a few areas.
+Agents are run in individual processes. In order to interact with the simulation, they connect to a
+\textbf{coordinator}. Coordinators are responsible for evaluating discrete grid sections each turn
+and communicating their results to each other when relevant. The organization of a square grid
+section is shown in figure \ref{geoarch}.
+
+The simulation starts with all agent and coordinator processes waiting and listening at individual
+addresses. A master process reads a configuration file with their addresses and initial states,
+sends information about how to connect to each other, waits for the connections to finish, and
+instructs the coordinators to begin the simulation. It then exits and the other processes log
+simulation data to configurable log files.
+
+Each coordinator is responsible for a rectangular section of the grid. These sections are assigned
+at the start of the simulation and do not change. Coordinators are connected with neighbor
+coordinators that share adjacent grid sections. When an agent moves from one grid section to
+another, the agent connects to the coordinator responsible for the new section.
+
+\subsection{Coordinator Implementation Details}
+
+There are two main types of threads associated with each coordinator. One kind of thread (A-thread) requests agent data from neighbors, and then applies the simulation rules to the agents's previous states based on their requested actions and the states of the agents at the neighbor coordinators. There is only one of these threads. The other kind of thread (B-thread) serves requests for agent information from neighbors, and there is one of these for each neighbor ($|N|$).
+
+The A-thread and the B-threads communicate using two semaphores, \textbf{turnAvailable} and \textbf{requestsServed}. The A-thread signals \textbf{turnAvailable} $|N|$ times when a turn has been processed, and the B-threads each wait on it before serving a new request. When a B-thread has served a request, it signals \textbf{requestsServed}. The A-thread waits on \textbf{requestsServed} before it begins processing a new turn to avoid overwriting data that B-threads are still serving. The system starts with \textbf{turnAvailable} unlocked for the B-threads.
+
+This system allows processing and RPC serving to run in parallel, with processing running one step ahead of RPC serving.
+
+\subsection{Issues and Possible Improvements}
 
 This problem could be solved by allowing the master process to dynamically reallocate the space
 assigned to each coordinator. \textbf{This dynamic reassignment is very similar to the problem of
