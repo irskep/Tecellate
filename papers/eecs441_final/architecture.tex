@@ -5,7 +5,7 @@
         \includegraphics[width=3in]{figures/arch0.pdf}
     \end{center}
     \caption{Basic architecture of the system.}
-    \label{mvt}
+    \label{arch}
 \end{figure*}
 
 Part of this project will include dynamically balancing the load of communication between agents and
@@ -16,6 +16,14 @@ The simplest way to assign agents to coordinators is to assign a constant number
 agent coordinator at random or based on some positioning heuristic. No agents will ever change their
 coordinators. This strategy would create significant overhead from passing messages between agents
 on separate coordinators.
+
+\begin{figure*}[h!]
+    \begin{center}
+        \includegraphics[width=3in]{figures/arch1.png}
+    \end{center}
+    \caption{Grid-based method for distributing work across coordinators}
+    \label{geoarch}
+\end{figure*}
 
 A more efficient strategy would be to assign each coordinator a section of the grid and have
 coordinators hand off responsibility for agents at the borders between coordinators. This way,
