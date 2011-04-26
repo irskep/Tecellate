@@ -47,6 +47,7 @@ func (self *Coordinator) transformsForNextTurn(peers []*game.GameStateResponse) 
     agents := self.availableGameState.Agents
     transforms := make([]cagent.Transform, len(agents))
     
+    // This can probably be parallelized!
     self.doTurns(agents)
 
     // for each agent
