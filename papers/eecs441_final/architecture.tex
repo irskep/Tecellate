@@ -81,6 +81,8 @@ This memory leak may be caused by the language runtime, but we are still investi
 
 If agents cluster in one geographic area, one coordinator may have a significantly higher burden
 than the others. This problem could be solved by allowing the master process to dynamically
-reallocate the space assigned to each coordinator. This dynamic reassignment is very similar
-to the problem of assigning many application instances to many servers, but in addition to simply
-trying to distribute CPU and memory load evenly, we are also trying keep traffic between coordinators to a minimum. It would take another paper to describe an effective algorithm to accomplish this goal, and probably a simulator-simulator to test it.
+reallocate the space assigned to each coordinator. This dynamic reassignment is very similar to the
+problem of assigning many application instances to many servers, but in addition to simply trying to
+distribute CPU and memory load evenly, we are also trying keep traffic between coordinators to a
+minimum. It would take another paper to describe an effective algorithm to accomplish this goal, and
+probably a simulator-simulator to test it.
