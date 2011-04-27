@@ -12,7 +12,7 @@ turns before it may make another move.
 
 An agent's move may succeed or fail. If an agent tries to move into an impassible cell, it will
 fail. It will also fail if it tries to move into a cell that was occupied by another agent at the
-end of the last turn, \textbf{or} a cell that another agent attemps to move into in the same turn.
+end of the last turn, \textbf{or} a cell that another agent attempts to move into in the same turn.
 These cases are shown in figure \ref{mvt}.
 
 \begin{figure*}[h!]
@@ -38,14 +38,37 @@ listen too. An agent may broadcast a fixed number of bytes on a frequency and/or
 frequency. If an agent listens to the same frequency it broadcasts to and no interference is
 introduced, the agent will hear its own broadcast at the beginning of the next turn.
 
-Like radio communication, the messages broadcast decay over distance. When an agent listens to a
-frequency, the agent always recieves data. However, if no one is broadcasting on that frequency, the
-agent will recieve random data. Since the message decays over distance, even if an agent hears it,
-some parts of the message may be corrupted. The farther away a listener is from a sender, the more
-corruption is in the message.
+\begin{figure*}[h!]
+    \begin{center}
+        \includegraphics[width=6in]{figures/corrupt.png}
+    \end{center}
+    \caption{The probability of a byte being corrupted as a function of how far from the receiver
+        the byte was broadcast.}
+    \label{corrupt}
+\end{figure*}
 
-Finally, if more than one message can be heard from the same position, the messages are combined
-probabilistically.
+Like radio communication, the messages broadcast decay over distance. When an agent listens to a
+frequency, the agent always receives data. However, if no one is broadcasting on that frequency, the
+agent will receive random data. Since the message decays over distance, even if an agent hears it,
+some parts of the message may be corrupted. The farther away a listener is from a sender, the more
+corruption is in the message. As shown in Figure \ref{corrupt}, depending on the strength of the
+broadcast, the message is less and less likely to be uncorrupted the farther the receiver is from
+the transmitter.
+
+\begin{figure*}[h!]
+    \begin{center}
+        \includegraphics[width=6in]{figures/combine.png}
+    \end{center}
+    \caption{The probability of a byte being combined into the received message as a function of
+        how far from the receiver the byte was broadcast.}
+    \label{combine}
+\end{figure*}
+
+Corruption of a message can also occur if more than one message is broadcast on the same frequency.
+Figure \ref{combine} shows the probability that a byte will be heard by the receiver. If it is heard
+it is logically anded with other bytes also heard. Thus, if there are two messages broadcast and the
+receiver is close to one of the transmitters but far from the other there is a very low probability
+of interference.
 
 \subsection{Energy and Death}
 
