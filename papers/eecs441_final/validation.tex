@@ -31,5 +31,47 @@ removed from the neighbors table.
 
 \subsection{The IP Layer}
 
+The IP layer implements a routing infrastructure to support agent to agent message exchange even
+when the agents are not adjacent to one another. At the heart of this is an active ROUTE
+announcement protocol and the distance vector routing algorithm. This is a fairly simplistic (and
+naive) routing infrastructure however, it demonstrates the efficacy of the simulation for simulating
+adhoc mobile networks.
 
+The IP layer like the link layer implements a packet structure (termed hence forth as an IP
+Datagram). The structure is similar too the link layer's packet and includes a redundant error
+checking code. However, in addition to the to/from addresses it also includes a Time to Live (TTL)
+field. There are only two message types at the IP layer messages and acknowledgements. Messages are
+sent between any two agents in the network. Acknowledgements are sent only to direct neighbors to
+confirm the receipt of the previous message sent. 
+
+To build the route tables each agent periodically broadcasts its current routing table. Initially,
+the routing table only consists of the agents and it direct neighbors. However, as an agent hears
+more routes over time the agent adds the routes to its routing table based on the distance vector
+protocol. Eventually, if the agents don't move about the distance vector algorithm is guaranteed to
+converge on the optimal routing table. However, since the agents may move about without regard for
+such concerns this approach to building routing tables is sub-optimal.
+
+\subsection{Simulation Results}
+
+To validate the simulator the authors ran several simulations using agents which communicated with
+one another via the above described networking stack. The authors concluded two things from these
+simulations. 1) Writing a network stack is difficult and ours performs poorly in the mobility
+setting. 2) The simulator was effective in allowing the authors to test and debug the networking
+stack.
+
+\subsubsection{Poor Performance of the Example Network Stack}
+
+The example network stack performs very poorly. The routing tables are very slow to converge even
+with as few as 8 agents connected in a static line. From the experiments run it took anywhere from
+500 to 1000 turns for the tables to converge. For comparison the neighbors table converged in 10 to
+20 turns. Link layer messages conflicted which each other 17\% of the time, requiring the agents to
+back off and resend their messages. This lead to even worse performance at the IP layer when sending
+point to point messages between distant agents.
+
+\subsubsection{Efficacy of Simulator}
+
+The simulator was an effective and quick way to build a networking stack. The above stack was
+written in less than 3 days and while it performs poorly it works. The authors feel confident that
+with more performance and usability (API) improvements the simulator will be a very friendly
+environment for network programming. 
 
