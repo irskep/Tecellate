@@ -1,4 +1,35 @@
 \section{Validation}
 
-iaweofiaw efoaw iefj
+To validate the efficacy of our simulation the authors implemented a simplified network stack. The
+physical layer is simulated by the simulation itself as described earlier. Since the physical layer
+does not provide reliable communication between neighbors the link layer solves the problem of
+making neighbor to neighbor communication reliable. Finally, the IP layer uses a simple active
+routing protocol to deliver messages between any two connected agents in the network.
+
+\subsection{The Link Layer}
+
+The link layer provides reliable neighbor to neighbor communication as well as a ``HELLO'' protocol
+for agents to announce their presence. Link layer packets have a simple structure. The first byte is
+a command byte indicating what type of packet it is. The next four bytes are the physical address of
+the sending agent (in this case the simulation assigned GUID). The following four bytes are the
+physical address of the intended recipient. The body section is flexible in length and comes next.
+The final 4 bytes are an error checking code.
+
+To implement the error checking code the authors chose the 32 bit Cyclical Redundancy Check (CRC32)
+using the IEEE polynomial. This is the same error checking code as used in the Ethernet protocol.
+The CRC32 hash seems to be reliable enough for the purposes of this validation. 
+
+\subsubsection{The HELLO Protocol}
+
+In order for agents to find their neighbors an active introduction protocol was implemented. The
+messages are transmitted at the link layer using a special link layer packet type (HELLO).
+Periodically throughout the simulation an agent will transmit a HELLO packet to let its neighbors
+know it is there. Each agent also listens for messages and records the HELLO's it has received in a
+table together with a time out field. If it hears another message from an agent it has previously
+heard from it refreshes the table with a new time out. When a neighbor's entry has timed out it is
+removed from the neighbors table.
+
+\subsection{The IP Layer}
+
+
 
